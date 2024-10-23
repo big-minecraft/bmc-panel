@@ -1,0 +1,24 @@
+{
+    "name": "node_react_startup_structure_server",
+    "version": "1.0.0",
+    "description": "The server for the Node React Startup Structure",
+    "main": "app.js",
+    "scripts": {
+        "start": "node app.js",
+        "dev": "nodemon app.js"
+    },
+    "author": "Anthony Rivas",
+    "license": "MIT",
+    "devDependencies": {
+        "nodemon": "^1.19.4"
+    },
+    "dependencies": {
+        "@kubernetes/client-node": "^0.22.1",
+        "cors": "^2.8.5",
+        "express": "^4.17.1",
+        "morgan": "^1.9.1",
+        "path": "^0.12.7",
+        "ws": "^8.18.0",
+        "react-router-dom": "^6.27.0"
+    }
+}
