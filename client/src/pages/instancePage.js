@@ -1,18 +1,20 @@
-import {useParams} from "react-router-dom";
-import React, {useEffect, useState} from "react";
+import { useParams } from "react-router-dom";
+import React, { useEffect, useState, useRef } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-function InstancePage({ instances }) {
+function InstancePage({ instances, proxies }) {
     const { instanceName } = useParams();
     const [logs, setLogs] = useState('');
     const [command, setCommand] = useState('');
     const [ws, setWs] = useState(null);
     const [instance, setInstance] = useState(null);
+    const logsEndRef = useRef(null);
 
     useEffect(() => {
-        const currentInstance = instances.find(inst => inst.name === instanceName);
+        const allInstances = [...instances, ...proxies];
+        const currentInstance = allInstances.find(inst => inst.name === instanceName);
         setInstance(currentInstance);
-    }, [instanceName, instances]);
+    }, [instanceName, instances, proxies]);
 
     useEffect(() => {
         if (!instance) return;
@@ -50,10 +52,22 @@ function InstancePage({ instances }) {
         };
     }, [instanceName, instance]);
 
+    useEffect(() => {
+        if (logsEndRef.current) {
+            logsEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [logs]);
+
     const handleCommandSubmit = () => {
         if (ws && command) {
             ws.send(JSON.stringify({ command }));
             setCommand('');
+        }
+    };
+
+    const handleKeyPress = (event) => {
+        if (event.key === 'Enter') {
+            handleCommandSubmit();
         }
     };
 
@@ -75,6 +89,7 @@ function InstancePage({ instances }) {
             <div className="card bg-dark text-light mb-3" style={{ height: '400px', overflowY: 'auto' }}>
                 <div className="card-body">
                     <pre className="m-0">{logs}</pre>
+                    <div ref={logsEndRef} />
                 </div>
             </div>
 
@@ -84,6 +99,7 @@ function InstancePage({ instances }) {
                     className="form-control"
                     value={command}
                     onChange={(e) => setCommand(e.target.value)}
+                    onKeyPress={handleKeyPress}
                     placeholder="Enter command here"
                 />
                 <button className="btn btn-primary" onClick={handleCommandSubmit}>Send Command</button>

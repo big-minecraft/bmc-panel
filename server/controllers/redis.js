@@ -39,7 +39,30 @@ async function getInstances() {
     }
 }
 
+async function getProxies() {
+    const client = await redisPool.acquire();
+    try {
+        // Fetch all instances from the hash
+        const proxiesData = await client.hgetall('proxies');
+
+        // Parse each JSON string back into an object
+        return Object.entries(proxiesData).map(([uid, jsonString]) => {
+            const proxy = JSON.parse(jsonString);
+            return {
+                uid,
+                ...proxy
+            };
+        });
+    } catch (error) {
+        console.error('Failed to fetch proxies:', error);
+        throw error;
+    } finally {
+        await redisPool.release(client);
+    }
+}
+
 module.exports = {
     redisPool,
-    getInstances
+    getInstances,
+    getProxies
 }

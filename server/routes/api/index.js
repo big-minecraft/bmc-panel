@@ -9,9 +9,9 @@ router.route('/')
 
 router.route('/json')
   .get(controller.getJson);
-router.route('/servers')
-    .get(controller.getPods);
 router.route('/instances')
     .get(controller.getInstances);
+router.route('/proxies')
+    .get(controller.getProxies);
 
 module.exports = router;

@@ -1,5 +1,4 @@
-const {getPods} = require("../k8s");
-const {getInstances} = require("../redis");
+const {getInstances, getProxies} = require("../redis");
 module.exports = {
     getMain: (req, res) => {
         res.send('Welcome to API v1.');
@@ -9,12 +8,12 @@ module.exports = {
         const rand = randArr[Math.floor(Math.random() * randArr.length)];
         res.json({test: rand});
     },
-    getPods: async (req, res) => {
-        const pods = await getPods("default");
-        res.json(pods);
-    },
     getInstances: async (req, res) => {
         const instances = await getInstances();
         res.json(instances);
+    },
+    getProxies: async (req, res) => {
+        const proxies = await getProxies();
+        res.json(proxies);
     }
 };
