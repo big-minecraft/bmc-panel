@@ -43,6 +43,19 @@ const AppContent = React.forwardRef(({ instances, proxies }, ref) => {
         </svg>
     );
 
+    // Group instances by gamemode
+    const instancesByGamemode = instances.reduce((acc, instance) => {
+        const gamemode = instance.gamemode || 'Unknown';
+        if (!acc[gamemode]) {
+            acc[gamemode] = [];
+        }
+        acc[gamemode].push(instance);
+        return acc;
+    }, {});
+
+    // Sort gamemodes alphabetically
+    const sortedGamemodes = Object.keys(instancesByGamemode).sort();
+
     return (
         <div ref={ref} className="min-vh-100 bg-light p-4">
             <Link to="/" className="btn position-absolute top-0 start-0 m-3" style={{ backgroundColor: 'white', border: '1px solid black', color: 'black' }}>Big Minecraft</Link>
@@ -78,29 +91,35 @@ const AppContent = React.forwardRef(({ instances, proxies }, ref) => {
                         ))}
                     </div>
                     <div className="list-group">
-                        <h2 className="h5">Instances</h2>
-                        {instances.map((instance, index) => (
-                            <Link
-                                key={index}
-                                to={`/instance/${instance.name}`}
-                                state={{ instance }}
-                                className="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-pill mb-2"
-                                style={{ textDecoration: 'none' }}
-                            >
-                                <div>
-                                    <h5 className="mb-0">{instance.name}</h5>
-                                    {instance.description && (
-                                        <small className="text-muted">
-                                            {instance.description}
-                                        </small>
-                                    )}
-                                </div>
-                                <div className="d-flex align-items-center">
-                                    {userIcon}
-                                    <span className="ms-2">{instance.players.length}</span>
-                                    <span className="text-muted ms-2">&rarr;</span>
-                                </div>
-                            </Link>
+                        {sortedGamemodes.map((gamemode) => (
+                            <div key={gamemode} className="mb-4">
+                                <h2 className="h5">
+                                    {gamemode.charAt(0).toUpperCase() + gamemode.slice(1)}
+                                </h2>
+                                {instancesByGamemode[gamemode].map((instance, index) => (
+                                    <Link
+                                        key={index}
+                                        to={`/instance/${instance.name}`}
+                                        state={{ instance }}
+                                        className="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-pill mb-2"
+                                        style={{ textDecoration: 'none' }}
+                                    >
+                                        <div>
+                                            <h5 className="mb-0">{instance.name}</h5>
+                                            {instance.description && (
+                                                <small className="text-muted">
+                                                    {instance.description}
+                                                </small>
+                                            )}
+                                        </div>
+                                        <div className="d-flex align-items-center">
+                                            {userIcon}
+                                            <span className="ms-2">{instance.players.length}</span>
+                                            <span className="text-muted ms-2">&rarr;</span>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
                         ))}
                     </div>
                 </div>

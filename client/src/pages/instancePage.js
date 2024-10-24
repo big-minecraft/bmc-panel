@@ -77,6 +77,13 @@ function InstancePage({ instances, proxies }) {
 
     return (
         <div className="container mt-4">
+            <style>
+                {`
+                    .log-pre {
+                        white-space: pre-wrap;
+                    }
+                `}
+            </style>
             <h1 className="text-center">{instanceName}</h1>
 
             <div className="mb-3">
@@ -88,7 +95,7 @@ function InstancePage({ instances, proxies }) {
 
             <div className="card bg-dark text-light mb-3" style={{ height: '400px', overflowY: 'auto' }}>
                 <div className="card-body">
-                    <pre className="m-0">{logs}</pre>
+                    <pre className="m-0 log-pre">{logs}</pre>
                     <div ref={logsEndRef} />
                 </div>
             </div>
