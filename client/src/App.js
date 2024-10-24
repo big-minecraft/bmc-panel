@@ -4,13 +4,13 @@ import './App.css';
 import axios from 'axios';
 
 function App() {
-    const [pods, setPods] = useState([]);
+    const [instances, setInstances] = useState([]);
     const ref = useRef(null);
 
     useLayoutEffect(() => {
-        axios.get('/api/servers')
+        axios.get('/api/instances')
             .then(res => {
-                setPods(res.data);
+                setInstances(res.data);
             })
             .catch(err => {
                 console.error(err);
@@ -20,33 +20,45 @@ function App() {
     return (
         <Router>
             <div ref={ref}>
-                {pods.map((pod, index) => (
-                    <Link key={index} to={`/pod/${pod.metadata.name}`}>
+                {instances.map((instance, index) => (
+                    <Link key={index} to={`/instance/${instance.name}`} state={{ instance }}>
                         <button>
-                            {pod.metadata.name}
+                            {instance.name}
                         </button>
                     </Link>
                 ))}
             </div>
             <Routes>
-                <Route path="/pod/:podName" element={<PodPage />} />
+                <Route
+                    path="/instance/:instanceName"
+                    element={<InstancePage instances={instances} />}
+                />
             </Routes>
         </Router>
     );
 }
 
-function PodPage() {
-    const { podName } = useParams();
+function InstancePage({ instances }) {
+    const { instanceName } = useParams();
     const [logs, setLogs] = useState('');
     const [command, setCommand] = useState('');
     const [ws, setWs] = useState(null);
+    const [instance, setInstance] = useState(null);
 
     useEffect(() => {
+        // Find the matching instance
+        const currentInstance = instances.find(inst => inst.name === instanceName);
+        setInstance(currentInstance);
+    }, [instanceName, instances]);
+
+    useEffect(() => {
+        if (!instance) return;
+
         setLogs('');
 
         const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
         const wsHost = window.location.host;
-        const wsUrl = `${wsProtocol}://${wsHost.replace(':3000', ':3001')}/logs/${podName}`;
+        const wsUrl = `${wsProtocol}://${wsHost.replace(':3000', ':3001')}/logs/${instance.podName}`;
 
         const socket = new WebSocket(wsUrl);
 
@@ -73,7 +85,7 @@ function PodPage() {
         return () => {
             socket.close();
         };
-    }, [podName]);
+    }, [instanceName, instance]);
 
     const handleCommandSubmit = () => {
         if (ws && command) {
@@ -82,9 +94,22 @@ function PodPage() {
         }
     };
 
+    if (!instance) {
+        return <div>Loading...</div>;
+    }
+
     return (
         <div>
-            <h1>{podName}</h1>
+            <h1>{instanceName}</h1>
+            {/* Display instance details */}
+            <div>
+                <h3>Instance Details:</h3>
+                <p>UID: {instance.uid}</p>
+                <p>Pod Name: {instance.podName}</p>
+                <p>IP: {instance.ip}</p>
+                {/* Add any other instance properties you want to display */}
+            </div>
+
             <pre style={{ background: '#000', color: '#00FF00', height: '400px', overflow: 'auto' }}>
                 {logs}
             </pre>

@@ -3,10 +3,9 @@ const { Agent } = require("https");
 const request = require('request');
 const { setupPodLogs } = require('./logService');
 const { executeCommand } = require('./commandService');
+const { kc } = require('../controllers/k8s');
 
 async function handlePodConnection(ws, req, podName) {
-    const kc = new k8s.KubeConfig();
-    kc.loadFromFile(process.env.HOME + '/.kube/config');
     const cluster = kc.getCurrentCluster();
     const user = kc.getCurrentUser();
 

@@ -1,4 +1,5 @@
 const {getPods} = require("../k8s");
+const {getInstances} = require("../redis");
 module.exports = {
     getMain: (req, res) => {
         res.send('Welcome to API v1.');
@@ -11,5 +12,9 @@ module.exports = {
     getPods: async (req, res) => {
         const pods = await getPods("default");
         res.json(pods);
+    },
+    getInstances: async (req, res) => {
+        const instances = await getInstances();
+        res.json(instances);
     }
 };

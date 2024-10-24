@@ -1,0 +1,9 @@
+{
+  "redis": {
+    "host": "localhost",
+    "port": 6379
+  },
+  "k8s": {
+    "configPath": "~/.kube/config'"
+  }
+}
