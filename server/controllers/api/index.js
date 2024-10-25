@@ -23,7 +23,6 @@ module.exports = {
     getGamemodes: async (req, res) => {
         try {
             const gamemodes = await getGamemodes();
-            console.log(gamemodes);
             res.json(gamemodes);
         } catch (error) {
             res.status(500).json({ error: 'Failed to fetch gamemodes' });

@@ -1,6 +1,8 @@
 const config = require('../config.json');
 const path = require('path');
 const { readdirSync, unlinkSync, promises: { readFile, writeFile, rename, copyFile } } = require("fs");
+const yaml = require('js-yaml');
+const {scaleDeployment} = require("./k8s");
 
 async function getGamemodes() {
     const workingDir = config["bmc-path"] + "/gamemodes";
@@ -13,7 +15,10 @@ async function getGamemodes() {
             if (file.endsWith(".yaml")) {
                 const name = file.split(".")[0];
                 const filePath = path.join(workingDir, file);
-                const isEnabled = !file.startsWith('disabled-');
+
+                const fileContent = await readFile (filePath, 'utf8');
+                const yamlContent = yaml.load(fileContent);
+                const isEnabled = !yamlContent.disabled;
 
                 gamemodes.push({
                     name: name,
@@ -33,7 +38,6 @@ async function getGamemodeContent(name) {
     const workingDir = config["bmc-path"] + "/gamemodes";
     let filePath = path.join(workingDir, `${name}.yaml`);
 
-    // Check for disabled version if enabled version doesn't exist
     if (!await fileExists(filePath)) {
         filePath = path.join(workingDir, `disabled-${name}.yaml`);
     }
@@ -50,7 +54,6 @@ async function updateGamemodeContent(name, content) {
     const workingDir = config["bmc-path"] + "/gamemodes";
     let filePath = path.join(workingDir, `${name}.yaml`);
 
-    // Check for disabled version if enabled version doesn't exist
     if (!await fileExists(filePath)) {
         filePath = path.join(workingDir, `disabled-${name}.yaml`);
     }
@@ -66,19 +69,32 @@ async function updateGamemodeContent(name, content) {
 
 async function toggleGamemode(name, enabled) {
     const workingDir = config["bmc-path"] + "/gamemodes";
-    const enabledPath = path.join(workingDir, `${name}.yaml`);
-    const disabledPath = path.join(workingDir, `disabled-${name}.yaml`);
+    const filePath = path.join(workingDir, `${name}.yaml`);
 
     try {
+        let fileContent = await readFile(filePath, 'utf8');
+        let yamlContent = yaml.load(fileContent);
+
+        if (enabled) delete yamlContent.disabled;
+        else yamlContent.disabled = true;
+
+        fileContent = yaml.dump(yamlContent);
+        await writeFile(filePath, fileContent, 'utf8');
+
         if (enabled) {
-            await rename(disabledPath, enabledPath);
+            const minimumInstances = yamlContent.minimumInstances || 1; // Default to 1 if not set
+            await scaleDeployment(name, minimumInstances);
         } else {
-            await rename(enabledPath, disabledPath);
+            await scaleDeployment(name, 0);
         }
     } catch (error) {
+        console.error('Error in toggleGamemode:', error);
         throw new Error('Failed to toggle gamemode');
     }
+
+    // await runApplyScript();
 }
+
 
 async function deleteGamemode(name)  {
     const workingDir = config["bmc-path"] + "/gamemodes";
@@ -140,7 +156,7 @@ async function runApplyScript() {
             return;
         }
 
-        console.log(`stdout: ${stdout}`);
+        // console.log(`stdout: ${stdout}`);
         console.error(`stderr: ${stderr}`);
     });
 }

@@ -61,8 +61,9 @@ const AppContent = React.forwardRef(({ instances, proxies }, ref) => {
     return (
         <div ref={ref} className="min-vh-100 bg-light p-4">
             <div className="d-flex justify-content-start gap-2 mb-4">
-                <Link to="/" className="btn" style={{ backgroundColor: 'white', border: '1px solid black', color: 'black' }}>Big Minecraft</Link>
-                <Link to="/gamemodes" className="btn" style={{ backgroundColor: 'white', border: '1px solid black', color: 'black' }}>Gamemodes</Link>
+                <Link to="/" className="btn" style={{ backgroundColor: 'white', border: '1px solid black', color: 'black' }} onClick={() => {
+                    window.location.href = '/';
+                }}>Big Minecraft</Link>                <Link to="/gamemodes" className="btn" style={{ backgroundColor: 'white', border: '1px solid black', color: 'black' }}>Gamemodes</Link>
             </div>
             {location.pathname === '/' && (
                 <div className="container">

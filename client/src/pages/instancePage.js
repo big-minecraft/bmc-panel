@@ -86,14 +86,7 @@ function InstancePage({ instances, proxies }) {
             </style>
             <h1 className="text-center">{instanceName}</h1>
 
-            <div className="mb-3">
-                <h3>Instance Details:</h3>
-                <p><strong>UID:</strong> {instance.uid}</p>
-                <p><strong>Pod Name:</strong> {instance.podName}</p>
-                <p><strong>IP:</strong> {instance.ip}</p>
-            </div>
-
-            <div className="card bg-dark text-light mb-3" style={{ height: '400px', overflowY: 'auto' }}>
+            <div className="card bg-dark text-light mb-3" style={{ height: '630px', overflowY: 'auto', marginTop: "100px"}}>
                 <div className="card-body">
                     <pre className="m-0 log-pre">{logs}</pre>
                     <div ref={logsEndRef} />
@@ -110,6 +103,17 @@ function InstancePage({ instances, proxies }) {
                     placeholder="Enter command here"
                 />
                 <button className="btn btn-primary" onClick={handleCommandSubmit}>Send Command</button>
+            </div>
+
+            <div className="card mb-3">
+                <div className="card-header">
+                    <h3>Instance Details</h3>
+                </div>
+                <div className="card-body">
+                    <p><strong>Pod Name:</strong> {instance.podName}</p>
+                    <p><strong>IP:</strong> {instance.ip}</p>
+                    <p><strong>Players:</strong> {instance.players.length}</p>
+                </div>
             </div>
         </div>
     );
