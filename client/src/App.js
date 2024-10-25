@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react
 import { InstancePage } from './pages/instancePage';
 import axios from "axios";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import GamemodesPage from "./pages/gamemodesPage";
+import GamemodeEditPage from "./pages/gamemodeEditPage";
 
 function App() {
     const [instances, setInstances] = useState([]);
@@ -58,42 +60,51 @@ const AppContent = React.forwardRef(({ instances, proxies }, ref) => {
 
     return (
         <div ref={ref} className="min-vh-100 bg-light p-4">
-            <Link to="/" className="btn position-absolute top-0 start-0 m-3" style={{ backgroundColor: 'white', border: '1px solid black', color: 'black' }}>Big Minecraft</Link>
+            <div className="d-flex justify-content-start gap-2 mb-4">
+                <Link to="/" className="btn" style={{ backgroundColor: 'white', border: '1px solid black', color: 'black' }}>Big Minecraft</Link>
+                <Link to="/gamemodes" className="btn" style={{ backgroundColor: 'white', border: '1px solid black', color: 'black' }}>Gamemodes</Link>
+            </div>
             {location.pathname === '/' && (
                 <div className="container">
                     <h1 className="display-4 text-center mb-4">
                         Instance Manager
                     </h1>
-                    <div className="list-group mb-4">
-                        <h2 className="h5">Proxies</h2>
-                        {proxies.map((proxy, index) => (
-                            <Link
-                                key={index}
-                                to={`/proxy/${proxy.name}`}
-                                state={{ proxy }}
-                                className="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-pill mb-2"
-                                style={{ textDecoration: 'none' }}
-                            >
-                                <div>
-                                    <h5 className="mb-0">{proxy.name}</h5>
-                                    {proxy.description && (
-                                        <small className="text-muted">
-                                            {proxy.description}
-                                        </small>
-                                    )}
-                                </div>
-                                <div className="d-flex align-items-center">
-                                    {userIcon}
-                                    <span className="ms-2">{proxy.players.length}</span>
-                                    <span className="text-muted ms-2">&rarr;</span>
-                                </div>
-                            </Link>
-                        ))}
+
+                    <div className="row g-4 mb-4">
+                        <div className="col-12">
+                            <h2 className="h5 mb-3">Proxies</h2>
+                            {proxies.map((proxy, index) => (
+                                <Link
+                                    key={index}
+                                    to={`/proxy/${proxy.name}`}
+                                    state={{ proxy }}
+                                    className="text-decoration-none"
+                                >
+                                    <div className="card mb-3">
+                                        <div className="card-body d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h5 className="card-title mb-1">{proxy.name}</h5>
+                                                {proxy.description && (
+                                                    <p className="card-text text-muted small mb-0">
+                                                        {proxy.description}
+                                                    </p>
+                                                )}
+                                            </div>
+                                            <div className="d-flex align-items-center">
+                                                {userIcon}
+                                                <span className="ms-2">{proxy.players.length}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
                     </div>
-                    <div className="list-group">
+
+                    <div className="row g-4">
                         {sortedGamemodes.map((gamemode) => (
-                            <div key={gamemode} className="mb-4">
-                                <h2 className="h5">
+                            <div key={gamemode} className="col-12">
+                                <h2 className="h5 mb-3">
                                     {gamemode.charAt(0).toUpperCase() + gamemode.slice(1)}
                                 </h2>
                                 {instancesByGamemode[gamemode].map((instance, index) => (
@@ -101,21 +112,23 @@ const AppContent = React.forwardRef(({ instances, proxies }, ref) => {
                                         key={index}
                                         to={`/instance/${instance.name}`}
                                         state={{ instance }}
-                                        className="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-pill mb-2"
-                                        style={{ textDecoration: 'none' }}
+                                        className="text-decoration-none"
                                     >
-                                        <div>
-                                            <h5 className="mb-0">{instance.name}</h5>
-                                            {instance.description && (
-                                                <small className="text-muted">
-                                                    {instance.description}
-                                                </small>
-                                            )}
-                                        </div>
-                                        <div className="d-flex align-items-center">
-                                            {userIcon}
-                                            <span className="ms-2">{instance.players.length}</span>
-                                            <span className="text-muted ms-2">&rarr;</span>
+                                        <div className="card mb-3">
+                                            <div className="card-body d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h5 className="card-title mb-1">{instance.name}</h5>
+                                                    {instance.description && (
+                                                        <p className="card-text text-muted small mb-0">
+                                                            {instance.description}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <div className="d-flex align-items-center">
+                                                    {userIcon}
+                                                    <span className="ms-2">{instance.players.length}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </Link>
                                 ))}
@@ -125,6 +138,8 @@ const AppContent = React.forwardRef(({ instances, proxies }, ref) => {
                 </div>
             )}
             <Routes>
+                <Route path="/gamemodes" element={<GamemodesPage />} />
+                <Route path="/gamemodes/:gamemodeName/edit" element={<GamemodeEditPage />} />
                 <Route
                     path="/instance/:instanceName"
                     element={<InstancePage instances={instances} proxies={proxies} />}

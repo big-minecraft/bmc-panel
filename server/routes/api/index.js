@@ -13,5 +13,13 @@ router.route('/instances')
     .get(controller.getInstances);
 router.route('/proxies')
     .get(controller.getProxies);
+router.route('/gamemodes')
+    .get(controller.getGamemodes)
+    .post(controller.createGamemode);
+router.route('/gamemodes/:name')
+    .get(controller.getGamemodeContent)
+    .put(controller.updateGamemodeContent)
+    .patch(controller.toggleGamemode)
+    .delete(controller.deleteGamemode);
 
 module.exports = router;
