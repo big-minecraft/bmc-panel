@@ -5,6 +5,8 @@ const router = require('./routes');
 const { setupWebSocket } = require('./services/websocketService');
 const {join} = require("path");
 const {existsSync} = require("fs");
+const {databaseInit} = require("./controllers/database");
+const {authInit} = require("./controllers/authentication");
 
 const app = express();
 const server = http.createServer(app);
@@ -54,4 +56,8 @@ const validateConfig = () => {
     };
     checkMissingKeys(exampleConfig, config);
 };
+
 validateConfig();
+
+databaseInit();
+authInit();

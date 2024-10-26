@@ -1,5 +1,6 @@
 const { getInstances, getProxies } = require("../redis");
 const { getGamemodes, getGamemodeContent, updateGamemodeContent, toggleGamemode, deleteGamemode, createGamemode} = require("../gamemodes");
+const { register, verify, verifyLogin, login} = require("../authentication");
 
 module.exports = {
     // Existing controllers
@@ -79,6 +80,51 @@ module.exports = {
         } catch (error) {
             res.status(500).json({error: 'Failed to create gamemode'});
         }
-    }
+    },
+
+    register: async (req, res) => {
+        const { username, password } = req.body;
+        try {
+            const data_url = await register(username, password);
+            res.json({ message: 'User registered successfully', qrCode: data_url });
+        } catch (error) {
+            if (error.message === 'User already exists') {
+                return res.status(400).json({ error: 'User already exists' });
+            }
+
+            res.status(500).json({ error: 'Failed to register user' });
+        }
+    },
+
+    verify: async (req, res) => {
+        const { username, token } = req.body;
+        try {
+            const verified = await verify(username, token);
+            res.json({ verified });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to verify token' });
+        }
+    },
+
+    login: async (req, res) => {
+        const { username, password } = req.body;
+        try {
+            const sessionToken = await login(username, password);
+            res.json({ sessionToken });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to login' });
+        }
+    },
+
+    verifyLogin: async (req, res) => {
+        const { username, token, sessionToken } = req.body;
+        try {
+            const loginToken = await verifyLogin(username, token, sessionToken);
+            res.json({ verified: true, token: loginToken });
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ error: 'Failed to verify login' });
+        }
+    },
 };
 

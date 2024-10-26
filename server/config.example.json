@@ -1,10 +1,18 @@
 {
   "bmc-path": "/var/lib/baremetal",
   "redis": {
-    "host": "localhost",
+    "host": "redis-service",
     "port": 6379
   },
   "k8s": {
     "configPath": "~/.kube/config'"
-  }
+  },
+  "mariadb": {
+    "host": "mariadb-service",
+    "port": 3306,
+    "username": "bmc",
+    "password": "bmc",
+    "database": "bmc"
+  },
+  "token-secret": "secret"
 }

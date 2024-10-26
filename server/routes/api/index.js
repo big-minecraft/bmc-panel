@@ -21,5 +21,13 @@ router.route('/gamemodes/:name')
     .put(controller.updateGamemodeContent)
     .patch(controller.toggleGamemode)
     .delete(controller.deleteGamemode);
+router.route('/register')
+    .post(controller.register);
+router.route('/verify')
+    .post(controller.verify);
+router.route('/login')
+    .post(controller.login);
+router.route('/verify-login')
+    .post(controller.verifyLogin);
 
 module.exports = router;
