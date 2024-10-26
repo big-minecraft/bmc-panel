@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import { setAuthToken } from '../utils/auth';
+import axiosInstance, { setAuthToken } from '../utils/auth';
 
 const LoginForm = () => {
     const [step, setStep] = useState(1);
@@ -16,7 +15,7 @@ const LoginForm = () => {
         setLoading(true);
 
         try {
-            const response = await axios.post('/api/login', {
+            const response = await axiosInstance.post('/api/login', {
                 username,
                 password
             });
@@ -39,7 +38,7 @@ const LoginForm = () => {
         try {
             const sessionToken = localStorage.getItem('sessionToken');
 
-            const response = await axios.post('/api/verify-login', {
+            const response = await axiosInstance.post('/api/verify-login', {
                 username,
                 token,
                 sessionToken

@@ -9,6 +9,7 @@ import RegistrationPage from "./pages/registrationPage";
 import LoginPage from "./pages/loginPage";
 import PrivateRoute from "./components/privateRouter";
 import NavigationBar from "./components/navigationBar";
+import axiosInstance from "./utils/auth";
 
 function App() {
     const [instances, setInstances] = useState([]);
@@ -16,7 +17,7 @@ function App() {
     const ref = useRef(null);
 
     useLayoutEffect(() => {
-        axios.get('/api/instances')
+        axiosInstance.get('/api/instances')
             .then(res => {
                 setInstances(res.data);
             })
@@ -24,7 +25,7 @@ function App() {
                 console.error(err);
             });
 
-        axios.get('/api/proxies')
+        axiosInstance.get('/api/proxies')
             .then(res => {
                 setProxies(res.data);
             })
@@ -64,8 +65,8 @@ const HomePage = ({ instances: initialInstances, proxies: initialProxies }) => {
     const fetchData = async () => {
         try {
             const [instancesRes, proxiesRes] = await Promise.all([
-                axios.get('/api/instances'),
-                axios.get('/api/proxies')
+                axiosInstance.get('/api/instances'),
+                axiosInstance.get('/api/proxies')
             ]);
 
             setInstances(instancesRes.data);

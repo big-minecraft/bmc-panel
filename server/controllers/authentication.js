@@ -95,18 +95,10 @@ async function verifyLogin(username, token, sessionToken) {
     return jwt.sign(payload, config["token-secret"], options);
 }
 
- function verifySessionToken(username, sessionToken) {
-    if (!sessionToken) throw new Error('Session token not found');
-
-    const decoded = jwt.verify(sessionToken, config.secret);
-    return decoded.username === username;
-}
-
 module.exports = {
     authInit,
     register,
     verify,
     login,
     verifyLogin,
-    verifySessionToken
 }

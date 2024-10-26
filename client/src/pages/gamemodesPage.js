@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {useNavigate} from "react-router-dom";
+import axiosInstance from "../utils/auth";
 
 const GamemodesPage = () => {
     const navigate = useNavigate();
@@ -19,7 +19,7 @@ const GamemodesPage = () => {
     const fetchGamemodes = async () => {
         try {
             setIsLoading(true);
-            const response = await axios.get('/api/gamemodes');
+            const response = await axiosInstance.get('/api/gamemodes');
             setGamemodes(response.data);
             setError(null);
         } catch (err) {
@@ -32,7 +32,7 @@ const GamemodesPage = () => {
 
     const handleToggle = async (gamemodeName, currentState) => {
         try {
-            await axios.patch(`/api/gamemodes/${gamemodeName}`, {
+            await axiosInstance.patch(`/api/gamemodes/${gamemodeName}`, {
                 enabled: !currentState
             });
 
@@ -56,7 +56,7 @@ const GamemodesPage = () => {
         if (!newGamemodeName.trim()) return;
 
         try {
-            await axios.post('/api/gamemodes', {
+            await axiosInstance.post('/api/gamemodes', {
                 name: newGamemodeName
             });
 
@@ -73,7 +73,7 @@ const GamemodesPage = () => {
         if (!gamemodeToDelete) return;
 
         try {
-            await axios.delete(`/api/gamemodes/${gamemodeToDelete}`);
+            await axiosInstance.delete(`/api/gamemodes/${gamemodeToDelete}`);
             setGamemodeToDelete(null);
             await fetchGamemodes();
         } catch (err) {

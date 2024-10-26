@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
-import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import axiosInstance from "../utils/auth";
 
 const GamemodeEditPage = () => {
   const { gamemodeName } = useParams();
@@ -20,7 +20,7 @@ const GamemodeEditPage = () => {
   const fetchGamemodeContent = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(`/api/gamemodes/${gamemodeName}`);
+      const response = await axiosInstance.get(`/api/gamemodes/${gamemodeName}`);
       setContent(response.data.content);
       setError(null);
     } catch (err) {
@@ -34,7 +34,7 @@ const GamemodeEditPage = () => {
   const handleSave = async () => {
     try {
       setIsSaving(true);
-      await axios.put(`/api/gamemodes/${gamemodeName}`, {
+      await axiosInstance.put(`/api/gamemodes/${gamemodeName}`, {
         content: content
       });
       setSavedSuccessfully(true);

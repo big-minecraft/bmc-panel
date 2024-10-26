@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axiosInstance from "../utils/auth";
 
 const RegistrationForm = () => {
     const [step, setStep] = useState(1);
@@ -17,7 +17,7 @@ const RegistrationForm = () => {
         setLoading(true);
 
         try {
-            const response = await axios.post('/api/register', {
+            const response = await axiosInstance.post('/api/register', {
                 username,
                 password
             });
@@ -37,7 +37,7 @@ const RegistrationForm = () => {
         setLoading(true);
 
         try {
-            const response = await axios.post('/api/verify', {
+            const response = await axiosInstance.post('/api/verify', {
                 username,
                 token
             });
