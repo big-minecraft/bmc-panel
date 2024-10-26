@@ -144,7 +144,7 @@ const GamemodeEditPage = () => {
                   value={content}
                   onChange={handleEditorChange}
                   options={{
-                    minimap: { enabled: true },
+                    minimap: { enabled: false },
                     fontSize: 14,
                     wordWrap: 'on',
                     automaticLayout: true,
