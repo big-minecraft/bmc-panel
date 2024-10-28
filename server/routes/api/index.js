@@ -4,12 +4,6 @@ const verifyToken = require('../../middleware/auth');
 
 const router = express.Router();
 
-router.route('/')
-    .get(controller.getMain);
-
-router.route('/json')
-    .get(controller.getJson);
-
 router.route('/instances')
     .get(verifyToken, controller.getInstances);
 
@@ -37,5 +31,15 @@ router.route('/login')
 
 router.route('/verify-login')
     .post(controller.verifyLogin);
+
+router.route('/invite-codes')
+    .get(verifyToken, controller.getInviteCodes)
+    .post(verifyToken, controller.createInviteCode);
+
+router.route('/invite-codes/:code')
+    .delete(verifyToken, controller.revokeInviteCode);
+
+router.route('/verify-invite')
+    .post(verifyToken, controller.verifyInvite);
 
 module.exports = router;

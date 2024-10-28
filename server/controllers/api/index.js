@@ -1,21 +1,15 @@
 const { getInstances, getProxies } = require("../redis");
 const { getGamemodes, getGamemodeContent, updateGamemodeContent, toggleGamemode, deleteGamemode, createGamemode} = require("../gamemodes");
 const { register, verify, verifyLogin, login} = require("../authentication");
+const {getInviteCodes, createInviteCode, revokeInviteCode} = require("../database");
+const {verifyInvite} = require("../inviteCodes");
 
 module.exports = {
-    // Existing controllers
-    getMain: (req, res) => {
-        res.send('Welcome to API v1.');
-    },
-    getJson: (req, res) => {
-        const randArr = ['String 1', 'String 2', 'String 3'];
-        const rand = randArr[Math.floor(Math.random() * randArr.length)];
-        res.json({test: rand});
-    },
     getInstances: async (req, res) => {
         const instances = await getInstances();
         res.json(instances);
     },
+
     getProxies: async (req, res) => {
         const proxies = await getProxies();
         res.json(proxies);
@@ -83,9 +77,9 @@ module.exports = {
     },
 
     register: async (req, res) => {
-        const { username, password } = req.body;
+        const { username, password, inviteToken } = req.body;
         try {
-            const data_url = await register(username, password);
+            const data_url = await register(username, password, inviteToken);
             res.json({ message: 'User registered successfully', qrCode: data_url });
         } catch (error) {
             if (error.message === 'User already exists') {
@@ -97,10 +91,10 @@ module.exports = {
     },
 
     verify: async (req, res) => {
-        const { username, token } = req.body;
+        const { username, token, inviteToken } = req.body;
         try {
-            const verified = await verify(username, token);
-            res.json({ verified });
+            const loginToken = await verify(username, token, inviteToken);
+            res.json({ loginToken });
         } catch (error) {
             res.status(500).json({ error: 'Failed to verify token' });
         }
@@ -126,5 +120,48 @@ module.exports = {
             res.status(500).json({ error: 'Failed to verify login' });
         }
     },
+
+    getInviteCodes: async (req, res) => {
+        try {
+            const codes = await getInviteCodes();
+            res.json(codes);
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({error: 'Failed to fetch invite codes'});
+        }
+    },
+
+    createInviteCode: async (req, res) => {
+        const {message} = req.body;
+        try {
+            await createInviteCode(message);
+            res.json({message: 'Invite code created successfully'});
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({error: 'Failed to create invite code'});
+        }
+    },
+
+    revokeInviteCode: async (req, res) => {
+        const {code} = req.params;
+        try {
+            await revokeInviteCode(code);
+            res.json({message: 'Invite code revoked successfully'});
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({error: 'Failed to revoke invite code'});
+        }
+    },
+
+    verifyInvite: async (req, res) => {
+        const {inviteCode} = req.body;
+        try {
+            let token = await verifyInvite(inviteCode);
+            res.json({ token });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({error: 'Invalid invite code'});
+        }
+    }
 };
 

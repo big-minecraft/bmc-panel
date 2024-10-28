@@ -1,15 +1,40 @@
 import React, { useState } from 'react';
-import axiosInstance from "../utils/auth";
+import axiosInstance, { setAuthToken } from "../utils/auth";
 
 const RegistrationForm = () => {
     const [step, setStep] = useState(1);
+    const [inviteCode, setInviteCode] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [token, setToken] = useState('');
     const [error, setError] = useState('');
     const [qrCode, setQrCode] = useState('');
+    const [inviteToken, setInviteToken] = useState('');
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
+
+    const handleVerifyInvite = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        try {
+            const response = await axiosInstance.post('/api/verify-invite', {
+                inviteCode
+            });
+
+            if (response.data.token) {
+                setStep(2);
+                setInviteToken(response.data.token);
+            } else {
+                setError('Invalid invite code. Please try again.');
+            }
+        } catch (err) {
+            setError(err.response?.data?.error || 'Failed to verify invite code. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleSubmitCredentials = async (e) => {
         e.preventDefault();
@@ -18,12 +43,14 @@ const RegistrationForm = () => {
 
         try {
             const response = await axiosInstance.post('/api/register', {
+                inviteCode,
                 username,
-                password
+                password,
+                inviteToken
             });
 
             setQrCode(response.data.qrCode);
-            setStep(2);
+            setStep(3);
         } catch (err) {
             setError(err.response?.data?.error || 'Registration failed. Please try again.');
         } finally {
@@ -39,17 +66,19 @@ const RegistrationForm = () => {
         try {
             const response = await axiosInstance.post('/api/verify', {
                 username,
-                token
+                token,
+                inviteToken
             });
 
-            if (response.data.verified) {
+            if (response.data.loginToken) {
                 setSuccess(true);
-                setStep(3);
-            } else {
-                setError('Invalid verification code');
+                setStep(4);
+
+                setAuthToken(response.data.loginToken);
+                window.location.href = '/';
             }
         } catch (err) {
-            setError(err.response?.data?.message || err.message || 'Verification failed. Please try again.');
+            setError(err.response?.data?.error || err.message || 'Verification failed. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -63,9 +92,10 @@ const RegistrationForm = () => {
                         <div className="card-header">
                             <h4 className="card-title mb-0">Create Account</h4>
                             <small className="text-muted">
-                                {step === 1 && 'Enter your credentials'}
-                                {step === 2 && 'Scan QR code and verify'}
-                                {step === 3 && 'Registration complete!'}
+                                {step === 1 && 'Enter your invite code'}
+                                {step === 2 && 'Enter your credentials'}
+                                {step === 3 && 'Scan QR code and verify'}
+                                {step === 4 && 'Registration complete!'}
                             </small>
                         </div>
                         <div className="card-body">
@@ -79,6 +109,33 @@ const RegistrationForm = () => {
                             )}
 
                             {step === 1 && (
+                                <form onSubmit={handleVerifyInvite}>
+                                    <div className="mb-3">
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="Enter invite code"
+                                            value={inviteCode}
+                                            onChange={(e) => setInviteCode(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        className="btn btn-primary w-100"
+                                        disabled={loading}
+                                    >
+                                        {loading ? (
+                                            <>
+                                                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                                Verifying Code...
+                                            </>
+                                        ) : 'Verify Invite Code'}
+                                    </button>
+                                </form>
+                            )}
+
+                            {step === 2 && (
                                 <form onSubmit={handleSubmitCredentials}>
                                     <div className="mb-3">
                                         <input
@@ -115,7 +172,7 @@ const RegistrationForm = () => {
                                 </form>
                             )}
 
-                            {step === 2 && (
+                            {step === 3 && (
                                 <form onSubmit={handleVerifyToken}>
                                     <div className="text-center mb-4">
                                         <img src={qrCode} alt="QR Code" className="img-fluid" style={{ maxWidth: '200px' }} />
@@ -152,7 +209,7 @@ const RegistrationForm = () => {
                                 </form>
                             )}
 
-                            {step === 3 && (
+                            {step === 4 && (
                                 <div className="alert alert-success d-flex align-items-center" role="alert">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" className="bi bi-check-circle-fill flex-shrink-0 me-2" viewBox="0 0 16 16">
                                         <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>

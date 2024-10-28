@@ -1,10 +1,11 @@
 const speakeasy = require('speakeasy');
 const qrcode = require('qrcode');
-const {userExists, addUser, getSecret, getPassword} = require("./database");
+const {userExists, addUser, getSecret, getPassword, setInviteTokenUsed} = require("./database");
 const config = require('../config.json');
 const jwt = require('jsonwebtoken');
 const {join} = require("path");
 const {writeFileSync} = require("fs");
+const {checkToken, setUsed, removeToken, getCode} = require("./inviteCodes");
 
 const users = {};
 const tempTokens = {};
@@ -24,8 +25,9 @@ function authInit() {
     }
 }
 
-async function register(username, password) {
+async function register(username, password, inviteToken) {
     if (await userExists(username)) throw new Error('User already exists');
+    if (!checkToken(inviteToken)) throw new Error('Invalid invite token');
 
     const secret = speakeasy.generateSecret({
         length: 20,
@@ -41,8 +43,10 @@ async function register(username, password) {
         });
     });
 }
-async function verify(username, token) {
+async function verify(username, token, inviteToken) {
     const user = users[username];
+
+    if (!checkToken(inviteToken)) throw new Error('Invalid invite token');
 
     if (!user) throw new Error('User not found');
 
@@ -57,7 +61,12 @@ async function verify(username, token) {
         await addUser(username, user.password, user.secret);
     }
 
-    return verified;
+    if (!verified) throw new Error('Invalid token');
+
+    await setInviteTokenUsed(getCode(inviteToken), username);
+    removeToken(inviteToken)
+
+    return await generateToken(username);
 }
 
 async function login(username, password) {
@@ -89,6 +98,10 @@ async function verifyLogin(username, token, sessionToken) {
 
     if (!verified) throw new Error('Invalid token');
 
+    return await generateToken(username);
+}
+
+async function generateToken(username) {
     const payload = { username: username };
     const options = { expiresIn: "7d" };
 
