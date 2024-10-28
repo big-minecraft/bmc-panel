@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import axiosInstance from "../utils/auth";
 
-const UsersPage = () => {
+const InviteCodesTab = () => {
     const [inviteCodes, setInviteCodes] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -192,4 +192,4 @@ const UsersPage = () => {
     );
 };
 
-export default UsersPage;
+export default InviteCodesTab;

@@ -1,7 +1,9 @@
 const { getInstances, getProxies } = require("../redis");
 const { getGamemodes, getGamemodeContent, updateGamemodeContent, toggleGamemode, deleteGamemode, createGamemode} = require("../gamemodes");
 const { register, verify, verifyLogin, login} = require("../authentication");
-const {getInviteCodes, createInviteCode, revokeInviteCode} = require("../database");
+const {getInviteCodes, createInviteCode, revokeInviteCode, getUsers, setAdmin, resetPassword, deleteUser, logout,
+    getUser, getUserByID
+} = require("../database");
 const {verifyInvite} = require("../inviteCodes");
 
 module.exports = {
@@ -94,7 +96,9 @@ module.exports = {
         const { username, token, inviteToken } = req.body;
         try {
             const loginToken = await verify(username, token, inviteToken);
-            res.json({ loginToken });
+            let dbUser = await getUser(username);
+            let isAdmin = dbUser.is_admin;
+            res.json({ loginToken, isAdmin });
         } catch (error) {
             res.status(500).json({ error: 'Failed to verify token' });
         }
@@ -114,7 +118,10 @@ module.exports = {
         const { username, token, sessionToken } = req.body;
         try {
             const loginToken = await verifyLogin(username, token, sessionToken);
-            res.json({ verified: true, token: loginToken });
+            let dbUser = await getUser(username);
+            let isAdmin = dbUser.is_admin;
+
+            res.json({ verified: true, token: loginToken, isAdmin: isAdmin });
         } catch (error) {
             console.log(error)
             res.status(500).json({ error: 'Failed to verify login' });
@@ -162,6 +169,63 @@ module.exports = {
             console.log(error);
             res.status(500).json({error: 'Invalid invite code'});
         }
+    },
+
+    getUsers: async (req, res) => {
+        try {
+            const users = await getUsers();
+            res.json(users);
+        } catch (error) {
+            res.status(500).json({error: 'Failed to fetch users'});
+        }
+    },
+
+    async setAdmin(req, res) {
+        const {id} = req.params;
+        const {is_admin} = req.body;
+
+        try {
+            await setAdmin(id, is_admin);
+            let dbUser = await getUserByID(id);
+            await logout(dbUser.username);
+
+            res.json({message: 'Updated user admin status'});
+        } catch (error) {
+            res.status(500).json({error: 'Failed to set user admin status'});
+        }
+    },
+
+    async resetPassword(req, res) {
+        const {id} = req.params;
+        const {password} = req.body;
+
+        try {
+            await resetPassword(id, password);
+            res.json({message: 'Password reset successfully'});
+        } catch (error) {
+            res.status(500).json({error: 'Failed to reset password'});
+        }
+    },
+
+    async deleteUser(req, res) {
+        const {id} = req.params;
+
+        try {
+            await deleteUser(id);
+            res.json({message: 'User deleted successfully'});
+        } catch (error) {
+            res.status(500).json({error: 'Failed to delete user'});
+        }
+    },
+
+    async logout(req, res) {
+        try {
+            await logout(req.user.username);
+        } catch (error) {
+            res.status(500).json({error: 'Failed to log out user'});
+        }
+
+        res.json({message: 'Logged out successfully'});
     }
 };
 

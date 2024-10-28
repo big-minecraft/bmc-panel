@@ -1,6 +1,6 @@
 const speakeasy = require('speakeasy');
 const qrcode = require('qrcode');
-const {userExists, addUser, getSecret, getPassword, setInviteTokenUsed} = require("./database");
+const {userExists, addUser, getPassword, setInviteTokenUsed, getUser} = require("./database");
 const config = require('../config.json');
 const jwt = require('jsonwebtoken');
 const {join} = require("path");
@@ -88,7 +88,8 @@ async function verifyLogin(username, token, sessionToken) {
     if (!tempToken) throw new Error('User not found');
     if (tempToken.secret !== sessionToken) throw new Error('Invalid session token');
 
-    let secret = await getSecret(username);
+    let user = await getUser(username);
+    let secret = user.secret;
 
     let verified = speakeasy.totp.verify({
         secret: secret,

@@ -22,8 +22,8 @@ async function createTables() {
     let conn;
     try {
         conn = await pool.getConnection();
-        await conn.query('CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255), password VARCHAR(255), secret VARCHAR(255))');
-        await conn.query('CREATE TABLE IF NOT EXISTS invite_codes (id INT AUTO_INCREMENT PRIMARY KEY, code VARCHAR(255), message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, used_by VARCHAR(255) DEFAULT NULL)');
+        await conn.query('CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255), password VARCHAR(255), secret VARCHAR(255), is_admin BOOLEAN DEFAULT FALSE, last_logout TIMESTAMP DEFAULT CURRENT_TIMESTAMP)');
+        await conn.query('CREATE TABLE IF NOT EXISTS invite_codes (id INT AUTO_INCREMENT PRIMARY KEY, code VARCHAR(255), message TEXT, created_at TIMESTAMP DEFAULT NULL, used_by VARCHAR(255) DEFAULT NULL)');
     } catch (error) {
         console.error('Failed to create tables:', error);
         throw error;
@@ -47,10 +47,13 @@ async function userExists(username) {
 }
 
 async function addUser(username, password, secret) {
+    let size = await getUsers().length;
+    let isAdmin = size === 0;
+
     let conn;
     try {
         conn = await pool.getConnection();
-        await conn.query('INSERT INTO users (username, password, secret) VALUES (?, ?, ?)', [username, password, secret]);
+        await conn.query('INSERT INTO users (username, password, secret, is_admin) VALUES (?, ?, ?, ?)', [username, password, secret, isAdmin]);
     } catch (error) {
         console.error('Failed to add user:', error);
         throw error;
@@ -59,14 +62,41 @@ async function addUser(username, password, secret) {
     }
 }
 
-async function getSecret(username) {
+async function getUsers() {
     let conn;
     try {
         conn = await pool.getConnection();
-        const rows = await conn.query('SELECT secret FROM users WHERE username = ?', [username]);
-        return rows[0].secret;
+        return await conn.query('SELECT * FROM users');
     } catch (error) {
-        console.error('Failed to get secret:', error);
+        console.error('Failed to get users:', error);
+        throw error;
+    } finally {
+        if (conn) await conn.end();
+    }
+}
+
+async function getUser(username) {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        const rows = await conn.query('SELECT * FROM users WHERE username = ?', [username]);
+        return rows[0];
+    } catch (error) {
+        console.error('Failed to get user:', error);
+        throw error;
+    } finally {
+        if (conn) await conn.end();
+    }
+}
+
+async function getUserByID(userID) {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        const rows = await conn.query('SELECT * FROM users WHERE id = ?', [userID]);
+        return rows[0];
+    } catch (error) {
+        console.error('Failed to get user:', error);
         throw error;
     } finally {
         if (conn) await conn.end();
@@ -152,7 +182,6 @@ async function verifyInviteCode(code) {
 async function setInviteTokenUsed(code, username) {
     let conn;
     try {
-        console.log(code)
         conn = await pool.getConnection();
         await conn.query('UPDATE invite_codes SET used_by = ? WHERE code = ?', [username, code]);
     } catch (error) {
@@ -183,16 +212,77 @@ async function isCodeExpired(code) {
     }
 }
 
+async function setAdmin(userID, isAdmin) {
+    console.log(userID, isAdmin)
+
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        await conn.query('UPDATE users SET is_admin = ? WHERE id = ?', [isAdmin, userID]);
+    } catch (error) {
+        console.error('Failed to set admin:', error);
+        throw error;
+    } finally {
+        if (conn) await conn.end();
+    }
+}
+
+async function resetPassword(userID, password) {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        await conn.query('UPDATE users SET password = ? WHERE id = ?', [password, userID]);
+    } catch (error) {
+        console.error('Failed to set password:', error);
+        throw error;
+    } finally {
+        if (conn) await conn.end();
+    }
+}
+
+async function deleteUser(userID) {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        await conn.query('DELETE FROM users WHERE id = ?', [userID]);
+    } catch (error) {
+        console.error('Failed to delete user:', error);
+        throw error;
+    } finally {
+        if (conn) await conn.end();
+    }
+}
+
+async function logout(username) {
+    let conn;
+    try {
+        const currentTime = new Date();
+        conn = await pool.getConnection();
+        await conn.query('UPDATE users SET last_logout = ? WHERE username = ?', [currentTime, username]);
+    } catch (error) {
+        console.error('Failed to log out user:', error);
+        throw error;
+    } finally {
+        if (conn) await conn.end();
+    }
+}
+
 module.exports = {
     databaseInit,
     userExists,
     addUser,
-    getSecret,
+    getUsers,
+    getUser,
+    getUserByID,
     getPassword,
     getInviteCodes,
     createInviteCode,
     revokeInviteCode,
     verifyInviteCode,
     setInviteTokenUsed,
-    isCodeExpired
+    isCodeExpired,
+    setAdmin,
+    resetPassword,
+    deleteUser,
+    logout
 }

@@ -1,4 +1,3 @@
-// client/src/utils/auth.js
 import Cookies from 'js-cookie';
 import axios from "axios";
 
@@ -17,10 +16,21 @@ axiosInstance.interceptors.request.use(
     }
 );
 
+axiosInstance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            clearToken();
+        }
+        return Promise.reject(error);
+    }
+);
+
 export default axiosInstance;
 
-export const setAuthToken = (token) => {
+export const setAuthToken = (token, isAdmin) => {
     Cookies.set('token', token, { expires: 7 });
+    Cookies.set('isAdmin', isAdmin, { expires: 7 });
 };
 
 export const getToken = () => {
@@ -29,4 +39,9 @@ export const getToken = () => {
 
 export const clearToken = () => {
     Cookies.remove('token');
+    Cookies.remove('isAdmin');
+};
+
+export const isAdmin = () => {
+    return Cookies.get('isAdmin') === 'true';
 };

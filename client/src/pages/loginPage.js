@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axiosInstance, { setAuthToken } from '../utils/auth';
+import axiosInstance, {setAdmin, setAuthToken} from '../utils/auth';
 
 const LoginForm = () => {
     const [step, setStep] = useState(1);
@@ -57,7 +57,7 @@ const LoginForm = () => {
     };
 
     const handleSuccessfulLogin = (data) => {
-        setAuthToken(data.token);
+        setAuthToken(data.token, data.isAdmin === 1 ? 'true' : 'false');
         window.location.href = '/';
     };
 

@@ -10,7 +10,8 @@ import LoginPage from "./pages/loginPage";
 import PrivateRoute from "./components/privateRouter";
 import NavigationBar from "./components/navigationBar";
 import axiosInstance from "./utils/auth";
-import UsersPage from "./pages/usersPage";
+import InviteCodesTab from "./components/inviteCodesTab";
+import AdminPage from "./pages/adminPage";
 
 function App() {
     const [instances, setInstances] = useState([]);
@@ -44,10 +45,10 @@ function App() {
                     <Route path="/register" element={<RegistrationPage />} />
                     <Route path="/" element={<PrivateRoute><HomePage instances={instances} proxies={proxies} /></PrivateRoute>} />
                     <Route path="/gamemodes" element={<PrivateRoute><GamemodesPage /></PrivateRoute>} />
-                    <Route path="/users" element={<PrivateRoute><UsersPage /></PrivateRoute>} />
+                    <Route path="/users" element={<PrivateRoute><AdminPage /></PrivateRoute>} />
                     <Route path="/gamemodes/:gamemodeName/edit" element={<PrivateRoute><GamemodeEditPage /></PrivateRoute>} />
-                    <Route path="/instance/:instanceName" element={<InstancePage instances={instances} proxies={proxies} />} />
-                    <Route path="/proxy/:instanceName" element={<InstancePage instances={instances} proxies={proxies} />} />
+                    <Route path="/instance/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
+                    <Route path="/proxy/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
                 </Routes>
             </div>
         </Router>

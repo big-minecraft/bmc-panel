@@ -1,6 +1,6 @@
 const express = require('express');
 const { api: controller } = require('../../controllers');
-const verifyToken = require('../../middleware/auth');
+const {verifyToken, verifyAdminToken} = require('../../middleware/auth');
 
 const router = express.Router();
 
@@ -33,13 +33,30 @@ router.route('/verify-login')
     .post(controller.verifyLogin);
 
 router.route('/invite-codes')
-    .get(verifyToken, controller.getInviteCodes)
-    .post(verifyToken, controller.createInviteCode);
+    .get(verifyAdminToken, controller.getInviteCodes)
+    .post(verifyAdminToken, controller.createInviteCode);
 
 router.route('/invite-codes/:code')
-    .delete(verifyToken, controller.revokeInviteCode);
+    .delete(verifyAdminToken, controller.revokeInviteCode);
 
 router.route('/verify-invite')
     .post(verifyToken, controller.verifyInvite);
+
+router.route('/users')
+    .get(verifyAdminToken, controller.getUsers);
+
+router.route('/users/:id/admin')
+    .patch(verifyAdminToken, controller.setAdmin);
+
+router.route('/users/:id/password')
+    .patch(verifyAdminToken, controller.resetPassword);
+
+router.route('/users/:id')
+    .delete(verifyAdminToken, controller.deleteUser);
+
+router.route('/logout')
+    .post(verifyToken, controller.logout);
+
+
 
 module.exports = router;
