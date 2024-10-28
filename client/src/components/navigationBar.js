@@ -7,7 +7,6 @@ const NavigationBar = () => {
     const location = useLocation();
 
     const userIsAdmin = isAdmin();
-    console.log(userIsAdmin);
 
     const handleLogout = async () => {
         try {

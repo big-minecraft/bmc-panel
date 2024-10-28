@@ -5,6 +5,9 @@ const {getInviteCodes, createInviteCode, revokeInviteCode, getUsers, setAdmin, r
     getUser, getUserByID
 } = require("../database");
 const {verifyInvite} = require("../inviteCodes");
+const {deleteSFTPDirectory, createSFTPDirectory, deleteSFTPFile, updateSFTPFile, createSFTPFile, listSFTPFiles,
+    getSFTPFileContent
+} = require("../sftp");
 
 module.exports = {
     getInstances: async (req, res) => {
@@ -226,6 +229,78 @@ module.exports = {
         }
 
         res.json({message: 'Logged out successfully'});
+    },
+
+    getSFTPFiles: async (req, res) => {
+        const { path } = req.query;
+
+        try {
+            const files = await listSFTPFiles(path);
+            res.json(files);
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to list files' });
+        }
+    },
+
+    getSFTPFileContent: async (req, res) => {
+        const { path } = req.query;
+
+        try {
+            const fileContent = await getSFTPFileContent(path);
+            res.json({ content: fileContent });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to get file content' });
+        }
+    },
+
+    createSFTPFile: async (req, res) => {
+        const { path, content } = req.body;
+        try {
+            await createSFTPFile(path, content);
+            res.json({ message: 'File created successfully' });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to create file' });
+        }
+    },
+
+    updateSFTPFile: async (req, res) => {
+        const { path, content } = req.body;
+        try {
+            await updateSFTPFile(path, content);
+            res.json({ message: 'File updated successfully' });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to update file' });
+        }
+    },
+
+    deleteSFTPFile: async (req, res) => {
+        const { path } = req.query;
+        try {
+            await deleteSFTPFile(path);
+            res.json({ message: 'File deleted successfully' });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to delete file' });
+        }
+    },
+
+    createSFTPDirectory: async (req, res) => {
+        const { path } = req.body;
+        try {
+            await createSFTPDirectory(path);
+            res.json({ message: 'Directory created successfully' });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to create directory' });
+        }
+    },
+
+    deleteSFTPDirectory: async (req, res) => {
+        const { path } = req.query;
+        try {
+            await deleteSFTPDirectory(path);
+            res.json({ message: 'Directory deleted successfully' });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to delete directory' });
+        }
     }
 };
 

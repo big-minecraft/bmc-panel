@@ -57,6 +57,20 @@ router.route('/users/:id')
 router.route('/logout')
     .post(verifyToken, controller.logout);
 
+router.route('/sftp/files')
+    .get(verifyToken, controller.getSFTPFiles);
+
+router.route('/sftp/file')
+    .get(verifyToken, controller.getSFTPFileContent)
+    .post(verifyToken, controller.createSFTPFile)
+    .put(verifyToken, controller.updateSFTPFile)
+    .delete(verifyToken, controller.deleteSFTPFile);
+
+router.route('/sftp/directories')
+    .post(verifyToken, controller.createSFTPDirectory);
+
+router.route('/sftp/directory')
+    .delete(verifyToken, controller.deleteSFTPDirectory);
 
 
 module.exports = router;

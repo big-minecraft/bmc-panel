@@ -9,6 +9,7 @@ import RegistrationPage from "./pages/registrationPage";
 import LoginPage from "./pages/loginPage";
 import PrivateRoute from "./components/privateRouter";
 import NavigationBar from "./components/navigationBar";
+import SFTPInterface from "./pages/sftpInterface";
 import axiosInstance from "./utils/auth";
 import InviteCodesTab from "./components/inviteCodesTab";
 import AdminPage from "./pages/adminPage";
@@ -46,6 +47,7 @@ function App() {
                     <Route path="/" element={<PrivateRoute><HomePage instances={instances} proxies={proxies} /></PrivateRoute>} />
                     <Route path="/gamemodes" element={<PrivateRoute><GamemodesPage /></PrivateRoute>} />
                     <Route path="/users" element={<PrivateRoute><AdminPage /></PrivateRoute>} />
+                    <Route path="/files" element={<PrivateRoute><SFTPInterface /></PrivateRoute>} />
                     <Route path="/gamemodes/:gamemodeName/edit" element={<PrivateRoute><GamemodeEditPage /></PrivateRoute>} />
                     <Route path="/instance/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
                     <Route path="/proxy/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
