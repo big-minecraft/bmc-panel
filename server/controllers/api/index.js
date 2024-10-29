@@ -392,7 +392,7 @@ module.exports = {
         }
     },
     archiveSFTPFile: async (req, res) => {
-        const { path } = req.body.params;  // Changed from req.body.params to req.query
+        const { path } = req.body;
 
         try {
             const fileBuffer = await downloadSFTPFile(path);
@@ -456,7 +456,6 @@ module.exports = {
                 comment: `Archived on ${new Date().toISOString()}`
             });
 
-            // Create the archive in the current directory
             const archivePath = `${currentDirectory}/${archiveName}`;
             await uploadSFTPFile(zipBuffer, archivePath);
 
@@ -474,7 +473,6 @@ module.exports = {
 
     moveSFTPFile: async (req, res) => {
         const { sourcePath, targetPath } = req.body;
-        console.log(sourcePath, targetPath)
         try {
             await moveFileOrFolder(sourcePath, targetPath);
             res.json({ message: 'File(s) moved successfully' });

@@ -1,6 +1,6 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFolder, faFile, faTrash, faDownload } from '@fortawesome/free-solid-svg-icons';
+import { faFolder, faFile, faTrash, faDownload, faPen, faBox, faBoxOpen } from '@fortawesome/free-solid-svg-icons';
 import axiosInstance from "../../utils/auth";
 
 const FilesList = ({
@@ -9,6 +9,9 @@ const FilesList = ({
    onNavigate,
    onDelete,
    onDownload,
+   onRename,
+   onArchive,
+   onUnarchive,
    uploading,
    uploadProgress,
    selectedFiles,
@@ -134,13 +137,35 @@ const FilesList = ({
                                 </td>
                                 <td>
                                     <div className="btn-group">
-                                        {file.type !== 'd' && (
+                                        <button
+                                            className="btn btn-outline-primary btn-sm"
+                                            onClick={() => onDownload(file)}
+                                            title={`Download ${file.type === 'd' ? 'Directory' : 'File'}`}
+                                        >
+                                            <FontAwesomeIcon icon={faDownload} />
+                                        </button>
+                                        <button
+                                            className="btn btn-outline-secondary btn-sm ms-2"
+                                            onClick={() => onRename(file)}
+                                            title={`Rename ${file.type === 'd' ? 'Directory' : 'File'}`}
+                                        >
+                                            <FontAwesomeIcon icon={faPen} />
+                                        </button>
+                                        {file.isArchived ? (
                                             <button
-                                                className="btn btn-outline-primary btn-sm"
-                                                onClick={() => onDownload(file)}
-                                                title="Download File"
+                                                className="btn btn-outline-info btn-sm ms-2"
+                                                onClick={() => onUnarchive(file)}
+                                                title={`Unarchive ${file.type === 'd' ? 'Directory' : 'File'}`}
                                             >
-                                                <FontAwesomeIcon icon={faDownload} />
+                                                <FontAwesomeIcon icon={faBoxOpen} />
+                                            </button>
+                                        ) : (
+                                            <button
+                                                className="btn btn-outline-secondary btn-sm ms-2"
+                                                onClick={() => onArchive(file)}
+                                                title={`Archive ${file.type === 'd' ? 'Directory' : 'File'}`}
+                                            >
+                                                <FontAwesomeIcon icon={faBox} />
                                             </button>
                                         )}
                                         <button

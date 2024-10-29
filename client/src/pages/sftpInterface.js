@@ -11,7 +11,6 @@ import DragDropOverlay from "../components/sftp/dragDropOverlay";
 import MoveModal from "../components/sftp/moveModal";
 
 const SFTPInterface = () => {
-    // ... other state declarations remain the same ...
     const [files, setFiles] = useState([]);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [currentDirectory, setCurrentDirectory] = useState('/nfsshare');
@@ -78,7 +77,6 @@ const SFTPInterface = () => {
             const errorMessage = error.response?.data?.message || 'Failed to upload files. Please try again.';
             setUploadError(errorMessage);
 
-            // Auto-dismiss error after 5 seconds
             setTimeout(() => {
                 setUploadError(null);
             }, 5000);
@@ -99,7 +97,6 @@ const SFTPInterface = () => {
                 });
             }
 
-            // Reset states
             setDeleteModalState({ isOpen: false, files: [] });
             setSelectedFiles([]);
             fetchFiles();
@@ -140,30 +137,36 @@ const SFTPInterface = () => {
         }
     };
 
-    const handleMassDownload = async () => {
+    const handleMassDownload = async (filesToDownload = selectedFiles) => {
+        if (!filesToDownload || filesToDownload.length === 0) return;
+
+        const files = Array.isArray(filesToDownload) ? filesToDownload : [filesToDownload];
+
         setLoading(prev => ({...prev, downloading: true}));
         try {
-            if (selectedFiles.length === 1 && selectedFiles[0].type === 'd') {
-                const response = await axiosInstance.post('/api/sftp/download-multiple', {
-                    files: [selectedFiles[0]]
-                }, {
-                    responseType: 'blob'
-                });
+            if (files.length === 1) {
+                const file = files[0];
+                if (file.type === 'd') {
+                    const response = await axiosInstance.post('/api/sftp/download-multiple', {
+                        files: [file]
+                    }, {
+                        responseType: 'blob'
+                    });
 
-                const url = window.URL.createObjectURL(new Blob([response.data]));
-                const link = document.createElement('a');
-                link.href = url;
-                link.setAttribute('download', `${selectedFiles[0].name}.zip`);
-                document.body.appendChild(link);
-                link.click();
-                link.parentNode.removeChild(link);
-                window.URL.revokeObjectURL(url);
-            } else if (selectedFiles.length === 1) {
-                const file = selectedFiles[0];
-                await handleDownload(file);
+                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', `${file.name}.zip`);
+                    document.body.appendChild(link);
+                    link.click();
+                    link.parentNode.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    await handleDownload(file);
+                }
             } else {
                 const response = await axiosInstance.post('/api/sftp/download-multiple', {
-                    files: selectedFiles.map(file => ({
+                    files: files.map(file => ({
                         path: file.path,
                         name: file.name
                     }))
@@ -212,40 +215,43 @@ const SFTPInterface = () => {
     };
 
     const handleArchive = async (file) => {
-        if (file.type === 'd') {
-            return handleMassArchive([file]);
-        }
+        if (!file) return;
+
+        setLoading(prev => ({...prev, archiving: true}));
 
         try {
-            await axiosInstance.post('/api/sftp/archive', {
-                params: { path: file.path }
-            });
+            if (file.type === 'd') {
+                await axiosInstance.post('/api/sftp/archive-multiple', {
+                    files: [{
+                        path: file.path,
+                        name: file.name
+                    }]
+                });
+            } else {
+                await axiosInstance.post('/api/sftp/archive', {
+                    path: file.path
+                });
+            }
 
             await fetchFiles();
         } catch (error) {
             console.error('Error archiving file:', error);
+        } finally {
+            setLoading(prev => ({...prev, archiving: false}));
         }
     };
 
-    const handleMassArchive = async () => {
-        const filesToArchive = selectedFiles;
+    const handleMassArchive = async (filesToArchive = selectedFiles) => {
+        if (!filesToArchive || filesToArchive.length === 0) return;
+
         const files = Array.isArray(filesToArchive) ? filesToArchive : [filesToArchive];
 
         try {
             await setLoading(prev => ({...prev, archiving: true}));
 
             if (files.length === 1) {
-                const file = files[0];
-                if (file.type === 'd') {
-                    await axiosInstance.post('/api/sftp/archive-multiple', {
-                        files: [{
-                            path: file.path,
-                            name: file.name
-                        }]
-                    });
-                } else {
-                    await handleArchive(file);
-                }
+                const singleFile = files[0];
+                await handleArchive(singleFile);
             } else {
                 await axiosInstance.post('/api/sftp/archive-multiple', {
                     files: files.map(file => ({
@@ -253,9 +259,9 @@ const SFTPInterface = () => {
                         name: file.name
                     }))
                 });
+                await fetchFiles();
             }
 
-            await fetchFiles();
             setSelectedFiles([]);
         } catch (error) {
             console.error('Error archiving files:', error);
@@ -360,15 +366,17 @@ const SFTPInterface = () => {
                 <div className="col-12">
                     <FilesList
                         files={files}
-                        loading={loading.files || loading.archiving}
+                        loading={loading.files || loading.archiving || loading.downloading}
                         onNavigate={setCurrentDirectory}
                         onDelete={(file) => openDeleteModal(file)}
-                        onDownload={handleDownload}
+                        onDownload={(file) => handleMassDownload([file])}
                         uploading={uploading}
                         uploadProgress={uploadProgress}
                         selectedFiles={selectedFiles}
                         onSelectFile={handleSelectFile}
                         onSelectAllFiles={handleSelectAllFiles}
+                        onArchive={handleArchive}
+                        onRename={fetchFiles}
                     />
                 </div>
             </div>
@@ -394,8 +402,8 @@ const SFTPInterface = () => {
                 onClose={() => setSelectedFiles([])}
                 onDelete={openDeleteModal}
                 onMove={() => setMoveModal({ isOpen: true })}
-                onDownload={handleMassDownload}
-                onArchive={handleMassArchive}
+                onDownload={() => handleMassDownload(selectedFiles)}
+                onArchive={() => handleMassArchive(selectedFiles)}
                 loading={loading.archiving}
             />
         </div>
