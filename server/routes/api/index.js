@@ -72,5 +72,16 @@ router.route('/sftp/directories')
 router.route('/sftp/directory')
     .delete(verifyToken, controller.deleteSFTPDirectory);
 
+router.route('/sftp/upload')
+    .post(verifyToken, controller.uploadSFTPFiles);
+
+router.route('/sftp/download')
+    .get(verifyToken, controller.downloadSFTPFile)
+
+router.route('/sftp/download-multiple')
+    .post(verifyToken, controller.downloadSFTPFiles);
+
+router.route('/sftp/move')
+    .post(verifyToken, controller.moveSFTPFile);
 
 module.exports = router;

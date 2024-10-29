@@ -46,6 +46,13 @@ const NavigationBar = () => {
                 >
                     Gamemodes
                 </Link>
+                <Link
+                    to="/files"
+                    className="btn"
+                    style={{ backgroundColor: 'white', border: '1px solid black', color: 'black' }}
+                >
+                    Files
+                </Link>
             </div>
 
             <div className="d-flex gap-2">

@@ -6,8 +6,11 @@ const {getInviteCodes, createInviteCode, revokeInviteCode, getUsers, setAdmin, r
 } = require("../database");
 const {verifyInvite} = require("../inviteCodes");
 const {deleteSFTPDirectory, createSFTPDirectory, deleteSFTPFile, updateSFTPFile, createSFTPFile, listSFTPFiles,
-    getSFTPFileContent
+    getSFTPFileContent, downloadSFTPFile, uploadSFTPFile, moveFileOrFolder
 } = require("../sftp");
+const multer = require("multer");
+const JSZip = require("jszip");
+const config = require("../../config");
 
 module.exports = {
     getInstances: async (req, res) => {
@@ -301,6 +304,103 @@ module.exports = {
         } catch (error) {
             res.status(500).json({ error: 'Failed to delete directory' });
         }
-    }
+    },
+
+    uploadSFTPFiles: async (req, res) => {
+        const storage = multer.memoryStorage();
+        const upload = multer({
+            storage: storage,
+            limits: {
+                fileSize: config["max-upload-size-mb"] * 1024 * 1024
+            }
+        }).array('files');
+
+        try {
+            await new Promise((resolve, reject) => {
+                upload(req, res, (err) => {
+                    if (err) reject(err);
+                    resolve();
+                });
+            });
+
+            if (!req.files?.length) {
+                return res.status(400).json({ error: 'No files provided' });
+            }
+
+            await uploadSFTPFile(req.files, req.body.path);
+            res.json({ message: 'Files uploaded successfully' });
+        } catch (error) {
+            console.error('Error in upload process:', error);
+            res.status(500).json({ error: 'Failed to upload files: ' + error.message });
+        }
+    },
+
+    downloadSFTPFile: async (req, res) => {
+        const { path } = req.query;
+
+        try {
+            const fileBuffer = await downloadSFTPFile(path);
+            const filename = path.split('/').pop();
+
+            res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+            res.setHeader('Content-Type', 'application/octet-stream');
+
+            res.send(fileBuffer);
+        } catch (error) {
+            console.error('Error downloading file:', error);
+            res.status(500).json({ error: 'Failed to download file' });
+        }
+    },
+
+    downloadSFTPFiles: async (req, res) => {
+        const { files } = req.body;
+
+        if (!files?.length) return res.status(400).json({ error: 'No files specified for download' });
+
+        const zip = new JSZip();
+
+        try {
+            for (const file of files) {
+                const pathContents = await listSFTPFiles(file.path.split('/').slice(0, -1).join('/'));
+                const fileInfo = pathContents.find(f => f.name === file.path.split('/').pop());
+
+                if (fileInfo && fileInfo.type === 'd') {
+                    const contents = await listSFTPFiles(file.path);
+                    for (const item of contents) {
+                        if (item.type !== 'd') {
+                            const fileBuffer = await downloadSFTPFile(item.path);
+                            zip.file(`${file.name}/${item.name}`, fileBuffer);
+                        }
+                    }
+                } else {
+                    const fileBuffer = await downloadSFTPFile(file.path);
+                    zip.file(file.name, fileBuffer);
+                }
+            }
+
+            const zipBuffer = await zip.generateAsync({
+                type: 'nodebuffer',
+                compression: 'DEFLATE'
+            });
+
+            res.setHeader('Content-Disposition', 'attachment; filename="files.zip"');
+            res.setHeader('Content-Type', 'application/zip');
+            res.send(zipBuffer);
+
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to process files' });
+        }
+    },
+
+    moveSFTPFile: async (req, res) => {
+        const { sourcePath, targetPath } = req.body;
+        console.log(sourcePath, targetPath)
+        try {
+            await moveFileOrFolder(sourcePath, targetPath);
+            res.json({ message: 'File(s) moved successfully' });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to move file(s)' });
+        }
+    },
 };
 
