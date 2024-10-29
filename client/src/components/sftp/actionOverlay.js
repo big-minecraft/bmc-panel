@@ -46,7 +46,7 @@ const ActionOverlay = ({
 
                         <div className="btn-group">
                             <button
-                                onClick={() => setShowDeleteModal(true)}
+                                onClick={() => onDelete(selectedFiles)}
                                 disabled={loading}
                                 className="btn btn-sm btn-outline-danger rounded-pill px-3 me-2"
                                 title="Delete"

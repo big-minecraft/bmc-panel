@@ -6,7 +6,7 @@ const {getInviteCodes, createInviteCode, revokeInviteCode, getUsers, setAdmin, r
 } = require("../database");
 const {verifyInvite} = require("../inviteCodes");
 const {deleteSFTPDirectory, createSFTPDirectory, deleteSFTPFile, updateSFTPFile, createSFTPFile, listSFTPFiles,
-    getSFTPFileContent, downloadSFTPFile, uploadSFTPFile, moveFileOrFolder
+    getSFTPFileContent, downloadSFTPFile, uploadSFTPFile, moveFileOrFolder, listSFTPRecursive
 } = require("../sftp");
 const multer = require("multer");
 const JSZip = require("jszip");
@@ -388,6 +388,86 @@ module.exports = {
             res.send(zipBuffer);
 
         } catch (error) {
+            res.status(500).json({ error: 'Failed to process files' });
+        }
+    },
+    archiveSFTPFile: async (req, res) => {
+        const { path } = req.body.params;  // Changed from req.body.params to req.query
+
+        try {
+            const fileBuffer = await downloadSFTPFile(path);
+            const filename = path.split('/').pop();
+            const directoryPath = path.split('/').slice(0, -1).join('/');
+            const zip = new JSZip();
+
+            zip.file(filename, fileBuffer);
+
+            const zipBuffer = await zip.generateAsync({
+                type: 'nodebuffer',
+                compression: 'DEFLATE'
+            });
+            const archivePath = `${directoryPath}/${filename}.zip`;
+            await uploadSFTPFile(zipBuffer, archivePath);
+
+            res.json({
+                success: true,
+                message: 'File archived successfully',
+                archivePath: archivePath
+            });
+        } catch (error) {
+            console.error('Error archiving file:', error);
+            res.status(500).json({ error: 'Failed to archive file' });
+        }
+    },
+
+    archiveSFTPFiles: async (req, res) => {
+        const { files } = req.body;
+
+        if (!files?.length) return res.status(400).json({ error: 'No files specified for archive' });
+
+        const zip = new JSZip();
+        const currentDirectory = files[0].path.split('/').slice(0, -1).join('/');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const archiveName = `archive_${timestamp}.zip`;
+
+        try {
+            for (const file of files) {
+                const pathContents = await listSFTPFiles(file.path.split('/').slice(0, -1).join('/'));
+                const fileInfo = pathContents.find(f => f.name === file.path.split('/').pop());
+
+                if (fileInfo && fileInfo.type === 'd') {
+                    const folderContents = await listSFTPRecursive(file.path);
+                    for (const item of folderContents) {
+                        if (item.type !== 'd') {
+                            const relativePath = item.path.replace(file.path, '').replace(/^\//, '');
+                            const fileBuffer = await downloadSFTPFile(item.path);
+                            zip.file(`${file.name}/${relativePath}`, fileBuffer);
+                        }
+                    }
+                } else {
+                    const fileBuffer = await downloadSFTPFile(file.path);
+                    zip.file(file.name, fileBuffer);
+                }
+            }
+
+            const zipBuffer = await zip.generateAsync({
+                type: 'nodebuffer',
+                compression: 'DEFLATE',
+                comment: `Archived on ${new Date().toISOString()}`
+            });
+
+            // Create the archive in the current directory
+            const archivePath = `${currentDirectory}/${archiveName}`;
+            await uploadSFTPFile(zipBuffer, archivePath);
+
+            res.json({
+                success: true,
+                message: 'Files archived successfully',
+                archivePath: archivePath
+            });
+
+        } catch (error) {
+            console.error('Error archiving files:', error);
             res.status(500).json({ error: 'Failed to process files' });
         }
     },

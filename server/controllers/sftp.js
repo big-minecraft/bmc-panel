@@ -133,7 +133,22 @@ async function deleteSFTPDirectory(path) {
     }
 }
 
-async function uploadSFTPFile(files, basePath) {
+async function uploadSFTPBuffer(buffer, path) {
+    let sftp;
+    try {
+        sftp = await sftpPool.acquire();
+        await sftp.put(buffer, path);
+        return { success: true, message: 'File uploaded successfully' };
+    } catch (error) {
+        console.error('Error uploading SFTP buffer:', error);
+        throw error;
+    } finally {
+        if (sftp) sftpPool.release(sftp);
+    }
+}
+
+// Original function for uploading multiple files
+async function uploadSFTPFiles(files, basePath) {
     let sftp;
     try {
         sftp = await sftpPool.acquire();
@@ -144,6 +159,35 @@ async function uploadSFTPFile(files, basePath) {
 
         await Promise.all(uploadPromises);
         return { success: true, message: 'Files uploaded successfully' };
+    } catch (error) {
+        console.error('Error uploading SFTP files:', error);
+        throw error;
+    } finally {
+        if (sftp) sftpPool.release(sftp);
+    }
+}
+
+// Helper function to determine which upload function to use
+async function uploadSFTPFile(buffer, path) {
+    let sftp;
+    try {
+        sftp = await sftpPool.acquire();
+
+        if (Buffer.isBuffer(buffer)) {
+            // Handle single buffer upload
+            await sftp.put(buffer, path);
+        } else if (Array.isArray(buffer)) {
+            // Handle multiple file upload
+            const uploadPromises = buffer.map(async (file) => {
+                const remotePath = `${path}/${file.originalname}`.replace(/\/+/g, '/');
+                await sftp.put(file.buffer, remotePath);
+            });
+            await Promise.all(uploadPromises);
+        } else {
+            throw new Error('Invalid input: expected Buffer or Array of files');
+        }
+
+        return { success: true, message: 'Upload successful' };
     } catch (error) {
         console.error('Error uploading SFTP file:', error);
         throw error;
@@ -191,6 +235,22 @@ async function moveFileOrFolder(sourcePath, destinationPath) {
     }
 }
 
+async function listSFTPRecursive(path) {
+    const results = [];
+    const contents = await listSFTPFiles(path);
+
+    for (const item of contents) {
+        if (item.type === 'd') {
+            const subResults = await listSFTPRecursive(item.path);
+            results.push(...subResults);
+        } else {
+            results.push(item);
+        }
+    }
+
+    return results;
+}
+
 module.exports = {
     listSFTPFiles,
     getSFTPFileContent,
@@ -200,8 +260,11 @@ module.exports = {
     createSFTPDirectory,
     deleteSFTPDirectory,
     uploadSFTPFile,
+    uploadSFTPFiles,
+    uploadSFTPBuffer,
     downloadSFTPFile,
     parseFormData,
     moveFileOrFolder,
+    listSFTPRecursive
 
 };

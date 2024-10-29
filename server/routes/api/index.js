@@ -81,6 +81,12 @@ router.route('/sftp/download')
 router.route('/sftp/download-multiple')
     .post(verifyToken, controller.downloadSFTPFiles);
 
+router.route('/sftp/archive')
+    .post(verifyToken, controller.archiveSFTPFile);
+
+router.route('/sftp/archive-multiple')
+    .post(verifyToken, controller.archiveSFTPFiles);
+
 router.route('/sftp/move')
     .post(verifyToken, controller.moveSFTPFile);
 

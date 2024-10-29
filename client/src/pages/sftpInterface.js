@@ -11,6 +11,7 @@ import DragDropOverlay from "../components/sftp/dragDropOverlay";
 import MoveModal from "../components/sftp/moveModal";
 
 const SFTPInterface = () => {
+    // ... other state declarations remain the same ...
     const [files, setFiles] = useState([]);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [currentDirectory, setCurrentDirectory] = useState('/nfsshare');
@@ -33,6 +34,10 @@ const SFTPInterface = () => {
         files: []
     });
 
+    useEffect(() => {
+        fetchFiles();
+    }, [currentDirectory]);
+
     const fetchFiles = async () => {
         setLoading(prev => ({...prev, files: true}));
         try {
@@ -47,10 +52,6 @@ const SFTPInterface = () => {
             setLoading(prev => ({...prev, files: false}));
         }
     };
-
-    useEffect(() => {
-        fetchFiles();
-    }, [currentDirectory]);
 
     const handleFileUpload = async (files) => {
         if (!files?.length) return;
@@ -142,16 +143,13 @@ const SFTPInterface = () => {
     const handleMassDownload = async () => {
         setLoading(prev => ({...prev, downloading: true}));
         try {
-            // Check if it's a single selection and if it's a directory
             if (selectedFiles.length === 1 && selectedFiles[0].type === 'd') {
-                // Use the multiple endpoint for directories
                 const response = await axiosInstance.post('/api/sftp/download-multiple', {
                     files: [selectedFiles[0]]
                 }, {
                     responseType: 'blob'
                 });
 
-                // Handle the zip download
                 const url = window.URL.createObjectURL(new Blob([response.data]));
                 const link = document.createElement('a');
                 link.href = url;
@@ -161,23 +159,9 @@ const SFTPInterface = () => {
                 link.parentNode.removeChild(link);
                 window.URL.revokeObjectURL(url);
             } else if (selectedFiles.length === 1) {
-                // Single file download
                 const file = selectedFiles[0];
-                const response = await axiosInstance.get('/api/sftp/download', {
-                    params: { path: file.path },
-                    responseType: 'blob'
-                });
-
-                const url = window.URL.createObjectURL(new Blob([response.data]));
-                const link = document.createElement('a');
-                link.href = url;
-                link.setAttribute('download', file.name);
-                document.body.appendChild(link);
-                link.click();
-                link.parentNode.removeChild(link);
-                window.URL.revokeObjectURL(url);
+                await handleDownload(file);
             } else {
-                // Multiple files download
                 const response = await axiosInstance.post('/api/sftp/download-multiple', {
                     files: selectedFiles.map(file => ({
                         path: file.path,
@@ -198,24 +182,85 @@ const SFTPInterface = () => {
             }
         } catch (error) {
             console.error('Error downloading files:', error);
-            // You might want to add error handling here, such as showing a notification
         } finally {
             setLoading(prev => ({...prev, downloading: false}));
         }
     };
 
-    const handleArchive = async () => {
-        setLoading(prev => ({...prev, archiving: true}));
+    const handleDownload = async (file) => {
+        if (file.type === 'd') {
+            return handleMassDownload([file]);
+        }
+
         try {
-            // Implement archive functionality
-            const paths = selectedFiles.map(file => file.path);
-            await axiosInstance.post('/api/sftp/archive', { paths });
+            const response = await axiosInstance.get('/api/sftp/download', {
+                params: { path: file.path },
+                responseType: 'blob'
+            });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', file.name);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error downloading file:', error);
+        }
+    };
+
+    const handleArchive = async (file) => {
+        if (file.type === 'd') {
+            return handleMassArchive([file]);
+        }
+
+        try {
+            await axiosInstance.post('/api/sftp/archive', {
+                params: { path: file.path }
+            });
+
+            await fetchFiles();
+        } catch (error) {
+            console.error('Error archiving file:', error);
+        }
+    };
+
+    const handleMassArchive = async () => {
+        const filesToArchive = selectedFiles;
+        const files = Array.isArray(filesToArchive) ? filesToArchive : [filesToArchive];
+
+        try {
+            await setLoading(prev => ({...prev, archiving: true}));
+
+            if (files.length === 1) {
+                const file = files[0];
+                if (file.type === 'd') {
+                    await axiosInstance.post('/api/sftp/archive-multiple', {
+                        files: [{
+                            path: file.path,
+                            name: file.name
+                        }]
+                    });
+                } else {
+                    await handleArchive(file);
+                }
+            } else {
+                await axiosInstance.post('/api/sftp/archive-multiple', {
+                    files: files.map(file => ({
+                        path: file.path,
+                        name: file.name
+                    }))
+                });
+            }
+
+            await fetchFiles();
             setSelectedFiles([]);
-            fetchFiles();
         } catch (error) {
             console.error('Error archiving files:', error);
         } finally {
-            setLoading(prev => ({...prev, archiving: false}));
+            await setLoading(prev => ({...prev, archiving: false}));
         }
     };
 
@@ -242,11 +287,11 @@ const SFTPInterface = () => {
             const filePath = `${currentDirectory}/${newFileName}`.replace(/\/+/g, '/');
             await axiosInstance.post('/api/sftp/file', {
                 path: filePath,
-                content: '' // Empty content for new file
+                content: ''
             });
 
-            setNewFileName(''); // Clear input
-            fetchFiles(); // Refresh file list
+            setNewFileName('');
+            fetchFiles();
         } catch (error) {
             console.error('Error creating file:', error);
         } finally {
@@ -315,10 +360,10 @@ const SFTPInterface = () => {
                 <div className="col-12">
                     <FilesList
                         files={files}
-                        loading={loading.files}
+                        loading={loading.files || loading.archiving}
                         onNavigate={setCurrentDirectory}
                         onDelete={(file) => openDeleteModal(file)}
-                        onDownload={handleMassDownload}
+                        onDownload={handleDownload}
                         uploading={uploading}
                         uploadProgress={uploadProgress}
                         selectedFiles={selectedFiles}
@@ -347,11 +392,11 @@ const SFTPInterface = () => {
             <ActionOverlay
                 selectedFiles={selectedFiles}
                 onClose={() => setSelectedFiles([])}
-                onDelete={() => openDeleteModal(selectedFiles)}
+                onDelete={openDeleteModal}
                 onMove={() => setMoveModal({ isOpen: true })}
                 onDownload={handleMassDownload}
-                onArchive={handleArchive}
-                loading={Object.values(loading).some(Boolean)}
+                onArchive={handleMassArchive}
+                loading={loading.archiving}
             />
         </div>
     );

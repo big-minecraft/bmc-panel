@@ -8,33 +8,13 @@ const FilesList = ({
    loading,
    onNavigate,
    onDelete,
-   onDownload,  // This is now just used for mass downloads
+   onDownload,
    uploading,
    uploadProgress,
    selectedFiles,
    onSelectFile,
    onSelectAllFiles
 }) => {
-    const handleDownload = async (file) => {
-        try {
-            const response = await axiosInstance.get('/api/sftp/download', {
-                params: { path: file.path },
-                responseType: 'blob'
-            });
-
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', file.name);
-            document.body.appendChild(link);
-            link.click();
-            link.parentNode.removeChild(link);
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error('Error downloading file:', error);
-        }
-    };
-
     const formatFileSize = (bytes) => {
         if (bytes === 0) return '0 Bytes';
         const k = 1024;
@@ -157,7 +137,7 @@ const FilesList = ({
                                         {file.type !== 'd' && (
                                             <button
                                                 className="btn btn-outline-primary btn-sm"
-                                                onClick={() => handleDownload(file)}
+                                                onClick={() => onDownload(file)}
                                                 title="Download File"
                                             >
                                                 <FontAwesomeIcon icon={faDownload} />
