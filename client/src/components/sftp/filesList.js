@@ -1,7 +1,6 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFolder, faFile, faTrash, faDownload, faPen, faBox, faBoxOpen } from '@fortawesome/free-solid-svg-icons';
-import axiosInstance from "../../utils/auth";
 
 const FilesList = ({
    files,
@@ -35,6 +34,15 @@ const FilesList = ({
             hour: '2-digit',
             minute: '2-digit'
         });
+    };
+
+    const actionButtonStyle = {
+        width: '32px',
+        height: '32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '0.25rem 0'
     };
 
     const isSelected = (file) => {
@@ -141,39 +149,44 @@ const FilesList = ({
                                             className="btn btn-outline-primary btn-sm"
                                             onClick={() => onDownload(file)}
                                             title={`Download ${file.type === 'd' ? 'Directory' : 'File'}`}
+                                            style={actionButtonStyle}
                                         >
-                                            <FontAwesomeIcon icon={faDownload} />
+                                            <FontAwesomeIcon icon={faDownload} fixedWidth />
                                         </button>
                                         <button
                                             className="btn btn-outline-secondary btn-sm ms-2"
                                             onClick={() => onRename(file)}
                                             title={`Rename ${file.type === 'd' ? 'Directory' : 'File'}`}
+                                            style={actionButtonStyle}
                                         >
-                                            <FontAwesomeIcon icon={faPen} />
+                                            <FontAwesomeIcon icon={faPen} fixedWidth />
                                         </button>
                                         {file.isArchived ? (
                                             <button
                                                 className="btn btn-outline-info btn-sm ms-2"
                                                 onClick={() => onUnarchive(file)}
                                                 title={`Unarchive ${file.type === 'd' ? 'Directory' : 'File'}`}
+                                                style={actionButtonStyle}
                                             >
-                                                <FontAwesomeIcon icon={faBoxOpen} />
+                                                <FontAwesomeIcon icon={faBoxOpen} fixedWidth />
                                             </button>
                                         ) : (
                                             <button
                                                 className="btn btn-outline-secondary btn-sm ms-2"
                                                 onClick={() => onArchive(file)}
                                                 title={`Archive ${file.type === 'd' ? 'Directory' : 'File'}`}
+                                                style={actionButtonStyle}
                                             >
-                                                <FontAwesomeIcon icon={faBox} />
+                                                <FontAwesomeIcon icon={faBox} fixedWidth />
                                             </button>
                                         )}
                                         <button
                                             className="btn btn-outline-danger btn-sm ms-2"
                                             onClick={() => onDelete(file)}
                                             title={`Delete ${file.type === 'd' ? 'Directory' : 'File'}`}
+                                            style={actionButtonStyle}
                                         >
-                                            <FontAwesomeIcon icon={faTrash} />
+                                            <FontAwesomeIcon icon={faTrash} fixedWidth />
                                         </button>
                                     </div>
                                 </td>

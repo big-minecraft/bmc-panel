@@ -3,7 +3,6 @@ const config = require('../config.json');
 const multer = require('multer');
 const genericPool = require('generic-pool');
 
-// Create a connection pool
 const sftpPool = genericPool.createPool({
     create: () => {
         const sftp = new Client();
@@ -18,7 +17,7 @@ const sftpPool = genericPool.createPool({
         return sftp.end();
     }
 }, {
-    max: 10, // Adjust pool size based on your needs
+    max: 10,
     min: 2
 });
 
@@ -147,7 +146,6 @@ async function uploadSFTPBuffer(buffer, path) {
     }
 }
 
-// Original function for uploading multiple files
 async function uploadSFTPFiles(files, basePath) {
     let sftp;
     try {
@@ -167,19 +165,41 @@ async function uploadSFTPFiles(files, basePath) {
     }
 }
 
-// Helper function to determine which upload function to use
+async function ensureDirectoryExists(sftp, path) {
+    const segments = path.split('/').filter(segment => segment.length > 0);
+    let currentPath = '/';
+
+    for (const segment of segments) {
+        currentPath = `${currentPath}${segment}/`.replace(/\/+/g, '/');
+        try {
+            const exists = await sftp.exists(currentPath);
+            if (!exists) {
+                await sftp.mkdir(currentPath, true);
+            }
+        } catch (error) {
+            if (!error.message.includes('already exists')) {
+                throw error;
+            }
+        }
+    }
+}
+
 async function uploadSFTPFile(buffer, path) {
     let sftp;
     try {
         sftp = await sftpPool.acquire();
 
+        const directoryPath = path.substring(0, path.lastIndexOf('/'));
+
+        await ensureDirectoryExists(sftp, directoryPath);
+
         if (Buffer.isBuffer(buffer)) {
-            // Handle single buffer upload
             await sftp.put(buffer, path);
         } else if (Array.isArray(buffer)) {
-            // Handle multiple file upload
             const uploadPromises = buffer.map(async (file) => {
                 const remotePath = `${path}/${file.originalname}`.replace(/\/+/g, '/');
+                const remoteDir = remotePath.substring(0, remotePath.lastIndexOf('/'));
+                await ensureDirectoryExists(sftp, remoteDir);
                 await sftp.put(file.buffer, remotePath);
             });
             await Promise.all(uploadPromises);

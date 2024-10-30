@@ -90,4 +90,7 @@ router.route('/sftp/archive-multiple')
 router.route('/sftp/move')
     .post(verifyToken, controller.moveSFTPFile);
 
+router.route('/sftp/unarchive')
+    .post(verifyToken, controller.unarchiveSFTPFile);
+
 module.exports = router;

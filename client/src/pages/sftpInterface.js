@@ -43,7 +43,20 @@ const SFTPInterface = () => {
             const response = await axiosInstance.get('/api/sftp/files', {
                 params: { path: currentDirectory }
             });
-            setFiles(response.data);
+
+            const processedFiles = response.data.map(file => ({
+                ...file,
+                isArchived: file.type !== 'd' && (
+                    file.name.endsWith('.tar') ||
+                    file.name.endsWith('.gz') ||
+                    file.name.endsWith('.zip') ||
+                    file.name.endsWith('.rar') ||
+                    file.name.endsWith('.7z') ||
+                    file.name.endsWith('.tar.gz')
+                )
+            }));
+
+            setFiles(processedFiles);
             setSelectedFiles([]);
         } catch (error) {
             console.error('Error fetching files:', error);
@@ -270,6 +283,24 @@ const SFTPInterface = () => {
         }
     };
 
+
+    const handleUnarchive = async (file) => {
+        if (!file || file.type === 'd' || !file.isArchived) return;
+
+        setLoading(prev => ({...prev, archiving: true}));
+
+        try {
+            await axiosInstance.post('/api/sftp/unarchive', {
+                path: file.path
+            });
+            await fetchFiles();
+        } catch (error) {
+            console.error('Error unarchiving file:', error);
+        } finally {
+            setLoading(prev => ({...prev, archiving: false}));
+        }
+    };
+
     const handleSelectFile = (file) => {
         setSelectedFiles(prev => {
             const isSelected = prev.some(f => f.path === file.path);
@@ -376,6 +407,7 @@ const SFTPInterface = () => {
                         onSelectFile={handleSelectFile}
                         onSelectAllFiles={handleSelectAllFiles}
                         onArchive={handleArchive}
+                        onUnarchive={handleUnarchive}
                         onRename={fetchFiles}
                     />
                 </div>

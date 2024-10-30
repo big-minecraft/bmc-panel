@@ -11,6 +11,7 @@ const {deleteSFTPDirectory, createSFTPDirectory, deleteSFTPFile, updateSFTPFile,
 const multer = require("multer");
 const JSZip = require("jszip");
 const config = require("../../config");
+const {unarchiveFile} = require("../unzip");
 
 module.exports = {
     getInstances: async (req, res) => {
@@ -468,6 +469,18 @@ module.exports = {
         } catch (error) {
             console.error('Error archiving files:', error);
             res.status(500).json({ error: 'Failed to process files' });
+        }
+    },
+
+    unarchiveSFTPFile: async (req, res) => {
+        const { path } = req.body;
+        try {
+            await unarchiveFile(path);
+
+            res.json({ message: 'File unarchived successfully' });
+        } catch (error) {
+            console.error('Error unarchiving file:', error);
+            res.status(500).json({ error: 'Failed to unarchive file' });
         }
     },
 
