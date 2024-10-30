@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import axiosInstance from "../utils/auth";
 import Breadcrumb from "../components/sftp/breadcrumb";
 import CreateActions from "../components/sftp/createActions";
@@ -13,9 +14,34 @@ import RenameModal from "../components/sftp/renameModal";
 import MonacoEditorModal from "../components/sftp/monacoEditorModal";
 
 const SFTPInterface = () => {
+    const location = useLocation();
+
+    const getInitialDirectory = () => {
+        const urlPath = location.pathname.replace('/files', '') || '/';
+        const decodedPath = decodeURIComponent(urlPath);
+
+        if (!decodedPath || decodedPath === '/') {
+            return '/nfsshare';
+        }
+
+        return `/nfsshare${decodedPath.startsWith('/') ? decodedPath : '/' + decodedPath}`;
+    };
+
     const [files, setFiles] = useState([]);
     const [selectedFiles, setSelectedFiles] = useState([]);
-    const [currentDirectory, setCurrentDirectory] = useState('/nfsshare');
+    const [currentDirectory, setCurrentDirectory] = useState(getInitialDirectory());
+
+    const handleDirectoryChange = (newPath) => {
+        const normalizedPath = newPath.startsWith('/nfsshare')
+            ? newPath
+            : `/nfsshare${newPath.startsWith('/') ? newPath : '/' + newPath}`;
+        const urlPath = normalizedPath.replace('/nfsshare', '');
+        const encodedPath = encodeURIComponent(urlPath).replace(/%2F/g, '/');
+        window.history.pushState(null, '', `/files${encodedPath}`);
+
+        setCurrentDirectory(normalizedPath);
+    };
+
     const [newFileName, setNewFileName] = useState('');
     const [newDirName, setNewDirName] = useState('');
     const [uploading, setUploading] = useState(false);
@@ -43,9 +69,15 @@ const SFTPInterface = () => {
     });
 
     useEffect(() => {
+        const newDirectory = getInitialDirectory();
+        if (newDirectory !== currentDirectory) {
+            setCurrentDirectory(newDirectory);
+        }
+    }, [location.pathname]);
+
+    useEffect(() => {
         fetchFiles();
     }, [currentDirectory]);
-
     const fetchFiles = async () => {
         setLoading(prev => ({ ...prev, files: true }));
         try {
@@ -457,7 +489,7 @@ const SFTPInterface = () => {
             <DragDropOverlay active={dragActive} />
             <Breadcrumb
                 currentDirectory={currentDirectory}
-                onNavigate={setCurrentDirectory}
+                onNavigate={handleDirectoryChange}
             />
 
             <div className="row mb-4">
@@ -482,7 +514,7 @@ const SFTPInterface = () => {
                     <FilesList
                         files={files}
                         loading={loading.files || loading.archiving || loading.downloading}
-                        onNavigate={setCurrentDirectory}
+                        onNavigate={handleDirectoryChange}
                         onDelete={(file) => openDeleteModal(file)}
                         onDownload={(file) => handleMassDownload([file])}
                         uploading={uploading}

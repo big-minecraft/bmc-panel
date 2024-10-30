@@ -47,7 +47,7 @@ function App() {
                     <Route path="/" element={<PrivateRoute><HomePage instances={instances} proxies={proxies} /></PrivateRoute>} />
                     <Route path="/gamemodes" element={<PrivateRoute><GamemodesPage /></PrivateRoute>} />
                     <Route path="/users" element={<PrivateRoute><AdminPage /></PrivateRoute>} />
-                    <Route path="/files" element={<PrivateRoute><SftpInterface /></PrivateRoute>} />
+                    <Route path="/files/*" element={<PrivateRoute><SftpInterface /></PrivateRoute>} />
                     <Route path="/gamemodes/:gamemodeName/edit" element={<PrivateRoute><GamemodeEditPage /></PrivateRoute>} />
                     <Route path="/instance/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
                     <Route path="/proxy/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
