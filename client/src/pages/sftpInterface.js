@@ -9,6 +9,7 @@ import ActionOverlay from "../components/sftp/actionOverlay";
 import useDragAndDrop from "../components/sftp/useDragAndDrop";
 import DragDropOverlay from "../components/sftp/dragDropOverlay";
 import MoveModal from "../components/sftp/moveModal";
+import RenameModal from "../components/sftp/renameModal";
 
 const SFTPInterface = () => {
     const [files, setFiles] = useState([]);
@@ -20,13 +21,15 @@ const SFTPInterface = () => {
     const [uploadProgress, setUploadProgress] = useState(0);
     const [moveModal, setMoveModal] = useState({ isOpen: false });
     const [uploadError, setUploadError] = useState(null);
+    const [renameModal, setRenameModal] = useState({ isOpen: false, file: null });
     const [loading, setLoading] = useState({
         files: false,
         creating: false,
         deleting: false,
         moving: false,
         downloading: false,
-        archiving: false
+        archiving: false,
+        renaming: false
     });
     const [deleteModalState, setDeleteModalState] = useState({
         isOpen: false,
@@ -38,7 +41,7 @@ const SFTPInterface = () => {
     }, [currentDirectory]);
 
     const fetchFiles = async () => {
-        setLoading(prev => ({...prev, files: true}));
+        setLoading(prev => ({ ...prev, files: true }));
         try {
             const response = await axiosInstance.get('/api/sftp/files', {
                 params: { path: currentDirectory }
@@ -54,14 +57,18 @@ const SFTPInterface = () => {
                     file.name.endsWith('.7z') ||
                     file.name.endsWith('.tar.gz')
                 )
-            }));
+            })).sort((a, b) => {
+                if (a.type === 'd' && b.type !== 'd') return -1;
+                if (a.type !== 'd' && b.type === 'd') return 1;
+                return a.name.localeCompare(b.name);
+            });
 
             setFiles(processedFiles);
             setSelectedFiles([]);
         } catch (error) {
             console.error('Error fetching files:', error);
         } finally {
-            setLoading(prev => ({...prev, files: false}));
+            setLoading(prev => ({ ...prev, files: false }));
         }
     };
 
@@ -353,6 +360,44 @@ const SFTPInterface = () => {
         }
     };
 
+    const handleRename = async (file, newName) => {
+        if (!newName || !file) return;
+
+        setLoading(prev => ({...prev, renaming: true}));
+
+        try {
+            // Get the parent directory path
+            const parentDir = file.path.substring(0, file.path.lastIndexOf('/'));
+
+            // Construct the new path with the new name
+            const newPath = `${parentDir}/${newName}`.replace(/\/+/g, '/');
+
+            // Use the existing move functionality to rename
+            await axiosInstance.post('/api/sftp/move', {
+                sourcePath: file.path,
+                targetPath: newPath
+            });
+
+            // Refresh the file list
+            await fetchFiles();
+
+            // Update selectedFiles if the renamed file was selected
+            setSelectedFiles(prev =>
+                prev.map(selectedFile =>
+                    selectedFile.path === file.path
+                        ? {...selectedFile, path: newPath, name: newName}
+                        : selectedFile
+                )
+            );
+
+            return true;
+        } catch (error) {
+            console.error('Error renaming:', error);
+            throw new Error(error.response?.data?.message || 'Failed to rename. Please try again.');
+        } finally {
+            setLoading(prev => ({...prev, renaming: false}));
+        }
+    };
 
     const dragActive = useDragAndDrop(handleFileUpload);
 
@@ -408,7 +453,7 @@ const SFTPInterface = () => {
                         onSelectAllFiles={handleSelectAllFiles}
                         onArchive={handleArchive}
                         onUnarchive={handleUnarchive}
-                        onRename={fetchFiles}
+                        onRename={(file) => setRenameModal({ isOpen: true, file })}
                     />
                 </div>
             </div>
@@ -427,6 +472,13 @@ const SFTPInterface = () => {
                 onConfirm={handleMove}
                 selectedFiles={selectedFiles}
                 currentDirectory={currentDirectory}
+            />
+
+            <RenameModal
+                isOpen={renameModal.isOpen}
+                file={renameModal.file}
+                onClose={() => setRenameModal({ isOpen: false, file: null })}
+                onConfirm={handleRename}
             />
 
             <ActionOverlay

@@ -91,7 +91,8 @@ const ActionOverlay = ({
                         <div className="vr mx-2"></div>
                         <button
                             onClick={onClose}
-                            className="btn btn-sm btn-outline-secondary rounded-circle p-2"
+                            className="btn btn-sm btn-outline-secondary rounded-circle"
+                            style={{ width: '32px', height: '32px', padding: 0 }}
                             title="Close"
                         >
                             <X size={18} />
