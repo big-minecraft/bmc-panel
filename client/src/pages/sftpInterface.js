@@ -10,6 +10,7 @@ import useDragAndDrop from "../components/sftp/useDragAndDrop";
 import DragDropOverlay from "../components/sftp/dragDropOverlay";
 import MoveModal from "../components/sftp/moveModal";
 import RenameModal from "../components/sftp/renameModal";
+import MonacoEditorModal from "../components/sftp/monacoEditorModal";
 
 const SFTPInterface = () => {
     const [files, setFiles] = useState([]);
@@ -34,6 +35,11 @@ const SFTPInterface = () => {
     const [deleteModalState, setDeleteModalState] = useState({
         isOpen: false,
         files: []
+    });
+    const [editorModal, setEditorModal] = useState({
+        isOpen: false,
+        file: null,
+        content: ''
     });
 
     useEffect(() => {
@@ -366,22 +372,17 @@ const SFTPInterface = () => {
         setLoading(prev => ({...prev, renaming: true}));
 
         try {
-            // Get the parent directory path
             const parentDir = file.path.substring(0, file.path.lastIndexOf('/'));
 
-            // Construct the new path with the new name
             const newPath = `${parentDir}/${newName}`.replace(/\/+/g, '/');
 
-            // Use the existing move functionality to rename
             await axiosInstance.post('/api/sftp/move', {
                 sourcePath: file.path,
                 targetPath: newPath
             });
 
-            // Refresh the file list
             await fetchFiles();
 
-            // Update selectedFiles if the renamed file was selected
             setSelectedFiles(prev =>
                 prev.map(selectedFile =>
                     selectedFile.path === file.path
@@ -396,6 +397,44 @@ const SFTPInterface = () => {
             throw new Error(error.response?.data?.message || 'Failed to rename. Please try again.');
         } finally {
             setLoading(prev => ({...prev, renaming: false}));
+        }
+    };
+
+    const handleEditFile = async (file) => {
+        try {
+            const response = await axiosInstance.get('/api/sftp/file', {
+                params: { path: file.path }
+            });
+
+            let fileContent = '';
+            if (response.data && response.data.content) {
+                if (Array.isArray(response.data.content.data)) {
+                    fileContent = Buffer.from(response.data.content.data).toString('utf-8');
+                } else if (typeof response.data.content === 'string') {
+                    fileContent = response.data.content;
+                }
+            }
+
+            setEditorModal({
+                isOpen: true,
+                file,
+                content: fileContent
+            });
+        } catch (error) {
+            console.error('Error fetching file content:', error);
+        }
+    };
+
+    const handleSaveFile = async (content) => {
+        try {
+            await axiosInstance.post('/api/sftp/file', {
+                path: editorModal.file.path,
+                content: content
+            });
+            setEditorModal({ isOpen: false, file: null, content: '' });
+            await fetchFiles();
+        } catch (error) {
+            console.error('Error saving file:', error);
         }
     };
 
@@ -454,6 +493,7 @@ const SFTPInterface = () => {
                         onArchive={handleArchive}
                         onUnarchive={handleUnarchive}
                         onRename={(file) => setRenameModal({ isOpen: true, file })}
+                        onEdit={handleEditFile}
                     />
                 </div>
             </div>
@@ -489,6 +529,14 @@ const SFTPInterface = () => {
                 onDownload={() => handleMassDownload(selectedFiles)}
                 onArchive={() => handleMassArchive(selectedFiles)}
                 loading={loading.archiving}
+            />
+
+            <MonacoEditorModal
+                isOpen={editorModal.isOpen}
+                onClose={() => setEditorModal({ isOpen: false, file: null, content: '' })}
+                onSave={handleSaveFile}
+                initialContent={editorModal.content}
+                fileName={editorModal.file?.name}
             />
         </div>
     );

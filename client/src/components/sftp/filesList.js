@@ -1,6 +1,7 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFolder, faFile, faTrash, faDownload, faPen, faBox, faBoxOpen } from '@fortawesome/free-solid-svg-icons';
+import { isTextFile } from '../../utils/textUtil';
 
 const FilesList = ({
    files,
@@ -11,6 +12,7 @@ const FilesList = ({
    onRename,
    onArchive,
    onUnarchive,
+   onEdit,
    uploading,
    uploadProgress,
    selectedFiles,
@@ -51,6 +53,14 @@ const FilesList = ({
 
     const allFilesSelected = files.length > 0 &&
         files.every(file => isSelected(file));
+
+    const handleFileClick = (file) => {
+        if (file.type === 'd') {
+            onNavigate(file.path);
+        } else if (isTextFile(file.name)) {
+            onEdit(file);
+        }
+    };
 
     return (
         <div className="card shadow-sm">
@@ -117,20 +127,19 @@ const FilesList = ({
                                     />
                                 </td>
                                 <td>
-                                    {file.type === 'd' ? (
-                                        <button
-                                            className="btn btn-link text-decoration-none p-0 text-start w-100"
-                                            onClick={() => onNavigate(file.path)}
-                                        >
-                                            <FontAwesomeIcon icon={faFolder} className="me-2 text-warning" />
-                                            {file.name}
-                                        </button>
-                                    ) : (
-                                        <span>
-                                            <FontAwesomeIcon icon={faFile} className="me-2 text-secondary" />
-                                            {file.name}
-                                        </span>
-                                    )}
+                                    <button
+                                        className={`btn btn-link text-decoration-none p-0 text-start w-100 ${
+                                            file.type !== 'd' && !isTextFile(file.name) ? 'pe-none' : ''
+                                        }`}
+                                        onClick={() => handleFileClick(file)}
+                                        title={file.type === 'd' ? 'Open directory' : isTextFile(file.name) ? 'Edit file' : ''}
+                                    >
+                                        <FontAwesomeIcon
+                                            icon={file.type === 'd' ? faFolder : faFile}
+                                            className={`me-2 ${file.type === 'd' ? 'text-warning' : 'text-secondary'}`}
+                                        />
+                                        {file.name}
+                                    </button>
                                 </td>
                                 <td>
                                     <span className={`badge ${file.type === 'd' ? 'bg-warning' : 'bg-secondary'}`}>
