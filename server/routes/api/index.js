@@ -29,6 +29,9 @@ router.route('/verify')
 router.route('/login')
     .post(controller.login);
 
+router.route('/verify-invite')
+    .post(controller.verifyInvite);
+
 router.route('/verify-login')
     .post(controller.verifyLogin);
 
@@ -38,9 +41,6 @@ router.route('/invite-codes')
 
 router.route('/invite-codes/:code')
     .delete(verifyAdminToken, controller.revokeInviteCode);
-
-router.route('/verify-invite')
-    .post(verifyToken, controller.verifyInvite);
 
 router.route('/users')
     .get(verifyAdminToken, controller.getUsers);
