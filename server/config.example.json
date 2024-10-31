@@ -5,7 +5,7 @@
     "port": 6379
   },
   "k8s": {
-    "configPath": "~/.kube/config'"
+    "configPath": "/etc/rancher/k3s/k3s.yaml"
   },
   "mariadb": {
     "host": "mariadb-service",

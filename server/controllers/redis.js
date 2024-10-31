@@ -1,6 +1,6 @@
 const Redis = require('ioredis');
 const genericPool = require('generic-pool');
-const config = require('../config.json');
+const config = require('../config');
 
 const redisPool = genericPool.createPool({
     create: () => {

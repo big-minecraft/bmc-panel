@@ -1,4 +1,4 @@
-const config = require('../config.json');
+const config = require('../config');
 const path = require('path');
 const { readdirSync, unlinkSync, promises: { readFile, writeFile, rename, copyFile } } = require("fs");
 const yaml = require('js-yaml');

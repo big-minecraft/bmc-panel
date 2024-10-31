@@ -1,5 +1,5 @@
 const Client = require('ssh2-sftp-client');
-const config = require('../config.json');
+const config = require('../config');
 const multer = require('multer');
 const genericPool = require('generic-pool');
 

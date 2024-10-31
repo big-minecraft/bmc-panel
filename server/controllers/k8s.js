@@ -1,5 +1,5 @@
 const k8s = require('@kubernetes/client-node');
-const config = require('../config.json');
+const config = require('../config');
 const { Agent } = require("https");
 
 const kc = new k8s.KubeConfig();

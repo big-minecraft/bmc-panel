@@ -1,7 +1,7 @@
 const speakeasy = require('speakeasy');
 const qrcode = require('qrcode');
 const {userExists, addUser, getPassword, setInviteTokenUsed, getUser} = require("./database");
-const config = require('../config.json');
+const config = require('../config');
 const jwt = require('jsonwebtoken');
 const {join} = require("path");
 const {writeFileSync} = require("fs");
