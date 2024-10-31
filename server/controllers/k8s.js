@@ -7,8 +7,8 @@ const kc = new k8s.KubeConfig();
 function loadKubeConfigWithFallback() {
     const pathsToTry = [
         config.k8s.configPath,
-        '/etc/rancher/k3s/k3s.yaml', // k3s default location
-        '/etc/kubernetes/admin.conf', // Common Kubernetes location
+        '/host-root/etc/rancher/k3s/k3s.yaml', // k3s default location
+        '/host-root/etc/kubernetes/admin.conf', // Common Kubernetes location
         `${process.env.HOME}/.kube/config`, // Default kubeconfig location in user’s home directory
     ];
 
