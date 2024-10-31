@@ -11,10 +11,26 @@ const GamemodesPage = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newGamemodeName, setNewGamemodeName] = useState('');
     const [gamemodeToDelete, setGamemodeToDelete] = useState(null);
+    const [restartingGamemodes, setRestartingGamemodes] = useState(new Set());
+    const [notifications, setNotifications] = useState([]);
 
     useEffect(() => {
         fetchGamemodes();
     }, []);
+
+    useEffect(() => {
+        if (notifications.length > 0) {
+            const timer = setTimeout(() => {
+                setNotifications(prev => prev.slice(1));
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [notifications]);
+
+    const addNotification = (message, type) => {
+        const id = Date.now();
+        setNotifications(prev => [...prev, { id, message, type }]);
+    };
 
     const fetchGamemodes = async () => {
         try {
@@ -45,11 +61,35 @@ const GamemodesPage = () => {
             );
         } catch (err) {
             console.error('Error toggling gamemode:', err);
+            addNotification(`Failed to toggle ${gamemodeName}`, 'danger');
+        }
+    };
+
+    const handleRestart = async (gamemodeName) => {
+        setRestartingGamemodes(prev => new Set([...prev, gamemodeName]));
+
+        try {
+            await axiosInstance.post(`/api/gamemodes/${gamemodeName}`);
+            addNotification(`Successfully restarted ${gamemodeName}`, 'success');
+            await fetchGamemodes();
+        } catch (err) {
+            console.error('Error restarting gamemode:', err);
+            addNotification(`Failed to restart ${gamemodeName}`, 'danger');
+        } finally {
+            setRestartingGamemodes(prev => {
+                const next = new Set(prev);
+                next.delete(gamemodeName);
+                return next;
+            });
         }
     };
 
     const handleEdit = (gamemodeName) => {
         navigate(`/gamemodes/${gamemodeName}/edit`);
+    };
+
+    const handleViewData = (dataDirectory) => {
+        navigate(`/files/${dataDirectory}`);
     };
 
     const handleCreate = async () => {
@@ -63,9 +103,10 @@ const GamemodesPage = () => {
             setShowCreateModal(false);
             setNewGamemodeName('');
             await fetchGamemodes();
+            addNotification(`Successfully created ${newGamemodeName}`, 'success');
         } catch (err) {
             console.error('Error creating gamemode:', err);
-            // You might want to show an error message to the user here
+            addNotification(`Failed to create ${newGamemodeName}`, 'danger');
         }
     };
 
@@ -76,9 +117,10 @@ const GamemodesPage = () => {
             await axiosInstance.delete(`/api/gamemodes/${gamemodeToDelete}`);
             setGamemodeToDelete(null);
             await fetchGamemodes();
+            addNotification(`Successfully deleted ${gamemodeToDelete}`, 'success');
         } catch (err) {
             console.error('Error deleting gamemode:', err);
-            // You might want to show an error message to the user here
+            addNotification(`Failed to delete ${gamemodeToDelete}`, 'danger');
         }
     };
 
@@ -104,6 +146,24 @@ const GamemodesPage = () => {
 
     return (
         <div className="container py-4">
+            {/* Notifications */}
+            <div style={{ position: 'fixed', top: '1rem', right: '1rem', zIndex: 1050 }}>
+                {notifications.map(({ id, message, type }) => (
+                    <div
+                        key={id}
+                        className={`alert alert-${type} alert-dismissible fade show`}
+                        role="alert"
+                    >
+                        {message}
+                        <button
+                            type="button"
+                            className="btn-close"
+                            onClick={() => setNotifications(prev => prev.filter(n => n.id !== id))}
+                        />
+                    </div>
+                ))}
+            </div>
+
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h1 className="display-6 mb-0">Gamemode Management</h1>
                 <button
@@ -128,6 +188,32 @@ const GamemodesPage = () => {
 
                                 <div className="d-flex align-items-center gap-3">
                                     <button
+                                        className="btn btn-outline-info btn-sm"
+                                        onClick={() => handleViewData(gamemode.dataDirectory)}
+                                        title="View Data Directory"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-folder" viewBox="0 0 16 16">
+                                            <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/>
+                                        </svg>
+                                    </button>
+
+                                    <button
+                                        className="btn btn-outline-warning btn-sm"
+                                        onClick={() => handleRestart(gamemode.name)}
+                                        title="Restart Gamemode"
+                                        disabled={restartingGamemodes.has(gamemode.name)}
+                                    >
+                                        {restartingGamemodes.has(gamemode.name) ? (
+                                            <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                                        ) : (
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+                                                <path fillRule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                                            </svg>
+                                        )}
+                                    </button>
+
+                                    <button
                                         className="btn btn-outline-primary btn-sm"
                                         onClick={() => handleEdit(gamemode.name)}
                                     >
@@ -146,7 +232,7 @@ const GamemodesPage = () => {
                                         </svg>
                                     </button>
 
-                                    <div className="form-check form-switch">
+                                    <div className="form-check form-switch" style={{ minWidth: '120px' }}> {/* Added minWidth */}
                                         <input
                                             className="form-check-input"
                                             type="checkbox"

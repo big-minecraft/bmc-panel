@@ -3,6 +3,7 @@ const path = require('path');
 const { readdirSync, unlinkSync, promises: { readFile, writeFile, rename, copyFile } } = require("fs");
 const yaml = require('js-yaml');
 const {scaleDeployment} = require("./k8s");
+const {createSFTPDirectory, deleteSFTPDirectory} = require("./sftp");
 
 async function getGamemodes() {
     const workingDir = config["bmc-path"] + "/gamemodes";
@@ -19,11 +20,13 @@ async function getGamemodes() {
                 const fileContent = await readFile (filePath, 'utf8');
                 const yamlContent = yaml.load(fileContent);
                 const isEnabled = !yamlContent.disabled;
+                const dataDir = "/gamemodes/" + yamlContent.volume.dataDirectory || "/gamemodes";
 
                 gamemodes.push({
                     name: name,
                     path: filePath,
-                    enabled: isEnabled
+                    enabled: isEnabled,
+                    dataDirectory: dataDir
                 });
             }
         }
@@ -107,6 +110,8 @@ async function deleteGamemode(name)  {
         } else if (await fileExists(disabledPath)) {
             await unlinkSync(disabledPath);
         }
+
+        await deleteSFTPDirectory(`nfsshare/gamemodes/${name}`);
     } catch (error) {
         console.error(error);
         throw new Error('Failed to delete gamemode');
@@ -115,19 +120,68 @@ async function deleteGamemode(name)  {
     await runApplyScript();
 }
 
+async function restartGamemode(name) {
+
+    try {
+        await scaleDeployment(name, 0);
+
+        let gamemode = await getGamemodeContent(name);
+        let yamlContent = yaml.load(gamemode);
+        let minimumInstances = yamlContent.minimumInstances || 1;
+
+        let retries = 3;
+        while (retries > 0) {
+            try {
+                await toggleGamemode(name, false);
+                break;
+            } catch (err) {
+                retries--;
+                if (retries === 0) throw err;
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 3000));
+
+        retries = 3;
+        while (retries > 0) {
+            try {
+                await toggleGamemode(name, true);
+                break;
+            } catch (err) {
+                retries--;
+                if (retries === 0) throw err;
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+    } catch (error) {
+        console.error('Error during restart:', error);
+        throw error;
+    }
+}
+
 async function createGamemode(name) {
     const workingDir = config["bmc-path"] + "/gamemodes";
     const examplesDir = config["bmc-path"] + "/examples";
     const sourceFile = path.join(examplesDir, "example-gamemode.yaml");
     const destinationFile = path.join(workingDir, `${name}.yaml`);
 
+    if (await fileExists(destinationFile)) {
+        throw new Error('Gamemode already exists');
+    }
+
     try {
         await copyFile(sourceFile, destinationFile);
 
         let content = await readFile(destinationFile, 'utf8');
-        // More flexible regex that handles optional quotes and whitespace
-        content = content.replace(/name:\s*["']?example-gamemode["']?/g, `name: "${name}"`);
+
+        content = content
+            .replace(/^name:\s*["']?[^"\n\r]*["']?$/m, `name: "${name}"`)
+            .replace(/^(\s*)dataDirectory:\s*["']?[^"\n\r]*["']?$/m, `$1dataDirectory: "${name}"`);
+
         await writeFile(destinationFile, content, 'utf8');
+
+        await createSFTPDirectory(`nfsshare/gamemodes/${name}`);
 
     } catch (error) {
         console.error(error);
@@ -167,5 +221,6 @@ module.exports = {
     updateGamemodeContent,
     toggleGamemode,
     deleteGamemode,
-    createGamemode
+    createGamemode,
+    restartGamemode
 };

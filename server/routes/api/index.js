@@ -18,7 +18,8 @@ router.route('/gamemodes/:name')
     .get(verifyToken, controller.getGamemodeContent)
     .put(verifyToken, controller.updateGamemodeContent)
     .patch(verifyToken, controller.toggleGamemode)
-    .delete(verifyToken, controller.deleteGamemode);
+    .delete(verifyToken, controller.deleteGamemode)
+    .post(verifyToken, controller.restartGamemode);
 
 router.route('/register')
     .post(controller.register);

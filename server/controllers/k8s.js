@@ -21,7 +21,7 @@ async function scaleDeployment(deploymentName, replicas) {
         const deployment = res.body;
 
         // Log current status before scaling
-        console.log('Current deployment status:', deployment.status);
+        // console.log('Current deployment status:', deployment.status);
 
         // Update the replica count
         console.log('Scaling deployment:', deploymentName, 'to', replicas, 'replicas');

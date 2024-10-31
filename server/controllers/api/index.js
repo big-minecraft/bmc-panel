@@ -1,5 +1,7 @@
 const { getInstances, getProxies } = require("../redis");
-const { getGamemodes, getGamemodeContent, updateGamemodeContent, toggleGamemode, deleteGamemode, createGamemode} = require("../gamemodes");
+const { getGamemodes, getGamemodeContent, updateGamemodeContent, toggleGamemode, deleteGamemode, createGamemode,
+    restartGamemode
+} = require("../gamemodes");
 const { register, verify, verifyLogin, login} = require("../authentication");
 const {getInviteCodes, createInviteCode, revokeInviteCode, getUsers, setAdmin, resetPassword, deleteUser, logout,
     getUser, getUserByID
@@ -82,6 +84,16 @@ module.exports = {
             res.json({message: 'Gamemode created successfully'});
         } catch (error) {
             res.status(500).json({error: 'Failed to create gamemode'});
+        }
+    },
+
+    restartGamemode: async (req, res) => {
+        try {
+            const {name} = req.params;
+            await restartGamemode(name);
+            res.json({message: 'Gamemode restarted successfully'});
+        } catch (error) {
+            res.status(500).json({error: 'Failed to restart gamemode'});
         }
     },
 
