@@ -85,7 +85,7 @@ async function toggleGamemode(name, enabled) {
         await writeFile(filePath, fileContent, 'utf8');
 
         if (enabled) {
-            const minimumInstances = yamlContent.minimumInstances || 1; // Default to 1 if not set
+            const minimumInstances = yamlContent.minimumInstances || 1;
             await scaleDeployment(name, minimumInstances);
         } else {
             await scaleDeployment(name, 0);
@@ -161,6 +161,7 @@ async function restartGamemode(name) {
 }
 
 async function createGamemode(name) {
+    const yaml = require('js-yaml');
     const workingDir = config["bmc-path"] + "/gamemodes";
     const examplesDir = config["bmc-path"] + "/examples";
     const sourceFile = path.join(examplesDir, "example-gamemode.yaml");
@@ -172,17 +173,24 @@ async function createGamemode(name) {
 
     try {
         await copyFile(sourceFile, destinationFile);
+        let originalContent = await readFile(sourceFile, 'utf8');
+        const lines = originalContent.split('\n');
 
-        let content = await readFile(destinationFile, 'utf8');
+        const updatedLines = lines.map(line => {
+            if (line.trim().startsWith('name:')) {
+                return line.replace(/name:.*/, `name: "${name}"`);
+            }
+            if (line.trim().startsWith('dataDirectory:')) {
+                const indent = line.match(/^\s*/)[0];
+                return `${indent}dataDirectory: "${name}"`;
+            }
+            return line;
+        });
 
-        content = content
-            .replace(/^name:\s*["']?[^"\n\r]*["']?$/m, `name: "${name}"`)
-            .replace(/^(\s*)dataDirectory:\s*["']?[^"\n\r]*["']?$/m, `$1dataDirectory: "${name}"`);
-
-        await writeFile(destinationFile, content, 'utf8');
+        const updatedContent = updatedLines.join('\n');
+        await writeFile(destinationFile, updatedContent, 'utf8');
 
         await createSFTPDirectory(`nfsshare/gamemodes/${name}`);
-
     } catch (error) {
         console.error(error);
         throw new Error('Failed to create gamemode');
