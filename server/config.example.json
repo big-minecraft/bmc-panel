@@ -1,5 +1,5 @@
 {
-  "bmc-path": "/var/lib/baremetal",
+  "bmc-path": "/host-root/var/lib/baremetal",
   "redis": {
     "host": "redis-service",
     "port": 6379
