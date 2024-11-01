@@ -13,6 +13,7 @@ const pool = mariadb.createPool({
 async function databaseInit() {
     try {
         await createTables();
+        await checkAndCreateInitialInviteCode();
     } catch (error) {
         console.error('Failed to initialize database:', error);
     }
@@ -23,7 +24,7 @@ async function createTables() {
     try {
         conn = await pool.getConnection();
         await conn.query('CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255), password VARCHAR(255), secret VARCHAR(255), is_admin BOOLEAN DEFAULT FALSE, last_logout TIMESTAMP DEFAULT CURRENT_TIMESTAMP)');
-        await conn.query('CREATE TABLE IF NOT EXISTS invite_codes (id INT AUTO_INCREMENT PRIMARY KEY, code VARCHAR(255), message TEXT, created_at TIMESTAMP DEFAULT NULL, used_by VARCHAR(255) DEFAULT NULL)');
+        await conn.query('CREATE TABLE IF NOT EXISTS invite_codes (id INT AUTO_INCREMENT PRIMARY KEY, code VARCHAR(255), message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, used_by VARCHAR(255) DEFAULT NULL)');
     } catch (error) {
         console.error('Failed to create tables:', error);
         throw error;
@@ -265,6 +266,14 @@ async function logout(username) {
         throw error;
     } finally {
         if (conn) await conn.end();
+    }
+}
+
+async function checkAndCreateInitialInviteCode() {
+    let users = await getUsers();
+    let inviteCodes = await getInviteCodes();
+    if (users.length === 0 && inviteCodes.length === 0) {
+        await createInviteCode('Initial invite code');
     }
 }
 
