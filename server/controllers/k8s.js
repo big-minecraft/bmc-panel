@@ -29,6 +29,8 @@ class KubernetesClient {
             this.coreV1Api = this.kc.makeApiClient(k8s.CoreV1Api);
             this.appsV1Api = this.kc.makeApiClient(k8s.AppsV1Api);
 
+            console.log(`API objects: ${this.coreV1Api}, ${this.appsV1Api}`)
+
         } catch (error) {
             console.error('Error initializing Kubernetes client:', error);
             throw new Error(`Failed to initialize Kubernetes client: ${error.message}`);
