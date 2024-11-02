@@ -62,6 +62,8 @@ class KubernetesClient {
 
     async scaleDeployment(deploymentName, replicas, namespace = 'default') {
         try {
+
+            console.log(`AppsV1API: ${this.appsV1Api}`)
             const res = await this.appsV1Api.readNamespacedDeployment(deploymentName, namespace);
             const deployment = res.body;
 
