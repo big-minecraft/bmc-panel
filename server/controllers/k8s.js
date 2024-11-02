@@ -1,58 +1,87 @@
 const k8s = require('@kubernetes/client-node');
 const config = require('../config');
-const { Agent } = require("https");
 
-const kc = new k8s.KubeConfig();
+class KubernetesClient {
+    constructor() {
+        this.kc = new k8s.KubeConfig();
+        this.loadConfiguration();
+        this.coreV1Api = null;
+        this.appsV1Api = null;
+    }
 
-function loadKubeConfigWithFallback() {
-    const pathsToTry = [
-        config.k8s.configPath,
-        '/host-root/etc/rancher/k3s/k3s.yaml', // k3s default location
-        '/host-root/etc/kubernetes/admin.conf', // Common Kubernetes location
-        `${process.env.HOME}/.kube/config`, // Default kubeconfig location in user’s home directory
-    ];
-
-    for (const path of pathsToTry) {
+    loadConfiguration() {
         try {
-            kc.loadFromFile(path);
-            console.log(`Loaded kubeconfig from ${path}`);
-            return;
+            if (this.isRunningInCluster()) {
+                console.log('Loading in-cluster configuration');
+                this.kc.loadFromCluster();
+
+                const cluster = this.kc.getCurrentCluster();
+                if (cluster) {
+                    cluster.skipTLSVerify = false;
+
+                    cluster.server = 'https://kubernetes.default.svc';
+                }
+            } else {
+                console.log('Loading local development configuration');
+                this.loadLocalConfig();
+            }
+
+            this.coreV1Api = this.kc.makeApiClient(k8s.CoreV1Api);
+            this.appsV1Api = this.kc.makeApiClient(k8s.AppsV1Api);
+
         } catch (error) {
-            console.warn(`Failed to load kubeconfig from ${path}: ${error.message}`);
+            console.error('Error initializing Kubernetes client:', error);
+            throw new Error(`Failed to initialize Kubernetes client: ${error.message}`);
         }
     }
-    throw new Error('Failed to load kubeconfig from all standard locations.');
-}
 
-loadKubeConfigWithFallback();
+    loadLocalConfig() {
+        const pathsToTry = [
+            config.k8s.configPath,
+            '/host-root/etc/rancher/k3s/k3s.yaml',
+            '/host-root/etc/kubernetes/admin.conf',
+            `${process.env.HOME}/.kube/config`,
+        ];
 
-const k8sApi = kc.makeApiClient(k8s.CoreV1Api);
+        for (const path of pathsToTry) {
+            try {
+                this.kc.loadFromFile(path);
+                console.log(`Loaded kubeconfig from ${path}`);
+                return;
+            } catch (error) {
+                console.warn(`Failed to load kubeconfig from ${path}: ${error.message}`);
+            }
+        }
+        throw new Error('Failed to load kubeconfig from all standard locations.');
+    }
 
-async function scaleDeployment(deploymentName, replicas) {
-    const k8sApi = kc.makeApiClient(k8s.AppsV1Api);
+    isRunningInCluster() {
+        return process.env.KUBERNETES_SERVICE_HOST !== undefined &&
+            process.env.KUBERNETES_SERVICE_PORT !== undefined;
+    }
 
-    const cluster = kc.getCurrentCluster();
-    cluster.skipTLSVerify = true;
+    async scaleDeployment(deploymentName, replicas, namespace = 'default') {
+        try {
+            const res = await this.appsV1Api.readNamespacedDeployment(deploymentName, namespace);
+            const deployment = res.body;
 
-    try {
-        const res = await k8sApi.readNamespacedDeployment(deploymentName, 'default');
-        const deployment = res.body;
+            console.log('Scaling deployment:', deploymentName, 'to', replicas, 'replicas');
+            deployment.spec.replicas = replicas;
 
-        console.log('Scaling deployment:', deploymentName, 'to', replicas, 'replicas');
-        deployment.spec.replicas = replicas;
+            const response = await this.appsV1Api.replaceNamespacedDeployment(
+                deploymentName,
+                namespace,
+                deployment
+            );
+            console.log('Deployment scaled successfully:', response.body);
 
-        const response = await k8sApi.replaceNamespacedDeployment(deploymentName, 'default', deployment);
-        console.log('Deployment scaled successfully:', response.body);
-
-        return response.body;
-    } catch (error) {
-        console.error('Error scaling deployment:', error);
-        throw new Error(`Failed to scale deployment: ${error.message}`);
+            return response.body;
+        } catch (error) {
+            console.error('Error scaling deployment:', error);
+            throw new Error(`Failed to scale deployment: ${error.message}`);
+        }
     }
 }
 
-module.exports = {
-    k8sApi,
-    kc,
-    scaleDeployment
-};
+const kubernetesClient = new KubernetesClient();
+module.exports = kubernetesClient;
