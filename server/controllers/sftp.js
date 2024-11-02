@@ -107,11 +107,8 @@ async function deleteSFTPFile(path) {
 async function createSFTPDirectory(path) {
     let sftp;
     try {
-        console.log('Creating directory:', path);
         sftp = await sftpPool.acquire();
-        console.log('SFTP acquired');
         await sftp.mkdir(path, true);
-        console.log('Directory create3d');
         return { success: true, message: 'Directory created successfully' };
     } catch (error) {
         console.error('Error creating SFTP directory:', error);
