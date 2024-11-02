@@ -17,8 +17,7 @@ const initializeConfig = () => {
     if (!existsSync(CONFIG_PATH)) {
         try {
             copyFileSync(EXAMPLE_CONFIG_PATH, CONFIG_PATH);
-            console.log('Created config.json from config.example.json. Please fill in the required values.');
-            process.exit(1);
+            console.log('Created config.json from config.example.json');
         } catch (error) {
             console.error('Failed to create config.json:', error.message);
             process.exit(1);
