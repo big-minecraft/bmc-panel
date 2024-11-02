@@ -212,7 +212,7 @@ async function runApplyScript() {
     const { exec } = require('child_process');
     const scriptDir = path.join(config["bmc-path"], "scripts");
 
-    exec(`cd ${scriptDir} && ./apply.sh`, (error, stdout, stderr) => {
+    exec(`cd ${scriptDir} && ls && ./apply.sh`, (error, stdout, stderr) => {
         if (error) {
             console.error(`exec error: ${error}`);
             return;
