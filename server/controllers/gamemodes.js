@@ -167,6 +167,8 @@ async function createGamemode(name) {
     const sourceFile = path.join(examplesDir, "example-gamemode.yaml");
     const destinationFile = path.join(workingDir, `${name}.yaml`);
 
+    console.log('creating gamemode')
+
     if (await fileExists(destinationFile)) {
         throw new Error('Gamemode already exists');
     }
@@ -177,6 +179,7 @@ async function createGamemode(name) {
         const lines = originalContent.split('\n');
 
         const updatedLines = lines.map(line => {
+            console.log('updating lines')
             if (line.trim().startsWith('name:')) {
                 return line.replace(/name:.*/, `name: "${name}"`);
             }
@@ -190,13 +193,18 @@ async function createGamemode(name) {
         const updatedContent = updatedLines.join('\n');
         await writeFile(destinationFile, updatedContent, 'utf8');
 
+
+        console.log('creating sftp directory')
+
         await createSFTPDirectory(`nfsshare/gamemodes/${name}`);
     } catch (error) {
         console.error(error);
         throw new Error('Failed to create gamemode');
     }
 
+    console.log('running apply script')
     await runApplyScript();
+    console.log('done')
 }
 
 async function fileExists(filePath) {
