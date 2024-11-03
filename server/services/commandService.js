@@ -2,7 +2,7 @@ const WebSocket = require('ws');
 const { Agent } = require("https");
 
 async function executeCommand(ws, command, podName, cluster, user) {
-    const execUrl = `${cluster.server}/api/v1/namespaces/default/pods/${podName}/exec`;
+    const execUrl = `${cluster.server}/api/v1/namespaces/minecraft/pods/${podName}/exec`;
     const params = new URLSearchParams();
 
     params.append('command', 'bash');
