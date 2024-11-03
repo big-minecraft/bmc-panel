@@ -23,7 +23,7 @@ function InstancePage({ instances, proxies }) {
 
         const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
         const wsHost = window.location.host;
-        const wsUrl = `${wsProtocol}://${wsHost}/api/logs/${instance.podName}`;
+        const wsUrl = `${wsProtocol}://${wsHost.replace('3000', '3001')}/api/logs/${instance.podName}`;
 
         const socket = new WebSocket(wsUrl);
 
