@@ -42,6 +42,7 @@ function setupPodLogs(ws, podName, cluster, user) {
         .on('response', (response) => {
             if (response.statusCode !== 200) {
                 console.error(`Failed to get logs: HTTP ${response.statusCode}`);
+                console.log(response.body);
                 ws.send(`Error: Failed to get logs (HTTP ${response.statusCode})`);
                 ws.close();
                 return;
