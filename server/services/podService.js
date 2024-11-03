@@ -11,6 +11,9 @@ async function handlePodConnection(ws, req, podName) {
 
     console.log(`Client connected for logs and commands of pod: ${podName}`);
 
+    console.log(`Cluster: ${cluster.toString()}`);
+    console.log(`User: ${user.toString()}`);
+
     setupPodLogs(ws, podName, cluster, user);
 
     ws.on('message', async (message) => {
