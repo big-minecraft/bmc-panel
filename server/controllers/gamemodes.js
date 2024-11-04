@@ -212,8 +212,11 @@ async function fileExists(filePath) {
 async function runApplyScript() {
     const { exec } = require('child_process');
     const scriptDir = path.join(config["bmc-path"], "scripts");
+    // Convert pod path to host path by using /host-root to access host's /bin/sh,
+    // but remove /host-root from the actual command being run on host
+    const hostScriptDir = scriptDir.replace('/host-root', '');
 
-    exec(`cd ${scriptDir} && ls && ./apply-gamemodes.sh`, (error, stdout, stderr) => {
+    exec(`/host-root/bin/sh -c "cd ${hostScriptDir} && ls && /bin/sh apply-gamemodes.sh"`, (error, stdout, stderr) => {
         if (error) {
             console.error(`exec error: ${error}`);
             return;
@@ -221,7 +224,7 @@ async function runApplyScript() {
 
         // console.log(`stdout: ${stdout}`);
         console.error(`stderr: ${stderr}`);
-    });
+    })
 }
 
 module.exports = {
