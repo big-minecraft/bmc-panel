@@ -21,7 +21,6 @@
         "concurrently": "^4.1.2"
     },
     "dependencies": {
-        "bootstrap": "^5.3.3",
         "if-env": "^1.0.4",
         "react-router-dom": "^6.27.0",
         "request": "^2.88.2"
