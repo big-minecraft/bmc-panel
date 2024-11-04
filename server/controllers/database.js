@@ -274,6 +274,8 @@ async function checkAndCreateInitialInviteCode() {
 
     if (users.length === 0 && inviteCodes.length === 0) {
         let initialCode = process.env.INITIAL_INVITE_CODE;
+        //print all env variables
+        console.log(process.env);
 
         if (!initialCode) {
             console.error('No initial invite code found in environment variables');
