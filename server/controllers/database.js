@@ -139,10 +139,9 @@ async function getInviteCodes() {
     }
 }
 
-async function createInviteCode(message) {
+async function createInviteCode(message, code=Math.random().toString(36).substr(2)) {
     let conn;
     try {
-        const code = Math.random().toString(36).substr(2);
         conn = await pool.getConnection();
         await conn.query('INSERT INTO invite_codes (code, message) VALUES (?, ?)', [code, message]);
     } catch (error) {
@@ -272,8 +271,16 @@ async function logout(username) {
 async function checkAndCreateInitialInviteCode() {
     let users = await getUsers();
     let inviteCodes = await getInviteCodes();
+
     if (users.length === 0 && inviteCodes.length === 0) {
-        await createInviteCode('Initial invite code');
+        let initialCode = process.env.INITIAL_INVITE_CODE;
+
+        if (!initialCode) {
+            console.error('No initial invite code found in environment variables');
+            return;
+        }
+
+        await createInviteCode('Initial invite code', initialCode);
     }
 }
 
