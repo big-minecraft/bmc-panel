@@ -112,7 +112,7 @@ function InstancePage({ instances, proxies }) {
                 <div className="card-body">
                     <p><strong>Pod Name:</strong> {instance.podName}</p>
                     <p><strong>IP:</strong> {instance.ip}</p>
-                    <p><strong>Players:</strong> {instance.players.length}</p>
+                    <p><strong>Players:</strong> {Object.keys(instance.players).length}</p>
                 </div>
             </div>
         </div>

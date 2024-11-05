@@ -121,7 +121,9 @@ const HomePage = ({ instances: initialInstances, proxies: initialProxies }) => {
                                     </div>
                                     <div className="d-flex align-items-center">
                                         {userIcon}
-                                        <span className="ms-2">{proxy.players.length}</span>
+                                        <span className="ml-2">
+                                             {Object.keys(proxy.players).length}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -145,7 +147,9 @@ const HomePage = ({ instances: initialInstances, proxies: initialProxies }) => {
                                         </div>
                                         <div className="d-flex align-items-center">
                                             {userIcon}
-                                            <span className="ms-2">{instance.players.length}</span>
+                                            <span className="ml-2">
+                                             {Object.keys(instance.players).length}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
