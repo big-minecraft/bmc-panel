@@ -106,7 +106,7 @@ class KubernetesClient {
         }
     }
 
-    async scaleDeployment(deploymentName, replicas, namespace = 'default') {
+    async scaleDeployment(deploymentName, replicas, namespace = 'minecraft') {
         this.ensureInitialized();
 
         try {
