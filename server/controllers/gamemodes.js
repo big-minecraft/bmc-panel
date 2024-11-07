@@ -4,6 +4,7 @@ const { readdirSync, unlinkSync, promises: { readFile, writeFile, rename, copyFi
 const yaml = require('js-yaml');
 const {scaleDeployment} = require("./k8s");
 const {createSFTPDirectory, deleteSFTPDirectory} = require("./sftp");
+const {sendGamemodeUpdate} = require("./redis");
 
 async function getGamemodes() {
     const workingDir = config["bmc-path"] + "/gamemodes";
@@ -68,6 +69,7 @@ async function updateGamemodeContent(name, content) {
     }
 
     await runApplyScript();
+    await sendGamemodeUpdate();
 }
 
 async function toggleGamemode(name, enabled) {
@@ -118,6 +120,7 @@ async function deleteGamemode(name)  {
     }
 
     await runApplyScript();
+    await sendGamemodeUpdate();
 }
 
 async function restartGamemode(name) {
@@ -198,6 +201,7 @@ async function createGamemode(name) {
     }
 
     await runApplyScript();
+    await sendGamemodeUpdate();
 }
 
 async function fileExists(filePath) {
