@@ -5,6 +5,8 @@ const yaml = require('js-yaml');
 const {scaleDeployment} = require("./k8s");
 const {createSFTPDirectory, deleteSFTPDirectory} = require("./sftp");
 const {sendGamemodeUpdate} = require("./redis");
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
 
 async function getGamemodes() {
     const workingDir = config["bmc-path"] + "/gamemodes";
@@ -214,18 +216,18 @@ async function fileExists(filePath) {
 }
 
 async function runApplyScript() {
-    const { exec } = require('child_process');
     const scriptDir = path.join(config["bmc-path"], "scripts");
 
-    exec(`cd ${scriptDir} && ls && ./apply-gamemodes.sh`, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`exec error: ${error}`);
-            return;
+    try {
+        const { stdout, stderr } = await exec(`cd ${scriptDir} && ls && ./apply-gamemodes.sh`);
+        if (stderr) {
+            console.error(`Script stderr: ${stderr}`);
         }
-
-        // console.log(`stdout: ${stdout}`);
-        console.error(`stderr: ${stderr}`);
-    });
+        // console.log(`Script stdout: ${stdout}`);
+    } catch (error) {
+        console.error(`Script execution error: ${error}`);
+        throw error; // Propagate the error up
+    }
 }
 
 module.exports = {
