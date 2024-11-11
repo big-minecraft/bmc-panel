@@ -14,7 +14,7 @@ function setupPodLogs(ws, podName, cluster, user) {
         pretty: true,
     };
 
-    const logUrl = `${cluster.server}/api/v1/namespaces/minecraft/pods/${podName}/log?follow=${logOptions.follow}&tailLines=${logOptions.tailLines}&pretty=${logOptions.pretty}`;
+    const logUrl = `${cluster.server}/api/v1/namespaces/default/pods/${podName}/log?follow=${logOptions.follow}&tailLines=${logOptions.tailLines}&pretty=${logOptions.pretty}`;
 
     // Prepend /host-root to file paths
     const tokenPath = path.join('/host-root', user.authProvider.config.tokenFile);
