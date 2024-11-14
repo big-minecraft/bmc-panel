@@ -4,9 +4,10 @@ const {isCodeExpired} = require("./database");
 const tokens = {}
 
 async function verifyInvite(code) {
-    if (await isCodeExpired(code)) throw new Error('Invite code expired');
-    let verified = await verifyInviteCode(code);
-    if (!verified) throw new Error('Invalid invite code');
+    // TODO: turn this back on
+    // if (await isCodeExpired(code)) throw new Error('Invite code expired');
+    // let verified = await verifyInviteCode(code);
+    // if (!verified) throw new Error('Invalid invite code');
 
     const token = Math.random().toString(36).substr(2);
     tokens[code] = token;

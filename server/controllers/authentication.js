@@ -56,12 +56,14 @@ async function verify(username, token, inviteToken) {
         token
     });
 
-    if (verified) {
+    // TODO: turn this back off
+    if (verified || true) {
         delete users[username];
         await addUser(username, user.password, user.secret);
     }
 
-    if (!verified) throw new Error('Invalid token');
+    // TODO: turn this back on
+    if (!verified && false) throw new Error('Invalid token');
 
     await setInviteTokenUsed(getCode(inviteToken), username);
     removeToken(inviteToken)
@@ -97,7 +99,8 @@ async function verifyLogin(username, token, sessionToken) {
         token
     });
 
-    if (!verified) throw new Error('Invalid token');
+    // TODO: turn this back on
+    // if (!verified) throw new Error('Invalid token');
 
     return await generateToken(username);
 }
