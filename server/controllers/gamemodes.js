@@ -79,17 +79,28 @@ async function toggleGamemode(name, enabled) {
     const filePath = path.join(workingDir, `${name}.yaml`);
 
     try {
-        let fileContent = await readFile(filePath, 'utf8');
-        let yamlContent = yaml.load(fileContent);
+        const fileContent = await readFile(filePath, 'utf8');
+        const lines = fileContent.split('\n');
 
-        if (enabled) delete yamlContent.disabled;
-        else yamlContent.disabled = true;
+        const yamlContent = yaml.load(fileContent);
 
-        fileContent = yaml.dump(yamlContent);
-        await writeFile(filePath, fileContent, 'utf8');
+        const updatedLines = lines.map(line => {
+            if (line.trim().startsWith('disabled:')) {
+                return enabled ? null : 'disabled: true';
+            }
+            return line;
+        })
+            .filter(line => line !== null);
+
+        if (!enabled && !lines.some(line => line.trim().startsWith('disabled:'))) {
+            updatedLines.push('disabled: true');
+        }
+
+        const updatedContent = updatedLines.join('\n');
+        await writeFile(filePath, updatedContent, 'utf8');
 
         if (enabled) {
-            const minimumInstances = yamlContent.minimumInstances || 1;
+            const minimumInstances = yamlContent.queuing.minimumInstances || 1;
             await scaleDeployment(name, minimumInstances);
         } else {
             await scaleDeployment(name, 0);
@@ -98,8 +109,6 @@ async function toggleGamemode(name, enabled) {
         console.error('Error in toggleGamemode:', error);
         throw new Error('Failed to toggle gamemode');
     }
-
-    // await runApplyScript();
 }
 
 
