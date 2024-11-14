@@ -100,7 +100,7 @@ async function toggleGamemode(name, enabled) {
         await writeFile(filePath, updatedContent, 'utf8');
 
         if (enabled) {
-            const minimumInstances = yamlContent.queuing.minimumInstances || 1;
+            const minimumInstances = yamlContent.scaling.minInstances || 1;
             await scaleDeployment(name, minimumInstances);
         } else {
             await scaleDeployment(name, 0);
@@ -141,7 +141,7 @@ async function restartGamemode(name) {
 
         let gamemode = await getGamemodeContent(name);
         let yamlContent = yaml.load(gamemode);
-        let minimumInstances = yamlContent.minimumInstances || 1;
+        let minimumInstances = yamlContent.scaling.minInstances || 1;
 
         let retries = 3;
         while (retries > 0) {
