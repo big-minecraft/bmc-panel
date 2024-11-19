@@ -95,7 +95,7 @@ const ConfigEditPage = () => {
                     <div className="d-flex gap-2">
                         <button
                             className="btn btn-secondary"
-                            onClick={() => navigate(isProxy ? '/proxy' : '/gamemodes')}
+                            onClick={() => navigate('/gamemodes')}
                         >
                             Back
                         </button>
