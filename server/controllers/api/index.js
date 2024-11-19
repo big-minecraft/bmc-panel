@@ -14,6 +14,7 @@ const multer = require("multer");
 const JSZip = require("jszip");
 const config = require("../../config");
 const {unarchiveFile} = require("../unzip");
+const {getProxy, getProxyContent, updateProxyContent, toggleProxy, restartProxy} = require("../proxy");
 
 module.exports = {
     getInstances: async (req, res) => {
@@ -94,6 +95,44 @@ module.exports = {
             res.json({message: 'Gamemode restarted successfully'});
         } catch (error) {
             res.status(500).json({error: 'Failed to restart gamemode'});
+        }
+    },
+
+    getProxyContent: async (req, res) => {
+        try {
+            const content = await getProxyContent();
+            res.json({ content });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to fetch proxy content' });
+        }
+    },
+
+    updateProxyContent: async (req, res) => {
+        try {
+            const { content } = req.body;
+            await updateProxyContent(content);
+            res.json({ message: 'Proxy updated successfully' });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to update proxy' });
+        }
+    },
+
+    toggleProxy: async (req, res) => {
+        try {
+            const { enabled } = req.body;
+            await toggleProxy(enabled);
+            res.json({ message: 'Proxy toggled successfully' });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to toggle proxy' });
+        }
+    },
+
+    restartProxy: async (req, res) => {
+        try {
+            await restartProxy();
+            res.json({message: 'Proxy restarted successfully'});
+        } catch (error) {
+            res.status(500).json({error: 'Failed to restart proxy'});
         }
     },
 

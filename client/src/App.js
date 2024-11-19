@@ -4,15 +4,14 @@ import { InstancePage } from './pages/instancePage';
 import axios from "axios";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import GamemodesPage from "./pages/gamemodesPage";
-import GamemodeEditPage from "./pages/gamemodeEditPage";
 import RegistrationPage from "./pages/registrationPage";
 import LoginPage from "./pages/loginPage";
 import PrivateRoute from "./components/privateRouter";
 import NavigationBar from "./components/navigationBar";
 import axiosInstance from "./utils/auth";
-import InviteCodesTab from "./components/inviteCodesTab";
 import AdminPage from "./pages/adminPage";
 import SftpInterface from "./pages/sftpInterface";
+import ConfigEditPage from "./pages/configEditPage";
 
 function App() {
     const [instances, setInstances] = useState([]);
@@ -48,7 +47,12 @@ function App() {
                     <Route path="/gamemodes" element={<PrivateRoute><GamemodesPage /></PrivateRoute>} />
                     <Route path="/users" element={<PrivateRoute><AdminPage /></PrivateRoute>} />
                     <Route path="/files/*" element={<PrivateRoute><SftpInterface /></PrivateRoute>} />
-                    <Route path="/gamemodes/:gamemodeName/edit" element={<PrivateRoute><GamemodeEditPage /></PrivateRoute>} />
+
+                    {/* Updated edit routes */}
+                    <Route path="/gamemodes/:name/edit" element={<PrivateRoute><ConfigEditPage /></PrivateRoute>} />
+                    <Route path="/proxy/edit" element={<PrivateRoute><ConfigEditPage /></PrivateRoute>} />
+
+                    {/* Instance routes */}
                     <Route path="/instance/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
                     <Route path="/proxy/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
                 </Routes>
