@@ -16,7 +16,6 @@ const ConfigEditPage = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [savedSuccessfully, setSavedSuccessfully] = useState(false);
 
-    // Set up endpoint based on config type
     const endpoint = isProxy ? '/api/proxy' : `/api/gamemodes/${name}`;
     const displayType = isProxy ? 'Proxy Configuration' : 'Gamemode';
 

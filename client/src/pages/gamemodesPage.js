@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/auth";
 
 const GamemodesPage = () => {
     const navigate = useNavigate();
     const [gamemodes, setGamemodes] = useState([]);
+    const [proxyConfig, setProxyConfig] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newGamemodeName, setNewGamemodeName] = useState('');
     const [gamemodeToDelete, setGamemodeToDelete] = useState(null);
     const [restartingGamemodes, setRestartingGamemodes] = useState(new Set());
+    const [restartingProxy, setRestartingProxy] = useState(false);
     const [notifications, setNotifications] = useState([]);
 
     useEffect(() => {
-        fetchGamemodes();
+        Promise.all([fetchGamemodes(), fetchProxyConfig()]);
     }, []);
 
     useEffect(() => {
@@ -32,6 +34,16 @@ const GamemodesPage = () => {
         setNotifications(prev => [...prev, { id, message, type }]);
     };
 
+    const fetchProxyConfig = async () => {
+        try {
+            const response = await axiosInstance.get('/api/proxy');
+            setProxyConfig(response.data);
+        } catch (err) {
+            console.error('Error fetching proxy config:', err);
+            addNotification('Failed to load proxy configuration', 'danger');
+        }
+    };
+
     const fetchGamemodes = async () => {
         try {
             setIsLoading(true);
@@ -44,6 +56,37 @@ const GamemodesPage = () => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleToggleProxy = async (currentState) => {
+        try {
+            await axiosInstance.patch('/api/proxy', {
+                enabled: !currentState
+            });
+            setProxyConfig(prev => ({ ...prev, enabled: !currentState }));
+            addNotification('Successfully updated proxy status', 'success');
+        } catch (err) {
+            console.error('Error toggling proxy:', err);
+            addNotification('Failed to toggle proxy', 'danger');
+        }
+    };
+
+    const handleRestartProxy = async () => {
+        setRestartingProxy(true);
+        try {
+            await axiosInstance.post('/api/proxy');
+            addNotification('Successfully restarted proxy', 'success');
+            await fetchProxyConfig();
+        } catch (err) {
+            console.error('Error restarting proxy:', err);
+            addNotification('Failed to restart proxy', 'danger');
+        } finally {
+            setRestartingProxy(false);
+        }
+    };
+
+    const handleEditProxy = () => {
+        navigate('/proxy/edit');
     };
 
     const handleToggle = async (gamemodeName, currentState) => {
@@ -146,22 +189,67 @@ const GamemodesPage = () => {
 
     return (
         <div className="container py-4">
-            {/* Notifications */}
             <div style={{ position: 'fixed', top: '1rem', right: '1rem', zIndex: 1050 }}>
                 {notifications.map(({ id, message, type }) => (
-                    <div
-                        key={id}
-                        className={`alert alert-${type} alert-dismissible fade show`}
-                        role="alert"
-                    >
+                    <div key={id} className={`alert alert-${type} alert-dismissible fade show`} role="alert">
                         {message}
-                        <button
-                            type="button"
-                            className="btn-close"
-                            onClick={() => setNotifications(prev => prev.filter(n => n.id !== id))}
-                        />
+                        <button type="button" className="btn-close" onClick={() => setNotifications(prev => prev.filter(n => n.id !== id))} />
                     </div>
                 ))}
+            </div>
+
+            <div className="mb-5">
+                <h2 className="display-6 mb-4">Proxy Management</h2>
+                {proxyConfig && (
+                    <div className="card">
+                        <div className="card-body d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 className="card-title mb-1">Proxy Configuration</h5>
+                                <p className="card-text text-muted small mb-0">{proxyConfig.path}</p>
+                            </div>
+
+                            <div className="d-flex align-items-center gap-3">
+                                <button
+                                    className="btn btn-outline-warning btn-sm"
+                                    onClick={handleRestartProxy}
+                                    title="Restart Proxy"
+                                    disabled={restartingProxy}
+                                >
+                                    {restartingProxy ? (
+                                        <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                                    ) : (
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+                                            <path fillRule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                                        </svg>
+                                    )}
+                                </button>
+
+                                <button
+                                    className="btn btn-outline-primary btn-sm"
+                                    onClick={handleEditProxy}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pencil" viewBox="0 0 16 16">
+                                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                                    </svg>
+                                </button>
+
+                                <div className="form-check form-switch" style={{ minWidth: '120px' }}>
+                                    <input
+                                        className="form-check-input"
+                                        type="checkbox"
+                                        id="proxy-toggle"
+                                        checked={proxyConfig.enabled}
+                                        onChange={() => handleToggleProxy(proxyConfig.enabled)}
+                                    />
+                                    <label className="form-check-label" htmlFor="proxy-toggle">
+                                        {proxyConfig.enabled ? 'Enabled' : 'Disabled'}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="d-flex justify-content-between align-items-center mb-4">
