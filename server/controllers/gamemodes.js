@@ -9,7 +9,7 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
 async function getGamemodes() {
-    const workingDir = config["bmc-path"] + "/gamemodes";
+    const workingDir = config["bmc-path"] + "/local/gamemodes";
     let gamemodes = [];
 
     try {
@@ -41,7 +41,7 @@ async function getGamemodes() {
 }
 
 async function getGamemodeContent(name) {
-    const workingDir = config["bmc-path"] + "/gamemodes";
+    const workingDir = config["bmc-path"] + "/local/gamemodes";
     let filePath = path.join(workingDir, `${name}.yaml`);
 
     if (!await fileExists(filePath)) {
@@ -57,7 +57,7 @@ async function getGamemodeContent(name) {
 }
 
 async function updateGamemodeContent(name, content) {
-    const workingDir = config["bmc-path"] + "/gamemodes";
+    const workingDir = config["bmc-path"] + "/local/gamemodes";
     let filePath = path.join(workingDir, `${name}.yaml`);
 
     if (!await fileExists(filePath)) {
@@ -75,7 +75,7 @@ async function updateGamemodeContent(name, content) {
 }
 
 async function toggleGamemode(name, enabled) {
-    const workingDir = config["bmc-path"] + "/gamemodes";
+    const workingDir = config["bmc-path"] + "/local/gamemodes";
     const filePath = path.join(workingDir, `${name}.yaml`);
 
     try {
@@ -113,7 +113,7 @@ async function toggleGamemode(name, enabled) {
 
 
 async function deleteGamemode(name)  {
-    const workingDir = config["bmc-path"] + "/gamemodes";
+    const workingDir = config["bmc-path"] + "/local/gamemodes";
     const enabledPath = path.join(workingDir, `${name}.yaml`);
     const disabledPath = path.join(workingDir, `disabled-${name}.yaml`);
 
@@ -176,7 +176,7 @@ async function restartGamemode(name) {
 
 async function createGamemode(name) {
     const yaml = require('js-yaml');
-    const workingDir = config["bmc-path"] + "/gamemodes";
+    const workingDir = config["bmc-path"] + "/local/gamemodes";
     const defaultsDir = config["bmc-path"] + "/defaults";
     const sourceFile = path.join(defaultsDir, "gamemode.yaml");
     const destinationFile = path.join(workingDir, `${name}.yaml`);
