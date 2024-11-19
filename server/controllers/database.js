@@ -48,8 +48,8 @@ async function userExists(username) {
 }
 
 async function addUser(username, password, secret) {
-    let size = await getUsers().length;
-    let isAdmin = size === 0;
+    let users = await getUsers();
+    let isAdmin = users.length === 0;
 
     let conn;
     try {
