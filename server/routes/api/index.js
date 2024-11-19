@@ -21,6 +21,9 @@ router.route('/gamemodes/:name')
     .delete(verifyToken, controller.deleteGamemode)
     .post(verifyToken, controller.restartGamemode);
 
+router.route('/proxy-config')
+    .get(verifyToken, controller.getProxyConfig)
+
 router.route('/proxy')
     .get(verifyToken, controller.getProxyContent)
     .put(verifyToken, controller.updateProxyContent)

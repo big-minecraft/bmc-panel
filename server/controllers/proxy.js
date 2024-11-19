@@ -7,6 +7,26 @@ const {sendGamemodeUpdate} = require("./redis");
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
+async function getProxyConfig() {
+    const workingDir = config["bmc-path"] + "/local";
+    const filePath = path.join(workingDir, "proxy.yaml");
+
+    try {
+        const fileContent = await readFile(filePath, 'utf8');
+        const yamlContent = yaml.load(fileContent);
+        const isEnabled = !yamlContent.disabled;
+        const dataDir = "/system/proxy"
+
+        return {
+            enabled: isEnabled,
+            path: filePath,
+            dataDirectory: dataDir
+        };
+    } catch (error) {
+        throw new Error('Failed to read proxy configuration');
+    }
+}
+
 async function getProxyContent() {
     const workingDir = config["bmc-path"] + "/local";
     const filePath = path.join(workingDir, "proxy.yaml");
@@ -120,6 +140,7 @@ async function runApplyScript() {
 }
 
 module.exports = {
+    getProxyConfig,
     getProxyContent,
     updateProxyContent,
     toggleProxy,

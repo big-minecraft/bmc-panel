@@ -14,7 +14,7 @@ const multer = require("multer");
 const JSZip = require("jszip");
 const config = require("../../config");
 const {unarchiveFile} = require("../unzip");
-const {getProxy, getProxyContent, updateProxyContent, toggleProxy, restartProxy} = require("../proxy");
+const {getProxy, getProxyContent, updateProxyContent, toggleProxy, restartProxy, getProxyConfig} = require("../proxy");
 
 module.exports = {
     getInstances: async (req, res) => {
@@ -95,6 +95,15 @@ module.exports = {
             res.json({message: 'Gamemode restarted successfully'});
         } catch (error) {
             res.status(500).json({error: 'Failed to restart gamemode'});
+        }
+    },
+
+    getProxyConfig: async (req, res) => {
+        try {
+            const proxy = await getProxyConfig();
+            res.json(proxy);
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to fetch proxy' });
         }
     },
 
