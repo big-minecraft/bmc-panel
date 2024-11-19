@@ -222,7 +222,7 @@ const GamemodesPage = () => {
                             <div className="d-flex align-items-center gap-3">
                                 <button
                                     className="btn btn-outline-info btn-sm"
-                                    onClick={() => handleViewData(proxy.dataDirectory)}
+                                    onClick={() => handleViewData(proxyConfig.dataDirectory)}
                                     title="View Data Directory"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
