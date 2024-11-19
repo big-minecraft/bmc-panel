@@ -177,8 +177,8 @@ async function restartGamemode(name) {
 async function createGamemode(name) {
     const yaml = require('js-yaml');
     const workingDir = config["bmc-path"] + "/gamemodes";
-    const examplesDir = config["bmc-path"] + "/examples";
-    const sourceFile = path.join(examplesDir, "example-gamemode.yaml");
+    const defaultsDir = config["bmc-path"] + "/defaults";
+    const sourceFile = path.join(defaultsDir, "gamemode.yaml");
     const destinationFile = path.join(workingDir, `${name}.yaml`);
 
     if (await fileExists(destinationFile)) {
