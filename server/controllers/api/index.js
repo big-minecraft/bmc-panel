@@ -14,7 +14,9 @@ const multer = require("multer");
 const JSZip = require("jszip");
 const config = require("../../config");
 const {unarchiveFile} = require("../unzip");
-const {getProxy, getProxyContent, updateProxyContent, toggleProxy, restartProxy, getProxyConfig} = require("../proxy");
+const {getProxyContent, updateProxyContent, toggleProxy, restartProxy, getProxyConfig} = require("../proxy");
+const DatabaseService = require("../databaseService");
+const {createDatabase, listDatabases} = require("../databaseService");
 
 module.exports = {
     getInstances: async (req, res) => {
@@ -553,5 +555,44 @@ module.exports = {
             res.status(500).json({ error: 'Failed to move file(s)' });
         }
     },
+
+    getDatabases: async (req, res) => {
+        try {
+            const databases = await listDatabases();
+            res.json(databases);
+        } catch (error) {
+            res.status(500).json({error: 'Failed to fetch databases'});
+        }
+    },
+
+    createDatabase: async (req, res) => {
+        const {name} = req.body;
+        try {
+            await createDatabase(name);
+            res.json({message: 'Database created successfully'});
+        } catch (error) {
+            res.status(500).json({error: 'Failed to create database'});
+        }
+    },
+
+    deleteDatabase: async (req, res) => {
+        const {name} = req.params;
+        try {
+            await DatabaseService.deleteDatabase(name);
+            res.json({message: 'Database deleted successfully'});
+        } catch (error) {
+            res.status(500).json({error: 'Failed to delete database'});
+        }
+    },
+
+    resetDatabasePassword: async (req, res) => {
+        const {name} = req.params;
+        try {
+            const {username, password} = await DatabaseService.resetDatabasePassword(name);
+            res.json({message: 'Database password reset successfully', username, password});
+        } catch (error) {
+            res.status(500).json({error: 'Failed to reset database password'});
+        }
+    }
 };
 

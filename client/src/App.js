@@ -13,6 +13,7 @@ import AdminPage from "./pages/adminPage";
 import SftpInterface from "./pages/sftpInterface";
 import ConfigEditPage from "./pages/configEditPage";
 import NotFoundPage from "./pages/notFoundPage";
+import DatabasesPage from "./pages/databasesPage";
 
 function App() {
     const [instances, setInstances] = useState([]);
@@ -48,12 +49,11 @@ function App() {
                     <Route path="/gamemodes" element={<PrivateRoute><GamemodesPage /></PrivateRoute>} />
                     <Route path="/users" element={<PrivateRoute><AdminPage /></PrivateRoute>} />
                     <Route path="/files/*" element={<PrivateRoute><SftpInterface /></PrivateRoute>} />
+                    <Route path="/databases" element={<PrivateRoute><DatabasesPage /></PrivateRoute>} />
 
-                    {/* Updated edit routes */}
                     <Route path="/gamemodes/:name/edit" element={<PrivateRoute><ConfigEditPage /></PrivateRoute>} />
                     <Route path="/proxy/edit" element={<PrivateRoute><ConfigEditPage /></PrivateRoute>} />
 
-                    {/* Instance routes */}
                     <Route path="/instance/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
                     <Route path="/proxy/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
 

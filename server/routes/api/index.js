@@ -1,6 +1,7 @@
 const express = require('express');
 const { api: controller } = require('../../controllers');
 const {verifyToken, verifyAdminToken} = require('../../middleware/auth');
+const {patch} = require("request");
 
 const router = express.Router();
 
@@ -102,5 +103,14 @@ router.route('/sftp/move')
 
 router.route('/sftp/unarchive')
     .post(verifyToken, controller.unarchiveSFTPFile);
+
+router.route('/databases')
+    .get(verifyToken, controller.getDatabases)
+    .post(verifyToken, controller.createDatabase);
+
+router.route('/databases/:name')
+    .delete(verifyToken, controller.deleteDatabase)
+    .patch(verifyToken, controller.resetDatabasePassword);
+
 
 module.exports = router;

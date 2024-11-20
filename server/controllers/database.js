@@ -25,6 +25,14 @@ async function createTables() {
         conn = await pool.getConnection();
         await conn.query('CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255), password VARCHAR(255), secret VARCHAR(255), is_admin BOOLEAN DEFAULT FALSE, last_logout TIMESTAMP DEFAULT CURRENT_TIMESTAMP)');
         await conn.query('CREATE TABLE IF NOT EXISTS invite_codes (id INT AUTO_INCREMENT PRIMARY KEY, code VARCHAR(255), message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, used_by VARCHAR(255) DEFAULT NULL)');
+        await conn.query(`
+                CREATE TABLE IF NOT EXISTS database_credentials (
+                    database_name VARCHAR(64) PRIMARY KEY,
+                    password VARCHAR(255) NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                )
+            `);
     } catch (error) {
         console.error('Failed to create tables:', error);
         throw error;
@@ -285,6 +293,7 @@ async function checkAndCreateInitialInviteCode() {
 }
 
 module.exports = {
+    pool,
     databaseInit,
     userExists,
     addUser,
