@@ -67,9 +67,16 @@ async function sendGamemodeUpdate() {
     await redisPool.release(client);
 }
 
+async function sendProxyUpdate() {
+    const client = await redisPool.acquire();
+    client.publish('proxy-modified', 'update');
+    await redisPool.release(client);
+}
+
 module.exports = {
     redisPool,
     getInstances,
     getProxies,
-    sendGamemodeUpdate
+    sendGamemodeUpdate,
+    sendProxyUpdate
 }

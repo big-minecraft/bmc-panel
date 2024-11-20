@@ -3,7 +3,7 @@ const path = require('path');
 const { promises: { readFile, writeFile } } = require("fs");
 const yaml = require('js-yaml');
 const {scaleDeployment} = require("./k8s");
-const {sendGamemodeUpdate} = require("./redis");
+const {sendProxyUpdate} = require("./redis");
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
@@ -50,7 +50,7 @@ async function updateProxyContent(content) {
     }
 
     await runApplyScript();
-    await sendGamemodeUpdate();
+    await sendProxyUpdate();
 }
 
 async function toggleProxy(enabled) {

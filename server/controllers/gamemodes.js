@@ -4,7 +4,6 @@ const { readdirSync, unlinkSync, promises: { readFile, writeFile, rename, copyFi
 const yaml = require('js-yaml');
 const {scaleDeployment} = require("./k8s");
 const {createSFTPDirectory, deleteSFTPDirectory} = require("./sftp");
-const {sendGamemodeUpdate} = require("./redis");
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
@@ -212,7 +211,7 @@ async function createGamemode(name) {
     }
 
     await runApplyScript();
-    await sendGamemodeUpdate();
+    await sendProxyUpdate();
 }
 
 async function fileExists(filePath) {
@@ -237,6 +236,12 @@ async function runApplyScript() {
         console.error(`Script execution error: ${error}`);
         throw error; // Propagate the error up
     }
+}
+
+async function sendProxyUpdate() {
+    const client = await redisPool.acquire();
+    client.publish('proxy-modified', 'update');
+    await redisPool.release(client);
 }
 
 module.exports = {
