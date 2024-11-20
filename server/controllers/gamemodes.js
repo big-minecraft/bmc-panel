@@ -5,6 +5,7 @@ const yaml = require('js-yaml');
 const {scaleDeployment} = require("./k8s");
 const {createSFTPDirectory, deleteSFTPDirectory} = require("./sftp");
 const util = require('util');
+const {sendGamemodeUpdate} = require("./redis");
 const exec = util.promisify(require('child_process').exec);
 
 async function getGamemodes() {
