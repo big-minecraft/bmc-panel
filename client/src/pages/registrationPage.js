@@ -74,7 +74,7 @@ const RegistrationForm = () => {
                 setSuccess(true);
                 setStep(4);
 
-                setAuthToken(response.data.loginToken, response.data.isAdmin);
+                setAuthToken(response.data.loginToken, response.data.isAdmin === 1 ? 'true' : 'false');
                 window.location.href = '/';
             }
         } catch (err) {
