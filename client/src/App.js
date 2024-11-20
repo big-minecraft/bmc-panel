@@ -12,6 +12,7 @@ import axiosInstance from "./utils/auth";
 import AdminPage from "./pages/adminPage";
 import SftpInterface from "./pages/sftpInterface";
 import ConfigEditPage from "./pages/configEditPage";
+import NotFoundPage from "./pages/notFoundPage";
 
 function App() {
     const [instances, setInstances] = useState([]);
@@ -55,6 +56,8 @@ function App() {
                     {/* Instance routes */}
                     <Route path="/instance/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
                     <Route path="/proxy/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
+
+                    <Route path="*" element={<PrivateRoute><NotFoundPage /></PrivateRoute>} />
                 </Routes>
             </div>
         </Router>

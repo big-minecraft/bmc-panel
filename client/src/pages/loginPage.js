@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axiosInstance, {setAdmin, setAuthToken} from '../utils/auth';
+import axiosInstance, { setAdmin, setAuthToken } from '../utils/auth';
 
 const LoginForm = () => {
     const [step, setStep] = useState(1);
@@ -8,6 +8,7 @@ const LoginForm = () => {
     const [token, setToken] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showForgotModal, setShowForgotModal] = useState(false);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -177,14 +178,56 @@ const LoginForm = () => {
                             )}
 
                             <div className="mt-3 text-center">
-                                <a href="/forgot-password" className="text-decoration-none">
+                                <button
+                                    onClick={() => setShowForgotModal(true)}
+                                    className="btn btn-link text-decoration-none"
+                                >
                                     Forgot your password?
-                                </a>
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Bootstrap Modal */}
+            <div className={`modal fade ${showForgotModal ? 'show' : ''}`}
+                 tabIndex="-1"
+                 style={{ display: showForgotModal ? 'block' : 'none' }}
+            >
+                <div className="modal-dialog">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title">Password Reset</h5>
+                            <button
+                                type="button"
+                                className="btn-close"
+                                onClick={() => setShowForgotModal(false)}
+                            ></button>
+                        </div>
+                        <div className="modal-body">
+                            <p>Please contact your system administrator to reset your password.</p>
+                        </div>
+                        <div className="modal-footer">
+                            <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={() => setShowForgotModal(false)}
+                            >
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Modal Backdrop */}
+            {showForgotModal && (
+                <div
+                    className="modal-backdrop fade show"
+                    onClick={() => setShowForgotModal(false)}
+                ></div>
+            )}
         </div>
     );
 };
