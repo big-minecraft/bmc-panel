@@ -9,6 +9,7 @@ const DatabasesPage = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newDatabaseName, setNewDatabaseName] = useState('');
     const [databaseToDelete, setDatabaseToDelete] = useState(null);
+    const [databaseToReset, setDatabaseToReset] = useState(null);
     const [resettingPasswords, setResettingPasswords] = useState(new Set());
     const [notifications, setNotifications] = useState([]);
     const [showCredentials, setShowCredentials] = useState({});
@@ -83,28 +84,29 @@ const DatabasesPage = () => {
         }
     };
 
-    const handleResetPassword = async (databaseName) => {
-        setResettingPasswords(prev => new Set([...prev, databaseName]));
+    const handleResetPassword = async () => {
+        if (!databaseToReset) return;
+
+        setResettingPasswords(prev => new Set([...prev, databaseToReset]));
 
         try {
-            const response = await axiosInstance.patch(`/api/databases/${databaseName}`);
+            const response = await axiosInstance.patch(`/api/databases/${databaseToReset}`);
             await fetchDatabases();
-            addNotification(`Successfully reset password for ${databaseName}`, 'success');
-
-            // Show credentials automatically after reset
+            addNotification(`Successfully reset password for ${databaseToReset}`, 'success');
             setShowCredentials(prev => ({
                 ...prev,
-                [databaseName]: true
+                [databaseToReset]: true
             }));
         } catch (err) {
             console.error('Error resetting password:', err);
-            addNotification(`Failed to reset password for ${databaseName}`, 'danger');
+            addNotification(`Failed to reset password for ${databaseToReset}`, 'danger');
         } finally {
             setResettingPasswords(prev => {
                 const next = new Set(prev);
-                next.delete(databaseName);
+                next.delete(databaseToReset);
                 return next;
             });
+            setDatabaseToReset(null);
         }
     };
 
@@ -150,7 +152,7 @@ const DatabasesPage = () => {
 
             <div className="d-flex justify-content-end mb-4">
                 <button
-                    className="btn btn-primary"
+                    className="btn btn-primary d-flex align-items-center gap-2"
                     onClick={() => setShowCreateModal(true)}
                 >
                     Create Database
@@ -164,7 +166,7 @@ const DatabasesPage = () => {
                             <div className="card">
                                 <div className="card-body">
                                     <div className="d-flex justify-content-between align-items-center mb-3">
-                                        <div>
+                                        <div className="d-flex flex-column justify-content-center">
                                             <h5 className="card-title mb-1">{database.name}</h5>
                                             <p className="card-text text-muted small mb-0">
                                                 Size: {database.size} • Tables: {database.tables}
@@ -173,8 +175,9 @@ const DatabasesPage = () => {
 
                                         <div className="d-flex align-items-center gap-3">
                                             <button
-                                                className="btn btn-outline-info btn-sm"
-                                                onClick={() => handleResetPassword(database.name)}
+                                                className="btn btn-outline-info btn-sm d-flex align-items-center justify-content-center"
+                                                style={{ width: '32px', height: '32px' }}
+                                                onClick={() => setDatabaseToReset(database.name)}
                                                 disabled={resettingPasswords.has(database.name)}
                                             >
                                                 {resettingPasswords.has(database.name) ? (
@@ -188,7 +191,8 @@ const DatabasesPage = () => {
                                             </button>
 
                                             <button
-                                                className="btn btn-outline-danger btn-sm"
+                                                className="btn btn-outline-danger btn-sm d-flex align-items-center justify-content-center"
+                                                style={{ width: '32px', height: '32px' }}
                                                 onClick={() => setDatabaseToDelete(database.name)}
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
@@ -198,7 +202,8 @@ const DatabasesPage = () => {
                                             </button>
 
                                             <button
-                                                className="btn btn-outline-secondary btn-sm"
+                                                className="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center"
+                                                style={{ width: '32px', height: '32px' }}
                                                 onClick={() => toggleCredentialsVisibility(database.name)}
                                             >
                                                 {showCredentials[database.name] ? (
@@ -239,6 +244,28 @@ const DatabasesPage = () => {
                                                             type="text"
                                                             className="form-control"
                                                             value={database.credentials.password}
+                                                            readOnly
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-6">
+                                                    <div className="input-group">
+                                                        <span className="input-group-text">Host</span>
+                                                        <input
+                                                            type="text"
+                                                            className="form-control"
+                                                            value={database.credentials.host}
+                                                            readOnly
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-md-6">
+                                                    <div className="input-group">
+                                                        <span className="input-group-text">Port</span>
+                                                        <input
+                                                            type="text"
+                                                            className="form-control"
+                                                            value={database.credentials.port}
                                                             readOnly
                                                         />
                                                     </div>
@@ -300,7 +327,30 @@ const DatabasesPage = () => {
                     </div>
                 </div>
             )}
+
+            {/* Reset Password Confirmation Modal */}
+            {databaseToReset && (
+                <div className="modal d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Confirm Password Reset</h5>
+                                <button type="button" className="btn-close" onClick={() => setDatabaseToReset(null)}></button>
+                            </div>
+                            <div className="modal-body">
+                                Are you sure you want to reset the password for database "{databaseToReset}"? This action cannot be undone.
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={() => setDatabaseToReset(null)}>Cancel</button>
+                                <button type="button" className="btn btn-warning" onClick={handleResetPassword}>Reset Password</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
+
+
     );
 };
 

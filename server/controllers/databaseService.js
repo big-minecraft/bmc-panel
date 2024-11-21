@@ -2,6 +2,10 @@ const { pool } = require('./database.js');
 
 async function createDatabase(name) {
     let conn;
+    let databaseCreated = false;
+    let userCreated = false;
+    let credentialsInserted = false;
+
     try {
         if (!isValidDatabaseName(name)) {
             throw new Error('Invalid database name');
@@ -9,23 +13,51 @@ async function createDatabase(name) {
 
         conn = await pool.getConnection();
 
-        await conn.query(`CREATE DATABASE IF NOT EXISTS \`${name}\``);
+        const [existingDatabases] = await conn.query(
+            'SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = ?',
+            [name]
+        );
+
+        if (existingDatabases && existingDatabases.length > 0) {
+            throw new Error(`Database '${name}' already exists`);
+        }
 
         const username = `${name}_user`;
-        const password = generatePassword();
+        const [existingUsers] = await conn.query(
+            'SELECT User FROM mysql.user WHERE User = ?',
+            [username]
+        );
 
-        await conn.query(`CREATE USER IF NOT EXISTS ?@'%' IDENTIFIED BY ?`,
+        if (existingUsers && existingUsers.length > 0) {
+            throw new Error(`User '${username}' already exists`);
+        }
+
+        const [existingCredentials] = await conn.query(
+            'SELECT database_name FROM bmc.database_credentials WHERE database_name = ?',
+            [name]
+        );
+
+        if (existingCredentials && existingCredentials.length > 0) {
+            throw new Error(`Credentials for database '${name}' already exist`);
+        }
+
+        await conn.query(`CREATE DATABASE \`${name}\``);
+        databaseCreated = true;
+
+        const password = generatePassword();
+        await conn.query(`CREATE USER ?@'%' IDENTIFIED BY ?`,
             [username, password]);
+        userCreated = true;
 
         await conn.query(`GRANT ALL PRIVILEGES ON \`${name}\`.* TO ?@'%'`,
             [username]);
 
         await conn.query(
-            `INSERT INTO bmc.database_credentials (database_name, password) 
-                 VALUES (?, ?)
-                 ON DUPLICATE KEY UPDATE password = VALUES(password)`,
+            `INSERT INTO bmc.database_credentials (database_name, password)
+             VALUES (?, ?)`,
             [name, password]
         );
+        credentialsInserted = true;
 
         await conn.query('FLUSH PRIVILEGES');
 
@@ -37,6 +69,25 @@ async function createDatabase(name) {
             }
         };
     } catch (error) {
+        try {
+            if (conn) {
+                if (credentialsInserted) {
+                    await conn.query(
+                        'DELETE FROM bmc.database_credentials WHERE database_name = ?',
+                        [name]
+                    );
+                }
+                if (userCreated) {
+                    await conn.query(`DROP USER IF EXISTS ?@'%'`, [`${name}_user`]);
+                }
+                if (databaseCreated) {
+                    await conn.query(`DROP DATABASE IF EXISTS \`${name}\``);
+                }
+                await conn.query('FLUSH PRIVILEGES');
+            }
+        } catch (cleanupError) {
+            console.error('Cleanup failed:', cleanupError);
+        }
         throw new Error(`Failed to create database: ${error.message}`);
     } finally {
         if (conn) await conn.end();
@@ -46,7 +97,9 @@ async function createDatabase(name) {
 async function listDatabases() {
     let conn;
     try {
-        conn = pool.getConnection();
+        conn = await pool.getConnection();
+
+        console.log(conn);
 
         const databases = await conn.query(`
                 SELECT 
@@ -73,7 +126,9 @@ async function listDatabases() {
             tables: db.tables || 0,
             credentials: {
                 username: `${db.name}_user`,
-                password: db.password
+                password: db.password,
+                host: process.env.PANEL_HOST,
+                port: 30036
             }
         }));
     } catch (error) {

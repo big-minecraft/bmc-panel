@@ -10,8 +10,8 @@
   "mariadb": {
     "host": "mariadb-service",
     "port": 3306,
-    "username": "bmc",
-    "password": "bmc",
+    "username": "root",
+    "password": "admin",
     "database": "bmc"
   },
   "sftp": {

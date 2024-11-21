@@ -561,6 +561,7 @@ module.exports = {
             const databases = await listDatabases();
             res.json(databases);
         } catch (error) {
+            console.error('Failed to list databases:', error);
             res.status(500).json({error: 'Failed to fetch databases'});
         }
     },
@@ -571,6 +572,7 @@ module.exports = {
             await createDatabase(name);
             res.json({message: 'Database created successfully'});
         } catch (error) {
+            console.error('Failed to create database:', error);
             res.status(500).json({error: 'Failed to create database'});
         }
     },

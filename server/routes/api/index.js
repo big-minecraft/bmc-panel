@@ -105,12 +105,12 @@ router.route('/sftp/unarchive')
     .post(verifyToken, controller.unarchiveSFTPFile);
 
 router.route('/databases')
-    .get(verifyToken, controller.getDatabases)
-    .post(verifyToken, controller.createDatabase);
+    .get(controller.getDatabases)
+    .post(controller.createDatabase);
 
 router.route('/databases/:name')
-    .delete(verifyToken, controller.deleteDatabase)
-    .patch(verifyToken, controller.resetDatabasePassword);
+    .delete(controller.deleteDatabase)
+    .patch(controller.resetDatabasePassword);
 
 
 module.exports = router;

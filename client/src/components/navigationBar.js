@@ -53,6 +53,13 @@ const NavigationBar = () => {
                 >
                     Files
                 </Link>
+                <Link
+                    to="/databases"
+                    className="btn"
+                    style={{ backgroundColor: 'white', border: '1px solid black', color: 'black' }}
+                >
+                    Databases
+                </Link>
             </div>
 
             <div className="d-flex gap-2">
