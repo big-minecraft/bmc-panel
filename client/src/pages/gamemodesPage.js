@@ -132,7 +132,7 @@ const GamemodesPage = () => {
     };
 
     const handleViewData = (dataDirectory) => {
-        navigate(`/files/${dataDirectory}`);
+        navigate(`/files${dataDirectory}`);
     };
 
     const handleCreate = async () => {
