@@ -1,4 +1,5 @@
 const { pool } = require('./database.js');
+const { crypto } = require('crypto');
 
 async function createDatabase(name) {
     let conn;
