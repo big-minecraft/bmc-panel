@@ -1,5 +1,4 @@
 const { pool } = require('./database.js');
-const { crypto } = require('crypto');
 
 async function createDatabase(name) {
     let conn;
@@ -199,9 +198,12 @@ async function resetDatabasePassword(name) {
 function generatePassword() {
     const length = 16;
     const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-    return Array.from(crypto.getRandomValues(new Uint8Array(length)))
-        .map(x => charset[x % charset.length])
-        .join('');
+    let password = '';
+    for (let i = 0; i < length; i++) {
+        const randomIndex = Math.floor(Math.random() * charset.length);
+        password += charset[randomIndex];
+    }
+    return password;
 }
 
 function isValidDatabaseName(name) {
