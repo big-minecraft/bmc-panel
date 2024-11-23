@@ -213,9 +213,9 @@ const GamemodesPage = () => {
                 <h2 className="h3 mb-4">Proxy</h2>
                 {!proxyConfig ? (
                     <div className="col-12">
-                        <div className="card">
+                        <div className="card shadow-sm border">
                             <div className="card-body text-center py-5">
-                                <h5 className="card-title text-muted">No Proxy Found</h5>
+                                <h5 className="card-title mb-0 text-muted">No Proxy Found</h5>
                             </div>
                         </div>
                     </div>
@@ -293,8 +293,10 @@ const GamemodesPage = () => {
                 <div className="row g-4">
                     {gamemodes.length === 0 ? (
                         <div className="col-12">
-                            <div className="card-body text-center py-5">
-                                <h5 className="card-title text-muted">No Gamemodes Found</h5>
+                            <div className="card shadow-sm border">
+                                <div className="card-body text-center py-5">
+                                    <h5 className="card-title mb-0 text-muted">No Gamemodes Found</h5>
+                                </div>
                             </div>
                         </div>
                     ) : (
