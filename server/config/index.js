@@ -5,15 +5,12 @@ const { existsSync, copyFileSync } = require('fs');
 const CONFIG_PATH = join(__dirname, '../config.json');
 const EXAMPLE_CONFIG_PATH = join(__dirname, '../config.example.json');
 
-// Initialize config synchronously before anything else
 const initializeConfig = () => {
-    // Check if example config exists first
     if (!existsSync(EXAMPLE_CONFIG_PATH)) {
         console.error('config.example.json not found. Cannot proceed with configuration setup.');
         process.exit(1);
     }
 
-    // If config doesn't exist, copy the example
     if (!existsSync(CONFIG_PATH)) {
         try {
             copyFileSync(EXAMPLE_CONFIG_PATH, CONFIG_PATH);
@@ -24,11 +21,9 @@ const initializeConfig = () => {
         }
     }
 
-    // Load and validate config
     const config = require(CONFIG_PATH);
     const exampleConfig = require(EXAMPLE_CONFIG_PATH);
 
-    // Function to check for missing keys, including nested keys
     const checkMissingKeys = (example, actual, prefix = '') => {
         Object.keys(example).forEach((key) => {
             const fullKey = prefix ? `${prefix}.${key}` : key;
@@ -45,12 +40,22 @@ const initializeConfig = () => {
         });
     };
 
+    const addEnvVariables = () => {
+        if (process.env.BMC_PATH) {
+            config["bmc-path"] = "/host-root" + process.env.BMC_PATH;
+        }
+
+        if (process.env.MARIADB_PASSWORD) {
+            config.mariadb.password = process.env.MARIADB_PASSWORD;
+        }
+    }
+
     checkMissingKeys(exampleConfig, config);
+    addEnvVariables();
+
     return config;
 };
 
-// Initialize config immediately
 const config = initializeConfig();
 
-// Export the config object directly
 module.exports = config;
