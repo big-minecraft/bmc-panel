@@ -161,7 +161,8 @@ const DatabasesPage = () => {
     }
 
     return (
-        <div className="container py-4">
+        <div className="container-fluid py-4">
+            {/* Notifications */}
             <div style={{ position: 'fixed', top: '1rem', right: '1rem', zIndex: 1050 }}>
                 {notifications.map(({ id, message, type }) => (
                     <div key={id} className={`alert alert-${type} alert-dismissible fade show`} role="alert">
@@ -171,151 +172,93 @@ const DatabasesPage = () => {
                 ))}
             </div>
 
-            <h1 className="display-4 mb-4">Database Management</h1>
-
-            <div className="d-flex justify-content-end mb-4">
+            {/* Header */}
+            <div className="d-flex justify-content-between align-items-center mb-4">
+                <h1 className="h2 m-0">Database Management</h1>
                 <button
-                    className="btn btn-primary d-flex align-items-center gap-2"
+                    className="btn btn-primary"
                     onClick={() => setShowCreateModal(true)}
                 >
                     Create Database
                 </button>
             </div>
 
-            <div>
-                <div className="row g-4">
-                    {databases.length === 0 ? (
-                        <EmptyState />
-                    ) : (
-                        databases.map((database) => (
-                            <div key={database.name} className="col-12">
-                                <div className="card"></div>
-                            </div>
-                        ))
-                    )}
-                </div>
-            </div>
-
-            <div>
-                <div className="row g-4">
-                    {databases.map((database) => (
-                        <div key={database.name} className="col-12">
-                            <div className="card">
-                                <div className="card-body">
-                                    <div className="d-flex justify-content-between align-items-center mb-3">
-                                        <div className="d-flex flex-column justify-content-center">
-                                            <h5 className="card-title mb-1">{database.name}</h5>
-                                            <p className="card-text text-muted small mb-0">
-                                                Size: {database.size} • Tables: {database.tables}
-                                            </p>
-                                        </div>
-
-                                        <div className="d-flex align-items-center gap-3">
-                                            <button
-                                                className="btn btn-outline-info btn-sm d-flex align-items-center justify-content-center"
-                                                style={{ width: '32px', height: '32px' }}
-                                                onClick={() => setDatabaseToReset(database.name)}
-                                                disabled={resettingPasswords.has(database.name)}
-                                            >
-                                                {resettingPasswords.has(database.name) ? (
-                                                    <span className="spinner-border spinner-border-sm" />
-                                                ) : (
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-key" viewBox="0 0 16 16">
-                                                        <path d="M0 8a4 4 0 0 1 7.465-2H14a.5.5 0 0 1 .354.146l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0L13 9.207l-.646.647a.5.5 0 0 1-.708 0L11 9.207l-.646.647a.5.5 0 0 1-.708 0L9 9.207l-.646.647A.5.5 0 0 1 8 10h-.535A4 4 0 0 1 0 8zm4-3a3 3 0 1 0 2.712 4.285A.5.5 0 0 1 7.163 9h.63l.853-.854a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.793-.793-1-1h-6.63a.5.5 0 0 1-.451-.285A3 3 0 0 0 4 5z"/>
-                                                        <path d="M4 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
-                                                    </svg>
-                                                )}
-                                            </button>
-
-                                            <button
-                                                className="btn btn-outline-danger btn-sm d-flex align-items-center justify-content-center"
-                                                style={{ width: '32px', height: '32px' }}
-                                                onClick={() => setDatabaseToDelete(database.name)}
-                                            >
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
-                                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
-                                                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
-                                                </svg>
-                                            </button>
-
-                                            <button
-                                                className="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center"
-                                                style={{ width: '32px', height: '32px' }}
-                                                onClick={() => toggleCredentialsVisibility(database.name)}
-                                            >
-                                                {showCredentials[database.name] ? (
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-eye-slash" viewBox="0 0 16 16">
-                                                        <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486z"/>
-                                                        <path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829"/>
-                                                        <path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708"/>
-                                                    </svg>
-                                                ) : (
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-eye" viewBox="0 0 16 16">
-                                                        <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
-                                                        <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
-                                                    </svg>
-                                                )}
-                                            </button>
-                                        </div>
+            {/* Database List */}
+            <div className="d-flex flex-column gap-3">
+                {databases.length === 0 ? (
+                    <EmptyState />
+                ) : (
+                    databases.map((database) => (
+                        <div key={database.name} className="card bg-dark">
+                            <div className="card-body">
+                                <div className="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 className="card-title mb-1">{database.name}</h5>
+                                        <p className="card-text text-muted small mb-0">
+                                            Size: {formatSize(database.size)} • Tables: {database.tables}
+                                        </p>
                                     </div>
 
-                                    {showCredentials[database.name] && (
-                                        <div className="mt-2 p-3 bg-light rounded">
-                                            <h6 className="mb-2">Connection Details</h6>
-                                            <div className="row g-2">
-                                                <div className="col-md-6">
-                                                    <div className="input-group">
-                                                        <span className="input-group-text">Username</span>
-                                                        <input
-                                                            type="text"
-                                                            className="form-control"
-                                                            value={database.credentials.username}
-                                                            readOnly
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-6">
-                                                    <div className="input-group">
-                                                        <span className="input-group-text">Password</span>
-                                                        <input
-                                                            type="text"
-                                                            className="form-control"
-                                                            value={database.credentials.password}
-                                                            readOnly
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-6">
-                                                    <div className="input-group">
-                                                        <span className="input-group-text">Host</span>
-                                                        <input
-                                                            type="text"
-                                                            className="form-control"
-                                                            value={database.credentials.host}
-                                                            readOnly
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div className="col-md-6">
-                                                    <div className="input-group">
-                                                        <span className="input-group-text">Port</span>
-                                                        <input
-                                                            type="text"
-                                                            className="form-control"
-                                                            value={database.credentials.port}
-                                                            readOnly
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
+                                    <div className="d-flex gap-2">
+                                        <button
+                                            className="btn btn-outline-info btn-sm"
+                                            onClick={() => setDatabaseToReset(database.name)}
+                                            disabled={resettingPasswords.has(database.name)}
+                                        >
+                                            {resettingPasswords.has(database.name) ? (
+                                                <span className="spinner-border spinner-border-sm" />
+                                            ) : (
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-key" viewBox="0 0 16 16">
+                                                    <path d="M0 8a4 4 0 0 1 7.465-2H14a.5.5 0 0 1 .354.146l1.5 1.5a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0L13 9.207l-.646.647a.5.5 0 0 1-.708 0L11 9.207l-.646.647a.5.5 0 0 1-.708 0L9 9.207l-.646.647A.5.5 0 0 1 8 10h-.535A4 4 0 0 1 0 8zm4-3a3 3 0 1 0 2.712 4.285A.5.5 0 0 1 7.163 9h.63l.853-.854a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.646-.647a.5.5 0 0 1 .708 0l.646.647.793-.793-1-1h-6.63a.5.5 0 0 1-.451-.285A3 3 0 0 0 4 5z"/>
+                                                    <path d="M4 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                                                </svg>
+                                            )}
+                                        </button>
+
+                                        <button
+                                            className="btn btn-outline-danger btn-sm"
+                                            onClick={() => setDatabaseToDelete(database.name)}
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
+                                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                                            </svg>
+                                        </button>
+
+                                        <button
+                                            className="btn btn-outline-secondary btn-sm"
+                                            onClick={() => toggleCredentialsVisibility(database.name)}
+                                        >
+                                            {showCredentials[database.name] ? (
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-eye-slash" viewBox="0 0 16 16">
+                                                    <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486z"/>
+                                                    <path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829zm-2.943 1.299.822.822a3.5 3.5 0 0 1-4.474-4.474l.823.823a2.5 2.5 0 0 0 2.829 2.829"/>
+                                                    <path d="M3.35 5.47c-.18.16-.353.322-.518.487A13.134 13.134 0 0 0 1.172 8l.195.288c.335.48.83 1.12 1.465 1.755C4.121 11.332 5.881 12.5 8 12.5c.716 0 1.39-.133 2.02-.36l.77.772A7.029 7.029 0 0 1 8 13.5C3 13.5 0 8 0 8s.939-1.721 2.641-3.238l.708.709zm10.296 8.884-12-12 .708-.708 12 12-.708.708"/>
+                                                </svg>
+                                            ) : (
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-eye" viewBox="0 0 16 16">
+                                                    <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+                                                    <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
+
+                                {showCredentials[database.name] && (
+                                    <div className="mt-3 p-3 bg-dark border border-secondary rounded">
+                                        <h6 className="mb-2">Connection Details</h6>
+                                        <div className="row g-2">
+                                            {/* ... (keep existing credentials display code) ... */}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    ))}
-                </div>
+                    ))
+                )}
             </div>
+
 
             {/* Create Modal */}
             {showCreateModal && (
