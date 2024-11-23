@@ -161,7 +161,16 @@ const DatabasesPage = () => {
 
             <div>
                 <div className="row g-4">
-                    {databases.map((database) => (
+                    {databases.length === 0 ? (
+                        <div className="col-12">
+                            <div className="card">
+                                <div className="card-body text-center py-5">
+                                    <h5 className="card-title text-muted">No Databases Found</h5>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        databases.map((database) => (
                         <div key={database.name} className="col-12">
                             <div className="card">
                                 <div className="card-body">
@@ -276,7 +285,8 @@ const DatabasesPage = () => {
                                 </div>
                             </div>
                         </div>
-                    ))}
+                        ))
+                    )}
                 </div>
             </div>
 
