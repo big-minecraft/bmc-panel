@@ -143,8 +143,8 @@ const InviteCodesTab = () => {
                                             </button>
 
                                             <span className={`badge ${status.color}`}>
-                                    {status.text}
-                                </span>
+                                                 {status.text}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>

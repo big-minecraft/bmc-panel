@@ -231,7 +231,7 @@ const UsersTab = () => {
                     </div>
                 </div>
             )}
-        </>
+        </div>
     );
 };
 
