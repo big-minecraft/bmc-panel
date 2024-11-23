@@ -97,7 +97,16 @@ const InviteCodesTab = () => {
             </div>
 
             <div className="row g-4">
-                {inviteCodes.map((invite) => {
+                {inviteCodes.length === 0 ? (
+                    <div className="col-12">
+                        <div className="card shadow-sm border">
+                            <div className="card-body text-center py-5">
+                                <h5 className="card-title mb-0 text-muted">No Invite Codes Found</h5>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    inviteCodes.map((invite) => {
                     const status = getStatusBadge(invite);
                     return (
                         <div key={invite.code} className="col-12">
@@ -138,7 +147,8 @@ const InviteCodesTab = () => {
                             </div>
                         </div>
                     );
-                })}
+                    })
+                )}
             </div>
 
             {/* Create Modal */}
