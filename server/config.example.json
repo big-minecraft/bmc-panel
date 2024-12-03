@@ -15,7 +15,7 @@
     "database": "bmc"
   },
   "sftp": {
-    "host": "nfs-sftp-service",
+    "host": "sftp-service",
     "port": 22,
     "username": "user",
     "password": "password"
