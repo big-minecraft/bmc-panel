@@ -11,6 +11,7 @@ const GamemodesPage = () => {
     const [error, setError] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newGamemodeName, setNewGamemodeName] = useState('');
+    const [newGamemodeType, setNewGamemodeType] = useState('');
     const [gamemodeToDelete, setGamemodeToDelete] = useState(null);
     const [restartingGamemodes, setRestartingGamemodes] = useState(new Set());
     const [restartingProxy, setRestartingProxy] = useState(false);
@@ -140,7 +141,8 @@ const GamemodesPage = () => {
 
         try {
             await axiosInstance.post('/api/gamemodes', {
-                name: newGamemodeName
+                name: newGamemodeName,
+                type: newGamemodeType
             });
 
             setShowCreateModal(false);
@@ -391,13 +393,48 @@ const GamemodesPage = () => {
                                 <button type="button" className="btn-close" onClick={() => setShowCreateModal(false)}></button>
                             </div>
                             <div className="modal-body">
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    placeholder="Enter gamemode name"
-                                    value={newGamemodeName}
-                                    onChange={(e) => setNewGamemodeName(e.target.value)}
-                                />
+                                <div className="mb-3">
+                                    <label htmlFor="gamemodeName" className="form-label">Gamemode Name</label>
+                                    <input
+                                        id="gamemodeName"
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Enter gamemode name"
+                                        value={newGamemodeName}
+                                        onChange={(e) => setNewGamemodeName(e.target.value)}
+                                    />
+                                </div>
+                                <div className="mb-3">
+                                    <label className="form-label d-block">Gamemode Type</label>
+                                    <div className="form-check form-check-inline">
+                                        <input
+                                            className="form-check-input"
+                                            type="radio"
+                                            name="gamemodeType"
+                                            id="persistentType"
+                                            value="persistent"
+                                            checked={gamemodeType === 'persistent'}
+                                            onChange={() => setGamemodeType('persistent')}
+                                        />
+                                        <label className="form-check-label" htmlFor="persistentType">
+                                            Persistent
+                                        </label>
+                                    </div>
+                                    <div className="form-check form-check-inline">
+                                        <input
+                                            className="form-check-input"
+                                            type="radio"
+                                            name="gamemodeType"
+                                            id="nonPersistentType"
+                                            value="non-persistent"
+                                            checked={gamemodeType === 'non-persistent'}
+                                            onChange={() => setGamemodeType('non-persistent')}
+                                        />
+                                        <label className="form-check-label" htmlFor="nonPersistentType">
+                                            Non-Persistent
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowCreateModal(false)}>Cancel</button>

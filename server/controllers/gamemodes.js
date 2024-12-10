@@ -8,61 +8,93 @@ const util = require('util');
 const {sendGamemodeUpdate, redisPool} = require("./redis");
 const exec = util.promisify(require('child_process').exec);
 
+// Centralized method to get full path for a gamemode file
+function getGamemodeFilePaths(name) {
+    const baseDir = config["bmc-path"] + "/local/gamemodes";
+    return {
+        persistent: {
+            enabled: path.join(baseDir, "persistent", `${name}.yaml`),
+            disabled: path.join(baseDir, "persistent", `disabled-${name}.yaml`)
+        },
+        nonPersistent: {
+            enabled: path.join(baseDir, "non-persistent", `${name}.yaml`),
+            disabled: path.join(baseDir, "non-persistent", `disabled-${name}.yaml`)
+        }
+    };
+}
+
+// Helper to find existing gamemode file
+async function findGamemodeFile(name) {
+    const paths = getGamemodeFilePaths(name);
+    const allPaths = [
+        ...Object.values(paths.persistent),
+        ...Object.values(paths.nonPersistent)
+    ];
+
+    for (const filePath of allPaths) {
+        try {
+            await readFile(filePath);
+            return filePath;
+        } catch {}
+    }
+
+    throw new Error('Gamemode file not found');
+}
+
+// Helper to determine gamemode type
+function getGamemodeType(filePath) {
+    return filePath.includes('/persistent/') ? 'persistent' : 'non-persistent';
+}
+
 async function getGamemodes() {
-    const workingDir = config["bmc-path"] + "/local/gamemodes";
+    const baseDir = path.join(config["bmc-path"], "local/gamemodes");
+    const types = ['persistent', 'non-persistent'];
     let gamemodes = [];
 
-    try {
-        const files = readdirSync(workingDir);
+    for (const type of types) {
+        const dirPath = path.join(baseDir, type);
 
-        for (const file of files) {
-            if (file.endsWith(".yaml")) {
-                const name = file.split(".")[0];
-                const filePath = path.join(workingDir, file);
+        try {
+            const files = readdirSync(dirPath);
 
-                const fileContent = await readFile (filePath, 'utf8');
-                const yamlContent = yaml.load(fileContent);
-                const isEnabled = !yamlContent.disabled;
-                const dataDir = "/gamemodes/" + yamlContent.volume.dataDirectory || "/gamemodes";
+            for (const file of files) {
+                if (file.endsWith(".yaml")) {
+                    const name = file.split(".")[0].replace(/^disabled-/, '');
+                    const filePath = path.join(dirPath, file);
 
-                gamemodes.push({
-                    name: name,
-                    path: filePath,
-                    enabled: isEnabled,
-                    dataDirectory: dataDir
-                });
+                    const fileContent = await readFile(filePath, 'utf8');
+                    const yamlContent = yaml.load(fileContent);
+                    const isEnabled = !file.startsWith('disabled-');
+                    const dataDir = `/gamemodes/${type}/${yamlContent.volume.dataDirectory || name}`;
+
+                    // Check if this gamemode is already in the list
+                    const existingGamemode = gamemodes.find(g => g.name === name);
+                    if (!existingGamemode) {
+                        gamemodes.push({
+                            name: name,
+                            path: filePath,
+                            enabled: isEnabled,
+                            dataDirectory: dataDir,
+                            type: type
+                        });
+                    }
+                }
             }
+        } catch (error) {
+            console.error(`Error reading ${type} gamemodes:`, error);
         }
-
-        return gamemodes;
-    } catch (error) {
-        throw new Error('Failed to read gamemodes directory');
     }
+
+    return gamemodes;
 }
 
 async function getGamemodeContent(name) {
-    const workingDir = config["bmc-path"] + "/local/gamemodes";
-    let filePath = path.join(workingDir, `${name}.yaml`);
-
-    if (!await fileExists(filePath)) {
-        filePath = path.join(workingDir, `disabled-${name}.yaml`);
-    }
-
-    try {
-        return await readFile(filePath, 'utf8');
-    } catch (error) {
-        console.error(error);
-        throw new Error('Failed to read gamemode file');
-    }
+    const filePath = await findGamemodeFile(name);
+    return await readFile(filePath, 'utf8');
 }
 
 async function updateGamemodeContent(name, content) {
-    const workingDir = config["bmc-path"] + "/local/gamemodes";
-    let filePath = path.join(workingDir, `${name}.yaml`);
-
-    if (!await fileExists(filePath)) {
-        filePath = path.join(workingDir, `disabled-${name}.yaml`);
-    }
+    const filePath = await findGamemodeFile(name);
 
     try {
         await writeFile(filePath, content, 'utf8');
@@ -75,8 +107,8 @@ async function updateGamemodeContent(name, content) {
 }
 
 async function toggleGamemode(name, enabled) {
-    const workingDir = config["bmc-path"] + "/local/gamemodes";
-    const filePath = path.join(workingDir, `${name}.yaml`);
+    const filePath = await findGamemodeFile(name);
+    const type = getGamemodeType(filePath);
 
     try {
         const fileContent = await readFile(filePath, 'utf8');
@@ -97,7 +129,18 @@ async function toggleGamemode(name, enabled) {
         }
 
         const updatedContent = updatedLines.join('\n');
-        await writeFile(filePath, updatedContent, 'utf8');
+
+        // Rename file if necessary
+        const newFilePath = enabled
+            ? filePath.replace('disabled-', '')
+            : path.join(path.dirname(filePath), `disabled-${path.basename(filePath)}`);
+
+        await writeFile(newFilePath, updatedContent, 'utf8');
+
+        // Remove old file if renamed
+        if (newFilePath !== filePath) {
+            await unlinkSync(filePath);
+        }
 
         if (enabled) {
             const minimumInstances = yamlContent.scaling.minInstances || 1;
@@ -111,20 +154,13 @@ async function toggleGamemode(name, enabled) {
     }
 }
 
-
 async function deleteGamemode(name)  {
-    const workingDir = config["bmc-path"] + "/local/gamemodes";
-    const enabledPath = path.join(workingDir, `${name}.yaml`);
-    const disabledPath = path.join(workingDir, `disabled-${name}.yaml`);
+    const filePath = await findGamemodeFile(name);
+    const type = getGamemodeType(filePath);
 
     try {
-        if (await fileExists(enabledPath)) {
-            await unlinkSync(enabledPath);
-        } else if (await fileExists(disabledPath)) {
-            await unlinkSync(disabledPath);
-        }
-
-        await deleteSFTPDirectory(`nfsshare/gamemodes/${name}`);
+        await unlinkSync(filePath);
+        await deleteSFTPDirectory(`nfsshare/gamemodes/${type}/${name}`);
     } catch (error) {
         console.error(error);
         throw new Error('Failed to delete gamemode');
@@ -135,7 +171,6 @@ async function deleteGamemode(name)  {
 }
 
 async function restartGamemode(name) {
-
     try {
         await scaleDeployment(name, 0);
 
@@ -174,9 +209,8 @@ async function restartGamemode(name) {
     }
 }
 
-async function createGamemode(name) {
-    const yaml = require('js-yaml');
-    const workingDir = config["bmc-path"] + "/local/gamemodes";
+async function createGamemode(name, type = 'persistent') {
+    const workingDir = path.join(config["bmc-path"], "local/gamemodes", type);
     const defaultsDir = config["bmc-path"] + "/defaults";
     const sourceFile = path.join(defaultsDir, "gamemode.yaml");
     const destinationFile = path.join(workingDir, `${name}.yaml`);
@@ -204,8 +238,7 @@ async function createGamemode(name) {
         const updatedContent = updatedLines.join('\n');
         await writeFile(destinationFile, updatedContent, 'utf8');
 
-
-        await createSFTPDirectory(`nfsshare/gamemodes/${name}`);
+        await createSFTPDirectory(`nfsshare/gamemodes/${type}/${name}`);
     } catch (error) {
         console.error(error);
         throw new Error('Failed to create gamemode');
@@ -232,10 +265,9 @@ async function runApplyScript() {
         if (stderr) {
             console.error(`Script stderr: ${stderr}`);
         }
-        // console.log(`Script stdout: ${stdout}`);
     } catch (error) {
         console.error(`Script execution error: ${error}`);
-        throw error; // Propagate the error up
+        throw error;
     }
 }
 

@@ -82,8 +82,10 @@ module.exports = {
 
     createGamemode: async (req, res) => {
         try {
-            const {name} = req.body;
-            await createGamemode(name);
+            const name = req.body.name;
+            const type = req.body.type;
+
+            await createGamemode(name, type);
             res.json({message: 'Gamemode created successfully'});
         } catch (error) {
             res.status(500).json({error: 'Failed to create gamemode'});
