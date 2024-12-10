@@ -212,7 +212,7 @@ async function restartGamemode(name) {
 async function createGamemode(name, type = 'persistent') {
     const workingDir = path.join(config["bmc-path"], "local/gamemodes", type);
     const defaultsDir = config["bmc-path"] + "/defaults";
-    const sourceFile = path.join(defaultsDir, "gamemode.yaml");
+    const sourceFile = path.join(defaultsDir, `${type}-gamemode.yaml`);
     const destinationFile = path.join(workingDir, `${name}.yaml`);
 
     if (await fileExists(destinationFile)) {
