@@ -65,7 +65,14 @@ async function getGamemodes() {
                     const fileContent = await readFile(filePath, 'utf8');
                     const yamlContent = yaml.load(fileContent);
                     const isEnabled = !file.startsWith('disabled-');
-                    const dataDir = `/gamemodes/${type}/${yamlContent.volume.dataDirectory || name}`;
+
+
+                    let dataDir = `/gamemodes/${yamlContent.volume.dataDirectory || name}`;
+
+                    if (type === 'persistent') {
+                        let node = yamlContent.dedicatedNode;
+                        dataDir = `/nodes/${node}/gamemodes/${yamlContent.volume.dataDirectory || name}`;
+                    }
 
                     // Check if this gamemode is already in the list
                     const existingGamemode = gamemodes.find(g => g.name === name);
