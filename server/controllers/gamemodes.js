@@ -238,7 +238,8 @@ async function createGamemode(name, type = 'persistent') {
         const updatedContent = updatedLines.join('\n');
         await writeFile(destinationFile, updatedContent, 'utf8');
 
-        await createSFTPDirectory(`nfsshare/gamemodes/${type}/${name}`);
+        //TODO: Pick a node for persistent gamemodes
+        await createSFTPDirectory(`nfsshare/gamemodes/${name}`);
     } catch (error) {
         console.error(error);
         throw new Error('Failed to create gamemode');
