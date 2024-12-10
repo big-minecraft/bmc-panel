@@ -413,8 +413,8 @@ const GamemodesPage = () => {
                                             name="gamemodeType"
                                             id="persistentType"
                                             value="persistent"
-                                            checked={gamemodeType === 'persistent'}
-                                            onChange={() => setGamemodeType('persistent')}
+                                            checked={newGamemodeType === 'persistent'}
+                                            onChange={() => setNewGamemodeType('persistent')}
                                         />
                                         <label className="form-check-label" htmlFor="persistentType">
                                             Persistent
@@ -427,8 +427,8 @@ const GamemodesPage = () => {
                                             name="gamemodeType"
                                             id="nonPersistentType"
                                             value="non-persistent"
-                                            checked={gamemodeType === 'non-persistent'}
-                                            onChange={() => setGamemodeType('non-persistent')}
+                                            checked={newGamemodeType === 'non-persistent'}
+                                            onChange={() => setNewGamemodeType('non-persistent')}
                                         />
                                         <label className="form-check-label" htmlFor="nonPersistentType">
                                             Non-Persistent
