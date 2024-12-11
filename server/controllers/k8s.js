@@ -141,7 +141,7 @@ class KubernetesClient {
     }
 
     async listNodesAndResources() {
-        this.ensureInitialized()
+        // this.ensureInitialized()
 
         try {
             // Get the list of nodes
