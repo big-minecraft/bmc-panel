@@ -2,7 +2,7 @@ const config = require('../config');
 const path = require('path');
 const { readdirSync, unlinkSync, promises: { readFile, writeFile, rename, copyFile } } = require("fs");
 const yaml = require('js-yaml');
-const {scaleDeployment} = require("./k8s");
+const {scaleDeployment, listNodesAndResources} = require("./k8s");
 const {createSFTPDirectory, deleteSFTPDirectory} = require("./sftp");
 const util = require('util');
 const {sendGamemodeUpdate, redisPool} = require("./redis");
@@ -50,6 +50,8 @@ async function getGamemodes() {
     const baseDir = path.join(config["bmc-path"], "local/gamemodes");
     const types = ['persistent', 'non-persistent'];
     let gamemodes = [];
+
+    await listNodesAndResources();
 
     for (const type of types) {
         const dirPath = path.join(baseDir, type);
