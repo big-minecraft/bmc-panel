@@ -188,7 +188,7 @@ async function deleteGamemode(name)  {
 
 async function restartGamemode(name) {
     try {
-        await scaleDeployment(name, 0);
+        await kubernetesClient.scaleDeployment(name, 0);
 
         let gamemode = await getGamemodeContent(name);
         let yamlContent = yaml.load(gamemode);

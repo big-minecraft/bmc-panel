@@ -147,10 +147,7 @@ class KubernetesClient {
             const res = await this.coreV1Api.listNode();
             const nodes = res.body.items;
 
-            const nodeNames = nodes.map(node => node.metadata.name);
-
-            console.log('Node Names:', nodeNames);
-            return nodeNames;
+            return nodes.map(node => node.metadata.name);
         } catch (error) {
             console.error('Error fetching nodes:', error);
             return [];
