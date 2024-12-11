@@ -88,7 +88,7 @@ module.exports = {
             const type = req.body.type;
             const node = req.body.node;
 
-            await createGamemode(name, type, x);
+            await createGamemode(name, type, node);
             res.json({message: 'Gamemode created successfully'});
         } catch (error) {
             res.status(500).json({error: 'Failed to create gamemode'});

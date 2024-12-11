@@ -12,13 +12,13 @@ router.route('/proxies')
     .get(verifyToken, controller.getProxies);
 
 router.route('/gamemodes')
-    .get(controller.getGamemodes)
+    .get(verifyToken, controller.getGamemodes)
     .post(verifyToken, controller.createGamemode);
 
 router.route('/gamemodes/:name')
     .get(verifyToken, controller.getGamemodeContent)
     .put(verifyToken, controller.updateGamemodeContent)
-    .patch(controller.toggleGamemode)
+    .patch(verifyToken, controller.toggleGamemode)
     .delete(verifyToken, controller.deleteGamemode)
     .post(verifyToken, controller.restartGamemode);
 
