@@ -167,9 +167,16 @@ async function deleteGamemode(name)  {
     const filePath = await findGamemodeFile(name);
     const type = getGamemodeType(filePath);
 
+    let config = await getGamemodeContent(name);
+    let yamlContent = yaml.load(config);
+
     try {
         await unlinkSync(filePath);
-        await deleteSFTPDirectory(`nfsshare/gamemodes/${type}/${name}`);
+
+        let directoryPath = `/gamemodes/${name}`;
+        if (type === 'persistent') directoryPath = `/nodes/${yamlContent.dedicatedNode}/gamemodes/${name}`;
+
+        await deleteSFTPDirectory(`nfsshare${directoryPath}`);
     } catch (error) {
         console.error(error);
         throw new Error('Failed to delete gamemode');
