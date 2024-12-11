@@ -16,6 +16,10 @@ const GamemodesPage = () => {
     const [restartingGamemodes, setRestartingGamemodes] = useState(new Set());
     const [restartingProxy, setRestartingProxy] = useState(false);
     const [notifications, setNotifications] = useState([]);
+    const [nodes, setNodes] = useState([]);
+    const [selectedNode, setSelectedNode] = useState('');
+    const [isLoadingNodes, setIsLoadingNodes] = useState(false);
+    const [createError, setCreateError] = useState(null);
 
     useEffect(() => {
         Promise.all([fetchGamemodes(), fetchProxyConfig()]);
@@ -137,21 +141,35 @@ const GamemodesPage = () => {
     };
 
     const handleCreate = async () => {
-        if (!newGamemodeName.trim()) return;
+        if (!newGamemodeName.trim()) {
+            // Use a local error state instead of global notification
+            setCreateError('Gamemode name is required');
+            return;
+        }
+
+        // For persistent gamemodes, ensure a node is selected
+        if (newGamemodeType === 'persistent' && !selectedNode) {
+            setCreateError('Please select a node for the persistent gamemode');
+            return;
+        }
 
         try {
             await axiosInstance.post('/api/gamemodes', {
                 name: newGamemodeName,
-                type: newGamemodeType
+                type: newGamemodeType,
+                node: (newGamemodeType === 'persistent' ? selectedNode : undefined)
             });
 
             setShowCreateModal(false);
             setNewGamemodeName('');
+            setNewGamemodeType('');
+            setSelectedNode('');
+            setCreateError(null);
             await fetchGamemodes();
             addNotification(`Successfully created ${newGamemodeName}`, 'success');
         } catch (err) {
             console.error('Error creating gamemode:', err);
-            addNotification(`Failed to create ${newGamemodeName}`, 'danger');
+            setCreateError('Failed to create gamemode');
         }
     };
 
@@ -166,6 +184,20 @@ const GamemodesPage = () => {
         } catch (err) {
             console.error('Error deleting gamemode:', err);
             addNotification(`Failed to delete ${gamemodeToDelete}`, 'danger');
+        }
+    };
+
+    const handleOpenCreateModal = async () => {
+        setIsLoadingNodes(true);
+        try {
+            const response = await axiosInstance.get('/api/nodes');
+            setNodes(response.data);
+            setShowCreateModal(true);
+        } catch (err) {
+            console.error('Error fetching nodes:', err);
+            addNotification('Failed to load nodes', 'danger');
+        } finally {
+            setIsLoadingNodes(false);
         }
     };
 
@@ -205,7 +237,7 @@ const GamemodesPage = () => {
             <div className="d-flex justify-content-end mb-4">
                 <button
                     className="btn btn-primary"
-                    onClick={() => setShowCreateModal(true)}
+                    onClick={handleOpenCreateModal}
                 >
                     Create Gamemode
                 </button>
@@ -393,6 +425,13 @@ const GamemodesPage = () => {
                                 <button type="button" className="btn-close" onClick={() => setShowCreateModal(false)}></button>
                             </div>
                             <div className="modal-body">
+
+                                {createError && (
+                                    <div className="alert alert-danger mb-3" role="alert">
+                                        {createError}
+                                    </div>
+                                )}
+
                                 <div className="mb-3">
                                     <label htmlFor="gamemodeName" className="form-label">Gamemode Name</label>
                                     <input
@@ -435,6 +474,26 @@ const GamemodesPage = () => {
                                         </label>
                                     </div>
                                 </div>
+
+                                {newGamemodeType === 'persistent' && (
+                                    <div className="mb-3">
+                                        <label htmlFor="nodeSelection" className="form-label">Select Node</label>
+                                        <select
+                                            id="nodeSelection"
+                                            className="form-select"
+                                            value={selectedNode}
+                                            onChange={(e) => setSelectedNode(e.target.value)}
+                                            disabled={isLoadingNodes}
+                                        >
+                                            <option value="">Choose a node</option>
+                                            {nodes.map((nodeName) => (
+                                                <option key={nodeName} value={nodeName}>
+                                                    {nodeName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
                             </div>
                             <div className="modal-footer">
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowCreateModal(false)}>Cancel</button>

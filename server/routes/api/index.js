@@ -12,13 +12,13 @@ router.route('/proxies')
     .get(verifyToken, controller.getProxies);
 
 router.route('/gamemodes')
-    .get(verifyToken, controller.getGamemodes)
+    .get(controller.getGamemodes)
     .post(verifyToken, controller.createGamemode);
 
 router.route('/gamemodes/:name')
     .get(verifyToken, controller.getGamemodeContent)
     .put(verifyToken, controller.updateGamemodeContent)
-    .patch(verifyToken, controller.toggleGamemode)
+    .patch(controller.toggleGamemode)
     .delete(verifyToken, controller.deleteGamemode)
     .post(verifyToken, controller.restartGamemode);
 
@@ -105,12 +105,15 @@ router.route('/sftp/unarchive')
     .post(verifyToken, controller.unarchiveSFTPFile);
 
 router.route('/databases')
-    .get(controller.getDatabases)
-    .post(controller.createDatabase);
+    .get(verifyToken, controller.getDatabases)
+    .post(verifyToken, controller.createDatabase);
 
 router.route('/databases/:name')
-    .delete(controller.deleteDatabase)
-    .patch(controller.resetDatabasePassword);
+    .delete(verifyToken, controller.deleteDatabase)
+    .patch(verifyToken, controller.resetDatabasePassword);
+
+router.route('/nodes')
+    .get(verifyToken, controller.getNodes);
 
 
 module.exports = router;

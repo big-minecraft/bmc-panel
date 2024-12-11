@@ -140,42 +140,23 @@ class KubernetesClient {
         };
     }
 
-    async listNodesAndResources() {
-        // this.ensureInitialized()
+    async listNodeNames() {
+        this.ensureInitialized();
 
         try {
-            // Get the list of nodes
-            console.log(`APPS: ${this}`);
-            console.log(`CORE: ${this.coreV1Api}`);
-            console.log(`CORE: ${this.coreV1Api.listNode}`);
-            const res = await this.appsV1Api.listNode();
+            const res = await this.coreV1Api.listNode();
             const nodes = res.body.items;
 
-            console.log('----------------------------------');
+            const nodeNames = nodes.map(node => node.metadata.name);
 
-            nodes.forEach(node => {
-                console.log(`Node Name: ${node.metadata.name}`);
-
-                // Extract capacity and allocatable resources
-                const capacity = node.status.capacity;
-                const allocatable = node.status.allocatable;
-
-                console.log('Capacity:');
-                Object.keys(capacity).forEach(key => {
-                    console.log(`  ${key}: ${capacity[key]}`);
-                });
-
-                console.log('Allocatable:');
-                Object.keys(allocatable).forEach(key => {
-                    console.log(`  ${key}: ${allocatable[key]}`);
-                });
-
-                console.log('----------------------------------');
-            });
+            console.log('Node Names:', nodeNames);
+            return nodeNames;
         } catch (error) {
             console.error('Error fetching nodes:', error);
+            return [];
         }
     }
+
 }
 
 // Create and export a singleton instance

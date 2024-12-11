@@ -2,7 +2,7 @@ const config = require('../config');
 const path = require('path');
 const { readdirSync, unlinkSync, promises: { readFile, writeFile, rename, copyFile } } = require("fs");
 const yaml = require('js-yaml');
-const {scaleDeployment, listNodesAndResources} = require("./k8s");
+const kubernetesClient = require("./k8s");
 const {createSFTPDirectory, deleteSFTPDirectory} = require("./sftp");
 const util = require('util');
 const {sendGamemodeUpdate, redisPool} = require("./redis");
@@ -51,7 +51,7 @@ async function getGamemodes() {
     const types = ['persistent', 'non-persistent'];
     let gamemodes = [];
 
-    await listNodesAndResources();
+    await kubernetesClient.listNodeNames();
 
     for (const type of types) {
         const dirPath = path.join(baseDir, type);
@@ -153,9 +153,9 @@ async function toggleGamemode(name, enabled) {
 
         if (enabled) {
             const minimumInstances = yamlContent.scaling.minInstances || 1;
-            await scaleDeployment(name, minimumInstances);
+            await kubernetesClient.scaleDeployment(name, minimumInstances);
         } else {
-            await scaleDeployment(name, 0);
+            await kubernetesClient.scaleDeployment(name, 0);
         }
     } catch (error) {
         console.error('Error in toggleGamemode:', error);
@@ -218,7 +218,7 @@ async function restartGamemode(name) {
     }
 }
 
-async function createGamemode(name, type = 'persistent') {
+async function createGamemode(name, type = 'non-persistent', node = null) {
     const workingDir = path.join(config["bmc-path"], "local/gamemodes", type);
     const defaultsDir = config["bmc-path"] + "/defaults";
     const sourceFile = path.join(defaultsDir, `${type}-gamemode.yaml`);
@@ -226,6 +226,10 @@ async function createGamemode(name, type = 'persistent') {
 
     if (await fileExists(destinationFile)) {
         throw new Error('Gamemode already exists');
+    }
+
+    if (type === "persistent" && !node) {
+        throw new Error('Dedicated node required for persistent gamemode');
     }
 
     try {
@@ -241,14 +245,21 @@ async function createGamemode(name, type = 'persistent') {
                 const indent = line.match(/^\s*/)[0];
                 return `${indent}dataDirectory: "${name}"`;
             }
+            if (type === "persistent" && line.trim().startsWith('dedicatedNode:')) {
+                const indent = line.match(/^\s*/)[0];
+                return `${indent}dedicatedNode: "${node}"`;
+            }
             return line;
         });
 
         const updatedContent = updatedLines.join('\n');
         await writeFile(destinationFile, updatedContent, 'utf8');
 
-        //TODO: Pick a node for persistent gamemodes
-        await createSFTPDirectory(`nfsshare/gamemodes/${name}`);
+        let directoryPath = `/gamemodes/${name}`;
+
+        if (type === 'persistent') directoryPath = `/nodes/${node}/gamemodes/${name}`;
+
+        await createSFTPDirectory(`nfsshare${directoryPath}`);
     } catch (error) {
         console.error(error);
         throw new Error('Failed to create gamemode');
