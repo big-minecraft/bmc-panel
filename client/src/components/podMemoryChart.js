@@ -40,7 +40,7 @@ const PodMemoryChart = ({ podName }) => {
 
     if (loading) {
         return (
-            <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '300px' }}>
+            <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '325px' }}>
                 <div className="spinner-border text-primary" role="status">
                     <span className="visually-hidden">Loading...</span>
                 </div>
@@ -50,14 +50,14 @@ const PodMemoryChart = ({ podName }) => {
 
     if (error) {
         return (
-            <div className="alert alert-danger" style={{ minHeight: '300px' }} role="alert">
+            <div className="alert alert-danger" style={{ minHeight: '325px' }} role="alert">
                 Error loading memory metrics: {error}
             </div>
         );
     }
 
     return (
-        <div style={{ width: '100%', height: '300px', minHeight: '300px' }}>
+        <div style={{ width: '100%', height: '325px', minHeight: '325px' }}>
             <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data} margin={{ top: 5, right: 30, left: 60, bottom: 25 }}>
                     <CartesianGrid strokeDasharray="3 3" />
