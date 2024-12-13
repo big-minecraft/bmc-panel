@@ -1,5 +1,4 @@
 const request = require('request');
-const { Agent } = require("https");
 const fs = require('fs');
 const path = require('path');
 const kubernetesClient = require('../controllers/k8s');
@@ -28,12 +27,10 @@ function setupPodLogs(ws, podName, cluster, user) {
     };
 
     if (kubernetesClient.isRunningInCluster()) {
-        // Production environment setup
         console.log('running in cluster environment')
         const tokenPath = path.join('/host-root', user.authProvider.config.tokenFile);
         const caPath = path.join('/host-root', cluster.caFile);
 
-        // Read the token and CA cert from the host-root prefixed paths
         const token = fs.readFileSync(tokenPath, 'utf8');
         const ca = fs.readFileSync(caPath);
 
@@ -69,7 +66,6 @@ function setupPodLogs(ws, podName, cluster, user) {
         hasToken: !!requestOptions.headers?.Authorization
     });
 
-    // Create request
     const logRequest = request(requestOptions)
         .on('response', (response) => {
             console.log('response status:', response.statusCode)
@@ -120,7 +116,6 @@ function setupPodLogs(ws, podName, cluster, user) {
             }
         });
 
-    // Handle WebSocket close
     ws.on('close', () => {
         console.log(`client disconnected from logs and commands of pod: ${podName}`)
         if (logRequest.abort) {
