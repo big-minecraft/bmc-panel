@@ -40,7 +40,7 @@ const PodCPUChart = ({ podName }) => {
 
   if (loading) {
     return (
-        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '325px' }}>
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '300px' }}>
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
@@ -50,21 +50,20 @@ const PodCPUChart = ({ podName }) => {
 
   if (error) {
     return (
-        <div className="alert alert-danger" style={{ minHeight: '325px' }} role="alert">
+        <div className="alert alert-danger" style={{ minHeight: '300px' }} role="alert">
           Error loading CPU metrics: {error}
         </div>
     );
   }
 
   return (
-      // Added wrapper div with explicit height
-      <div style={{ width: '100%', height: '325px', minHeight: '325px' }}>
+      <div style={{ width: '100%', height: '300px', minHeight: '300px' }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 5, right: 30, left: 60, bottom: 25 }}>
+          <LineChart data={data} margin={{ top: 15, right: 30, left: 60, bottom: 40 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
                 dataKey="timestamp"
-                label={{ value: 'Time', position: 'bottom', offset: 15 }}
+                label={{ value: 'Time', position: 'bottom', offset: 20 }}
             />
             <YAxis
                 label={{ value: 'CPU Usage (mCPU)', angle: -90, position: 'left', offset: 40 }}
