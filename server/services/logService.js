@@ -8,40 +8,54 @@ function setupPodLogs(ws, podName, cluster, user) {
         throw new Error('Pod name is required');
     }
 
+    // Setup log options
     const logOptions = {
         follow: true,
         tailLines: 100,
         pretty: true,
     };
 
+    // Construct log URL
     const logUrl = `${cluster.server}/api/v1/namespaces/default/pods/${podName}/log?container=mc&follow=${logOptions.follow}&tailLines=${logOptions.tailLines}&pretty=${logOptions.pretty}`;
-    // Prepend /host-root to file paths
-    const tokenPath = path.join('/host-root', user.authProvider.config.tokenFile);
-    const caPath = path.join('/host-root', cluster.caFile);
 
-    // Read the token and CA cert from the host-root prefixed paths
-    const token = fs.readFileSync(tokenPath, 'utf8');
-    const ca = fs.readFileSync(caPath);
+    // Convert base64 certificate data to buffers
+    const cert = Buffer.from(user.certData, 'base64');
+    const key = Buffer.from(user.keyData, 'base64');
+    const ca = cluster.caData ? Buffer.from(cluster.caData, 'base64') : undefined;
 
+    // Setup request options with client certificate authentication
     const requestOptions = {
         url: logUrl,
         method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        },
         agentOptions: {
+            cert: cert,
+            key: key,
             ca: ca,
-            rejectUnauthorized: !cluster.skipTLSVerify
+            rejectUnauthorized: true  // Only for development/testing
         },
         json: false,
         encoding: null
     };
 
-    request(requestOptions)
+    console.log('Making request with options:', {
+        url: requestOptions.url,
+        method: requestOptions.method,
+        rejectUnauthorized: requestOptions.agentOptions.rejectUnauthorized,
+        hasCert: !!requestOptions.agentOptions.cert,
+        hasKey: !!requestOptions.agentOptions.key,
+        hasCa: !!requestOptions.agentOptions.ca
+    });
+
+    // Create request
+    const logRequest = request(requestOptions)
         .on('response', (response) => {
+            console.log('Response status:', response.statusCode);
+
             if (response.statusCode !== 200) {
                 console.error(`Failed to get logs: HTTP ${response.statusCode}`);
-                console.log(response);
+                if (response.statusCode === 401) {
+                    console.error('Authentication failed. Check client certificates.');
+                }
                 ws.send(`Error: Failed to get logs (HTTP ${response.statusCode})`);
                 ws.close();
                 return;
@@ -50,9 +64,13 @@ function setupPodLogs(ws, podName, cluster, user) {
             console.log(`Started streaming logs for pod: ${podName}`);
 
             response.on('data', (chunk) => {
-                const logMessage = chunk.toString();
-                if (ws.readyState === ws.OPEN) {
-                    ws.send(logMessage);
+                try {
+                    const logMessage = chunk.toString();
+                    if (ws.readyState === ws.OPEN) {
+                        ws.send(logMessage);
+                    }
+                } catch (err) {
+                    console.error('Error processing log message:', err);
                 }
             });
 
@@ -78,6 +96,14 @@ function setupPodLogs(ws, podName, cluster, user) {
                 ws.close();
             }
         });
+
+    // Handle WebSocket close
+    ws.on('close', () => {
+        console.log(`Client disconnected from logs and commands of pod: ${podName}`);
+        if (logRequest.abort) {
+            logRequest.abort();
+        }
+    });
 }
 
 module.exports = {
