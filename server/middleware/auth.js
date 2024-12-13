@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config');
 const { getUser } = require("../controllers/database");
+const kubernetesClient = require("../controllers/k8s");
 
 const verifyToken = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -21,7 +22,7 @@ const verifyToken = async (req, res, next) => {
             const lastLogoutTimestamp = new Date(last_logout).getTime() / 1000;
             const currentTime = Date.now() / 1000;
 
-            if (decoded.iat < lastLogoutTimestamp) {
+            if (decoded.iat < lastLogoutTimestamp && kubernetesClient.isRunningInCluster()) {
                 return res.status(401).send({ message: 'Token has expired.' });
             }
         }
