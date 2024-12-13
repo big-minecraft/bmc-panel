@@ -565,7 +565,13 @@ module.exports = {
     getDatabases: async (req, res) => {
         try {
             const databases = await listDatabases();
-            res.json(databases);
+
+            const sanitizedDatabases = databases.map(db => ({
+                ...db,
+                tables: parseInt(db.tables.toString())
+            }));
+
+            res.json(sanitizedDatabases);
         } catch (error) {
             console.error('Failed to list databases:', error);
             res.status(500).json({error: 'Failed to fetch databases'});
