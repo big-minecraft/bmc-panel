@@ -1,4 +1,5 @@
 {
+  "panel-host": "0.0.0.0",
   "bmc-path": "/host-root/var/lib/baremetal/big-minecraft",
   "redis": {
     "host": "redis-service",

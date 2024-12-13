@@ -128,7 +128,7 @@ async function listDatabases() {
             credentials: {
                 username: `${db.name}_user`,
                 password: db.password,
-                host: config.mariadb.host,
+                host: config['panel-host'],
                 port: 30036
             }
         }));

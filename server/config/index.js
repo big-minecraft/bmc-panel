@@ -50,7 +50,7 @@ const initializeConfig = () => {
         }
 
         if (process.env.PANEL_HOST) {
-            config.mariadb.host = process.env.PANEL_HOST;
+            config['panel-host'] = process.env.PANEL_HOST;
         }
     }
 
