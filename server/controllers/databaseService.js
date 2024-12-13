@@ -1,4 +1,5 @@
 const { pool } = require('./database.js');
+const config = require('../config');
 
 async function createDatabase(name) {
     let conn;
@@ -127,7 +128,7 @@ async function listDatabases() {
             credentials: {
                 username: `${db.name}_user`,
                 password: db.password,
-                host: process.env.PANEL_HOST,
+                host: config.mariadb.host,
                 port: 30036
             }
         }));

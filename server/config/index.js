@@ -48,6 +48,10 @@ const initializeConfig = () => {
         if (process.env.MARIADB_PASSWORD) {
             config.mariadb.password = process.env.MARIADB_PASSWORD;
         }
+
+        if (process.env.PANEL_HOST) {
+            config.mariadb.host = process.env.PANEL_HOST;
+        }
     }
 
     checkMissingKeys(exampleConfig, config);
