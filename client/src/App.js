@@ -121,7 +121,7 @@ const HomePage = ({ instances: initialInstances, proxies: initialProxies }) => {
                     <h3>CPU Usage</h3>
                 </div>
                 <div className="card-body">
-                    <PodCPUChart podName={"survival-7ddc7c659d-cnkmp"}/>
+                    <PodCPUChart podName={"survival-7ddc7c659d-trhn4"}/>
                 </div>
             </div>
 
@@ -130,7 +130,7 @@ const HomePage = ({ instances: initialInstances, proxies: initialProxies }) => {
                     <h3>Memory Usage</h3>
                 </div>
                 <div className="card-body">
-                    <PodMemoryChart podName={"survival-7ddc7c659d-cnkmp"}/>
+                    <PodMemoryChart podName={"survival-7ddc7c659d-trhn4"}/>
                 </div>
             </div>
 

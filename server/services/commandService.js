@@ -8,7 +8,7 @@ async function executeCommand(ws, command, podName, cluster, user) {
         throw new Error('Pod name is required');
     }
 
-    const execUrl = `${cluster.server}/api/v1/namespaces/default/pods/${podName}/exec`;
+    const execUrl = `${cluster.server}/api/v1/namespaces/default/pods/${podName}/exec?container=mc`;
     const params = new URLSearchParams();
 
     params.append('command', 'bash');
