@@ -23,6 +23,11 @@ function setupPodLogs(ws, podName, cluster, user) {
     const key = Buffer.from(user.keyData, 'base64');
     const ca = cluster.caData ? Buffer.from(cluster.caData, 'base64') : undefined;
 
+
+    console.log('Cert:', cert);
+    console.log('Key:', key);
+    console.log('CA:', ca);
+
     // Setup request options with client certificate authentication
     const requestOptions = {
         url: logUrl,
