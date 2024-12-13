@@ -6,7 +6,7 @@ const {patch} = require("request");
 const router = express.Router();
 
 router.route('/instances')
-    .get(verifyToken, controller.getInstances);
+    .get(controller.getInstances);
 
 router.route('/proxies')
     .get(verifyToken, controller.getProxies);
@@ -114,6 +114,12 @@ router.route('/databases/:name')
 
 router.route('/nodes')
     .get(verifyToken, controller.getNodes);
+
+router.route('/metrics/cpu')
+    .get(controller.getCPUMetrics);
+
+router.route('/metrics/memory')
+    .get(controller.getMemoryMetrics);
 
 
 module.exports = router;

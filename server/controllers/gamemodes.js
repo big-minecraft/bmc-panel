@@ -6,6 +6,9 @@ const kubernetesClient = require("./k8s");
 const {createSFTPDirectory, deleteSFTPDirectory} = require("./sftp");
 const util = require('util');
 const {sendGamemodeUpdate, redisPool} = require("./redis");
+const {createGrafanaDashboard, generateGrafanaSnapshot, listGrafanaDashboards, fetchGrafanaSnapshotImage,
+    getPodCPUUsageForGraph, getPodMemoryUsageForGraph
+} = require("./prometheus");
 const exec = util.promisify(require('child_process').exec);
 
 // Centralized method to get full path for a gamemode file

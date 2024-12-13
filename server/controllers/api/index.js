@@ -18,6 +18,7 @@ const {getProxyContent, updateProxyContent, toggleProxy, restartProxy, getProxyC
 const DatabaseService = require("../databaseService");
 const {createDatabase, listDatabases} = require("../databaseService");
 const kubernetesClient = require("../k8s");
+const {getPodCPUUsageForGraph, getPodMemoryUsageForGraph} = require("../prometheus");
 
 
 module.exports = {
@@ -608,6 +609,26 @@ module.exports = {
             res.json(nodes);
         } catch (error) {
             res.status(500).json({ error: 'Failed to fetch nodes' });
+        }
+    },
+
+    getCPUMetrics: async (req, res) => {
+        const {pod} = req.query;
+        try {
+            const data = await getPodCPUUsageForGraph(pod);
+            res.json(data);
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to fetch CPU usage data' });
+        }
+    },
+
+    getMemoryMetrics: async (req, res) => {
+        const {pod} = req.query;
+        try {
+            const data = await getPodMemoryUsageForGraph(pod);
+            res.json(data);
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to fetch memory usage data' });
         }
     }
 };

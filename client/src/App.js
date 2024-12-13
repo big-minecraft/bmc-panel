@@ -14,6 +14,8 @@ import SftpInterface from "./pages/sftpInterface";
 import ConfigEditPage from "./pages/configEditPage";
 import NotFoundPage from "./pages/notFoundPage";
 import DatabasesPage from "./pages/databasesPage";
+import PodCPUChart from "./components/podCPUChart";
+import PodMemoryChart from "./components/podMemoryChart";
 
 function App() {
     const [instances, setInstances] = useState([]);
@@ -45,8 +47,8 @@ function App() {
                 <Routes>
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegistrationPage />} />
-                    <Route path="/" element={<PrivateRoute><HomePage instances={instances} proxies={proxies} /></PrivateRoute>} />
-                    <Route path="/gamemodes" element={<PrivateRoute><GamemodesPage /></PrivateRoute>} />
+                    <Route path="/" element={<HomePage instances={instances} proxies={proxies} />} />
+                    <Route path="/gamemodes" element={<GamemodesPage />} />
                     <Route path="/users" element={<PrivateRoute><AdminPage /></PrivateRoute>} />
                     <Route path="/files/*" element={<PrivateRoute><SftpInterface /></PrivateRoute>} />
                     <Route path="/databases" element={<PrivateRoute><DatabasesPage /></PrivateRoute>} />
@@ -113,11 +115,31 @@ const HomePage = ({ instances: initialInstances, proxies: initialProxies }) => {
     return (
         <div className="container">
             <h1 className="display-4 text-center mb-4">Instance Manager</h1>
+
+            <div className="card mb-3"> {/* Added this wrapper div */}
+                <div className="card-header">
+                    <h3>CPU Usage</h3>
+                </div>
+                <div className="card-body">
+                    <PodCPUChart podName={"survival-7ddc7c659d-cnkmp"}/>
+                </div>
+            </div>
+
+            <div className="card mb-3"> {/* Added this wrapper div */}
+                <div className="card-header">
+                    <h3>Memory Usage</h3>
+                </div>
+                <div className="card-body">
+                    <PodMemoryChart podName={"survival-7ddc7c659d-cnkmp"}/>
+                </div>
+            </div>
+
+
             <div className="row g-4 mb-4">
                 <div className="col-12">
                     <h2 className="h5 mb-3">Proxies</h2>
                     {proxies.map((proxy, index) => (
-                        <Link key={index} to={`/proxy/${proxy.name}`} state={{ proxy }} className="text-decoration-none">
+                        <Link key={index} to={`/proxy/${proxy.name}`} state={{proxy}} className="text-decoration-none">
                             <div className="card mb-3">
                                 <div className="card-body d-flex justify-content-between align-items-center">
                                     <div>
@@ -143,7 +165,8 @@ const HomePage = ({ instances: initialInstances, proxies: initialProxies }) => {
                     <div key={gamemode} className="col-12">
                         <h2 className="h5 mb-3">{gamemode.charAt(0).toUpperCase() + gamemode.slice(1)}</h2>
                         {instancesByGamemode[gamemode].map((instance, index) => (
-                            <Link key={index} to={`/instance/${instance.name}`} state={{ instance }} className="text-decoration-none">
+                            <Link key={index} to={`/instance/${instance.name}`} state={{instance}}
+                                  className="text-decoration-none">
                                 <div className="card mb-3">
                                     <div className="card-body d-flex justify-content-between align-items-center">
                                         <div>
