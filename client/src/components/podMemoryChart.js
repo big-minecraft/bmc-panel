@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosInstance from "../utils/auth";
 import {
     LineChart,
     Line,
@@ -19,7 +19,7 @@ const PodMemoryChart = ({ podName }) => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`/api/metrics/memory?pod=${podName}`);
+                const response = await axiosInstance.get(`/api/metrics/memory?pod=${podName}`);
                 const formattedData = response.data.map(point => ({
                     timestamp: new Date(point.timestamp).toLocaleTimeString(),
                     value: parseFloat((point.value / 1024).toFixed(2)) // Convert KB to MB
