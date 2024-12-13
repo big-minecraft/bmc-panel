@@ -1,6 +1,8 @@
 import { useParams } from "react-router-dom";
 import React, { useEffect, useState, useRef } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import PodCPUChart from "../components/podCPUChart";
+import PodMemoryChart from "../components/podMemoryChart";
 
 function InstancePage({ instances, proxies }) {
     const { instanceName } = useParams();
@@ -86,10 +88,11 @@ function InstancePage({ instances, proxies }) {
             </style>
             <h1 className="text-center">{instanceName}</h1>
 
-            <div className="card bg-dark text-light mb-3" style={{ height: '630px', overflowY: 'auto', marginTop: "100px"}}>
+            <div className="card bg-dark text-light mb-3"
+                 style={{height: '630px', overflowY: 'auto', marginTop: "100px"}}>
                 <div className="card-body">
                     <pre className="m-0 log-pre">{logs}</pre>
-                    <div ref={logsEndRef} />
+                    <div ref={logsEndRef}/>
                 </div>
             </div>
 
@@ -115,8 +118,26 @@ function InstancePage({ instances, proxies }) {
                     <p><strong>Players:</strong> {Object.keys(instance.players).length}</p>
                 </div>
             </div>
+
+            <div className="card mb-3"> {/* Added this wrapper div */}
+                <div className="card-header">
+                    <h3>CPU Usage</h3>
+                </div>
+                <div className="card-body">
+                    <PodCPUChart podName={instance.podName}/>
+                </div>
+            </div>
+
+            <div className="card mb-3"> {/* Added this wrapper div */}
+                <div className="card-header">
+                    <h3>Memory Usage</h3>
+                </div>
+                <div className="card-body">
+                    <PodMemoryChart podName={instance.podName}/>
+                </div>
+            </div>
         </div>
     );
 }
 
-export { InstancePage };
+export {InstancePage};

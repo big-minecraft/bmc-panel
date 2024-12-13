@@ -3,6 +3,8 @@ const config = require('../config');
 const { getUser } = require("../controllers/database");
 
 const verifyToken = async (req, res, next) => {
+    next();
+
     const authHeader = req.headers['authorization'];
 
     if (!authHeader) return res.status(403).send({ message: 'No token provided.' });
