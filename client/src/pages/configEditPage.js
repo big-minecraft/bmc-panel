@@ -16,8 +16,8 @@ const ConfigEditPage = () => {
     const [isSaving, setIsSaving] = useState(false);
     const [savedSuccessfully, setSavedSuccessfully] = useState(false);
 
-    const endpoint = isProxy ? '/api/proxy' : `/api/gamemodes/${name}`;
-    const displayType = isProxy ? 'Proxy Configuration' : 'Gamemode';
+    const endpoint = isProxy ? '/api/proxy' : `/api/deployments/${name}`;
+    const displayType = isProxy ? 'Proxy Configuration' : 'Game Configuration';
 
     useEffect(() => {
         fetchContent();
@@ -95,7 +95,7 @@ const ConfigEditPage = () => {
                     <div className="d-flex gap-2">
                         <button
                             className="btn btn-secondary"
-                            onClick={() => navigate('/gamemodes')}
+                            onClick={() => navigate('/deployments')}
                         >
                             Back
                         </button>

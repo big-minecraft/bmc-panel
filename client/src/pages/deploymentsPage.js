@@ -3,17 +3,17 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/auth";
 
-const GamemodesPage = () => {
+const DeploymentsPage = () => {
     const navigate = useNavigate();
-    const [gamemodes, setGamemodes] = useState([]);
+    const [deployments, setDeployments] = useState([]);
     const [proxyConfig, setProxyConfig] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [newGamemodeName, setNewGamemodeName] = useState('');
-    const [newGamemodeType, setNewGamemodeType] = useState('');
-    const [gamemodeToDelete, setGamemodeToDelete] = useState(null);
-    const [restartingGamemodes, setRestartingGamemodes] = useState(new Set());
+    const [newDeploymentName, setNewDeploymentName] = useState('');
+    const [newDeploymentType, setNewDeploymentType] = useState('');
+    const [deploymentToDelete, setDeploymentToDelete] = useState(null);
+    const [restartingDeployments, setRestartingDeployments] = useState(new Set());
     const [restartingProxy, setRestartingProxy] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [nodes, setNodes] = useState([]);
@@ -22,7 +22,7 @@ const GamemodesPage = () => {
     const [createError, setCreateError] = useState(null);
 
     useEffect(() => {
-        Promise.all([fetchGamemodes(), fetchProxyConfig()]);
+        Promise.all([fetchDeployments(), fetchProxyConfig()]);
     }, []);
 
     useEffect(() => {
@@ -49,15 +49,15 @@ const GamemodesPage = () => {
         }
     };
 
-    const fetchGamemodes = async () => {
+    const fetchDeployments = async () => {
         try {
             setIsLoading(true);
-            const response = await axiosInstance.get('/api/gamemodes');
-            setGamemodes(response.data);
+            const response = await axiosInstance.get('/api/deployments');
+            setDeployments(response.data);
             setError(null);
         } catch (err) {
-            setError('Failed to load gamemodes');
-            console.error('Error fetching gamemodes:', err);
+            setError('Failed to load deployments');
+            console.error('Error fetching deployments:', err);
         } finally {
             setIsLoading(false);
         }
@@ -94,46 +94,46 @@ const GamemodesPage = () => {
         navigate('/proxy/edit');
     };
 
-    const handleToggle = async (gamemodeName, currentState) => {
+    const handleToggle = async (deploymentName, currentState) => {
         try {
-            await axiosInstance.patch(`/api/gamemodes/${gamemodeName}`, {
+            await axiosInstance.patch(`/api/deployments/${deploymentName}`, {
                 enabled: !currentState
             });
 
-            setGamemodes(prevGamemodes =>
-                prevGamemodes.map(gamemode =>
-                    gamemode.name === gamemodeName
-                        ? { ...gamemode, enabled: !currentState }
-                        : gamemode
+            setDeployments(prevDeployment =>
+                prevDeployment.map(deployment =>
+                    deployment.name === deploymentName
+                        ? { ...deployment, enabled: !currentState }
+                        : deployment
                 )
             );
         } catch (err) {
-            console.error('Error toggling gamemode:', err);
-            addNotification(`Failed to toggle ${gamemodeName}`, 'danger');
+            console.error('Error toggling deployments:', err);
+            addNotification(`Failed to toggle ${deploymentName}`, 'danger');
         }
     };
 
-    const handleRestart = async (gamemodeName) => {
-        setRestartingGamemodes(prev => new Set([...prev, gamemodeName]));
+    const handleRestart = async (deploymentName) => {
+        setRestartingDeployments(prev => new Set([...prev, deploymentName]));
 
         try {
-            await axiosInstance.post(`/api/gamemodes/${gamemodeName}`);
-            addNotification(`Successfully restarted ${gamemodeName}`, 'success');
-            await fetchGamemodes();
+            await axiosInstance.post(`/api/deployments/${deploymentName}`);
+            addNotification(`Successfully restarted ${deploymentName}`, 'success');
+            await fetchDeployments();
         } catch (err) {
-            console.error('Error restarting gamemode:', err);
-            addNotification(`Failed to restart ${gamemodeName}`, 'danger');
+            console.error('Error restarting deployment:', err);
+            addNotification(`Failed to restart ${deploymentName}`, 'danger');
         } finally {
-            setRestartingGamemodes(prev => {
+            setRestartingDeployments(prev => {
                 const next = new Set(prev);
-                next.delete(gamemodeName);
+                next.delete(deploymentName);
                 return next;
             });
         }
     };
 
-    const handleEdit = (gamemodeName) => {
-        navigate(`/gamemodes/${gamemodeName}/edit`);
+    const handleEdit = (deploymentName) => {
+        navigate(`/deployments/${deploymentName}/edit`);
     };
 
     const handleViewData = (dataDirectory) => {
@@ -141,49 +141,47 @@ const GamemodesPage = () => {
     };
 
     const handleCreate = async () => {
-        if (!newGamemodeName.trim()) {
-            // Use a local error state instead of global notification
-            setCreateError('Gamemode name is required');
+        if (!newDeploymentName.trim()) {
+            setCreateError('Deployment name is required');
             return;
         }
 
-        // For persistent gamemodes, ensure a node is selected
-        if (newGamemodeType === 'persistent' && !selectedNode) {
-            setCreateError('Please select a node for the persistent gamemode');
+        if (newDeploymentType === 'persistent' && !selectedNode) {
+            setCreateError('Please select a node for the persistent deployment');
             return;
         }
 
         try {
-            await axiosInstance.post('/api/gamemodes', {
-                name: newGamemodeName,
-                type: newGamemodeType,
-                node: (newGamemodeType === 'persistent' ? selectedNode : undefined)
+            await axiosInstance.post('/api/deployments', {
+                name: newDeploymentName,
+                type: newDeploymentType,
+                node: (newDeploymentType === 'persistent' ? selectedNode : undefined)
             });
 
             setShowCreateModal(false);
-            setNewGamemodeName('');
-            setNewGamemodeType('');
+            setNewDeploymentName('');
+            setNewDeploymentType('');
             setSelectedNode('');
             setCreateError(null);
-            await fetchGamemodes();
-            addNotification(`Successfully created ${newGamemodeName}`, 'success');
+            await fetchDeployments();
+            addNotification(`Successfully created ${newDeploymentName}`, 'success');
         } catch (err) {
-            console.error('Error creating gamemode:', err);
-            setCreateError('Failed to create gamemode');
+            console.error('Error creating deployment:', err);
+            setCreateError('Failed to create deployment');
         }
     };
 
     const handleDelete = async () => {
-        if (!gamemodeToDelete) return;
+        if (!deploymentToDelete) return;
 
         try {
-            await axiosInstance.delete(`/api/gamemodes/${gamemodeToDelete}`);
-            setGamemodeToDelete(null);
-            await fetchGamemodes();
-            addNotification(`Successfully deleted ${gamemodeToDelete}`, 'success');
+            await axiosInstance.delete(`/api/deployments/${deploymentToDelete}`);
+            setDeploymentToDelete(null);
+            await fetchDeployments();
+            addNotification(`Successfully deleted ${deploymentToDelete}`, 'success');
         } catch (err) {
-            console.error('Error deleting gamemode:', err);
-            addNotification(`Failed to delete ${gamemodeToDelete}`, 'danger');
+            console.error('Error deleting deployment:', err);
+            addNotification(`Failed to delete ${deploymentToDelete}`, 'danger');
         }
     };
 
@@ -232,14 +230,12 @@ const GamemodesPage = () => {
                 ))}
             </div>
 
-            <h1 className="display-4 mb-4">Gamemode Management</h1>
-
             <div className="d-flex justify-content-end mb-4">
                 <button
                     className="btn btn-primary"
                     onClick={handleOpenCreateModal}
                 >
-                    Create Gamemode
+                    Create Deployment
                 </button>
             </div>
 
@@ -323,32 +319,32 @@ const GamemodesPage = () => {
             </div>
 
             <div>
-                <h2 className="h3 mb-4">Gamemodes</h2>
+                <h2 className="h3 mb-4">Deployments</h2>
                 <div className="row g-4">
-                    {gamemodes.length === 0 ? (
+                    {deployments.length === 0 ? (
                         <div className="col-12">
                             <div className="card shadow-sm border">
                                 <div className="card-body text-center py-5">
-                                    <h5 className="card-title mb-0 text-muted">No Gamemodes Found</h5>
+                                    <h5 className="card-title mb-0 text-muted">No Deployments Found</h5>
                                 </div>
                             </div>
                         </div>
                     ) : (
-                        gamemodes.map((gamemode) => (
-                        <div key={gamemode.name} className="col-12">
+                        deployments.map((deployment) => (
+                        <div key={deployment.name} className="col-12">
                             <div className="card">
                                 <div className="card-body d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h5 className="card-title mb-1">{gamemode.name}</h5>
+                                        <h5 className="card-title mb-1">{deployment.name}</h5>
                                         <p className="card-text text-muted small mb-0">
-                                            {gamemode.path}
+                                            {deployment.path}
                                         </p>
                                     </div>
 
                                     <div className="d-flex align-items-center gap-3">
                                         <button
                                             className="btn btn-outline-info btn-sm"
-                                            onClick={() => handleViewData(gamemode.dataDirectory)}
+                                            onClick={() => handleViewData(deployment.dataDirectory)}
                                             title="View Data Directory"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-folder" viewBox="0 0 16 16">
@@ -358,11 +354,11 @@ const GamemodesPage = () => {
 
                                         <button
                                             className="btn btn-outline-warning btn-sm"
-                                            onClick={() => handleRestart(gamemode.name)}
-                                            title="Restart Gamemode"
-                                            disabled={restartingGamemodes.has(gamemode.name)}
+                                            onClick={() => handleRestart(deployment.name)}
+                                            title="Restart Deployment"
+                                            disabled={restartingDeployments.has(deployment.name)}
                                         >
-                                            {restartingGamemodes.has(gamemode.name) ? (
+                                            {restartingDeployments.has(deployment.name) ? (
                                                 <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
                                             ) : (
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-clockwise" viewBox="0 0 16 16">
@@ -374,7 +370,7 @@ const GamemodesPage = () => {
 
                                         <button
                                             className="btn btn-outline-primary btn-sm"
-                                            onClick={() => handleEdit(gamemode.name)}
+                                            onClick={() => handleEdit(deployment.name)}
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-pencil" viewBox="0 0 16 16">
                                                 <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
@@ -383,7 +379,7 @@ const GamemodesPage = () => {
 
                                         <button
                                             className="btn btn-outline-danger btn-sm"
-                                            onClick={() => setGamemodeToDelete(gamemode.name)}
+                                            onClick={() => setDeploymentToDelete(deployment.name)}
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
                                                 <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
@@ -395,15 +391,15 @@ const GamemodesPage = () => {
                                             <input
                                                 className="form-check-input"
                                                 type="checkbox"
-                                                id={`gamemode-toggle-${gamemode.name}`}
-                                                checked={gamemode.enabled}
-                                                onChange={() => handleToggle(gamemode.name, gamemode.enabled)}
+                                                id={`deployment-toggle-${deployment.name}`}
+                                                checked={deployment.enabled}
+                                                onChange={() => handleToggle(deployment.name, deployment.enabled)}
                                             />
                                             <label
                                                 className="form-check-label"
-                                                htmlFor={`gamemode-toggle-${gamemode.name}`}
+                                                htmlFor={`deployment-toggle-${deployment.name}`}
                                             >
-                                                {gamemode.enabled ? 'Enabled' : 'Disabled'}
+                                                {deployment.enabled ? 'Enabled' : 'Disabled'}
                                             </label>
                                         </div>
                                     </div>
@@ -421,7 +417,7 @@ const GamemodesPage = () => {
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <h5 className="modal-title">Create New Gamemode</h5>
+                                <h5 className="modal-title">Create New Deployment</h5>
                                 <button type="button" className="btn-close" onClick={() => setShowCreateModal(false)}></button>
                             </div>
                             <div className="modal-body">
@@ -433,27 +429,27 @@ const GamemodesPage = () => {
                                 )}
 
                                 <div className="mb-3">
-                                    <label htmlFor="gamemodeName" className="form-label">Gamemode Name</label>
+                                    <label htmlFor="deploymentName" className="form-label">Deployment Name</label>
                                     <input
-                                        id="gamemodeName"
+                                        id="deploymentName"
                                         type="text"
                                         className="form-control"
-                                        placeholder="Enter gamemode name"
-                                        value={newGamemodeName}
-                                        onChange={(e) => setNewGamemodeName(e.target.value)}
+                                        placeholder="Enter deployment name"
+                                        value={newDeploymentName}
+                                        onChange={(e) => setNewDeploymentName(e.target.value)}
                                     />
                                 </div>
                                 <div className="mb-3">
-                                    <label className="form-label d-block">Gamemode Type</label>
+                                    <label className="form-label d-block">Deployment Type</label>
                                     <div className="form-check form-check-inline">
                                         <input
                                             className="form-check-input"
                                             type="radio"
-                                            name="gamemodeType"
+                                            name="deploymentType"
                                             id="persistentType"
                                             value="persistent"
-                                            checked={newGamemodeType === 'persistent'}
-                                            onChange={() => setNewGamemodeType('persistent')}
+                                            checked={newDeploymentType === 'persistent'}
+                                            onChange={() => setNewDeploymentType('persistent')}
                                         />
                                         <label className="form-check-label" htmlFor="persistentType">
                                             Persistent
@@ -463,11 +459,11 @@ const GamemodesPage = () => {
                                         <input
                                             className="form-check-input"
                                             type="radio"
-                                            name="gamemodeType"
+                                            name="deploymentType"
                                             id="nonPersistentType"
                                             value="non-persistent"
-                                            checked={newGamemodeType === 'non-persistent'}
-                                            onChange={() => setNewGamemodeType('non-persistent')}
+                                            checked={newDeploymentType === 'non-persistent'}
+                                            onChange={() => setNewDeploymentType('non-persistent')}
                                         />
                                         <label className="form-check-label" htmlFor="nonPersistentType">
                                             Non-Persistent
@@ -475,7 +471,7 @@ const GamemodesPage = () => {
                                     </div>
                                 </div>
 
-                                {newGamemodeType === 'persistent' && (
+                                {newDeploymentType === 'persistent' && (
                                     <div className="mb-3">
                                         <label htmlFor="nodeSelection" className="form-label">Select Node</label>
                                         <select
@@ -505,19 +501,19 @@ const GamemodesPage = () => {
             )}
 
             {/* Delete Confirmation Modal */}
-            {gamemodeToDelete && (
+            {deploymentToDelete && (
                 <div className="modal d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
                                 <h5 className="modal-title">Confirm Delete</h5>
-                                <button type="button" className="btn-close" onClick={() => setGamemodeToDelete(null)}></button>
+                                <button type="button" className="btn-close" onClick={() => setDeploymentToDelete(null)}></button>
                             </div>
                             <div className="modal-body">
-                                Are you sure you want to delete the gamemode "{gamemodeToDelete}"?
+                                Are you sure you want to delete the deployment "{deploymentToDelete}"?
                             </div>
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-secondary" onClick={() => setGamemodeToDelete(null)}>Cancel</button>
+                                <button type="button" className="btn btn-secondary" onClick={() => setDeploymentToDelete(null)}>Cancel</button>
                                 <button type="button" className="btn btn-danger" onClick={handleDelete}>Delete</button>
                             </div>
                         </div>
@@ -528,4 +524,4 @@ const GamemodesPage = () => {
     );
 };
 
-export default GamemodesPage;
+export default DeploymentsPage;

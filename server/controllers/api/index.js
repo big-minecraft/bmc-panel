@@ -1,7 +1,7 @@
 const { getInstances, getProxies } = require("../redis");
-const { getGamemodes, getGamemodeContent, updateGamemodeContent, toggleGamemode, deleteGamemode, createGamemode,
-    restartGamemode
-} = require("../gamemodes");
+const { getDeployments, getDeploymentContent, updateDeploymentContent, toggleDeployment, deleteDeployment, createDeployment,
+    restartDeployment
+} = require("../deployments");
 const { register, verify, verifyLogin, login} = require("../authentication");
 const {getInviteCodes, createInviteCode, revokeInviteCode, getUsers, setAdmin, resetPassword, deleteUser, logout,
     getUser, getUserByID
@@ -32,77 +32,77 @@ module.exports = {
         res.json(proxies);
     },
 
-    getGamemodes: async (req, res) => {
+    getDeployments: async (req, res) => {
         try {
-            const gamemodes = await getGamemodes();
-            res.json(gamemodes);
+            const deployments = await getDeployments();
+            res.json(deployments);
         } catch (error) {
-            res.status(500).json({ error: 'Failed to fetch gamemodes' });
+            res.status(500).json({ error: 'Failed to fetch deployments' });
         }
     },
 
-    getGamemodeContent: async (req, res) => {
+    getDeploymentContent: async (req, res) => {
         try {
             const { name } = req.params;
-            const content = await getGamemodeContent(name);
+            const content = await getDeploymentContent(name);
             res.json({ content });
         } catch (error) {
-            res.status(500).json({ error: 'Failed to fetch gamemode content' });
+            res.status(500).json({ error: 'Failed to fetch deployment content' });
         }
     },
 
-    updateGamemodeContent: async (req, res) => {
+    updateDeploymentContent: async (req, res) => {
         try {
             const { name } = req.params;
             const { content } = req.body;
-            await updateGamemodeContent(name, content);
-            res.json({ message: 'Gamemode updated successfully' });
+            await updateDeploymentContent(name, content);
+            res.json({ message: 'Deployment updated successfully' });
         } catch (error) {
-            res.status(500).json({ error: 'Failed to update gamemode' });
+            res.status(500).json({ error: 'Failed to update deployment' });
         }
     },
 
-    toggleGamemode: async (req, res) => {
-        try {
+    toggleDeployment: async (req, res) => {
+        try {Ï
             const { name } = req.params;
             const { enabled } = req.body;
-            await toggleGamemode(name, enabled);
-            res.json({ message: 'Gamemode toggled successfully' });
+            await toggleDeployment(name, enabled);
+            res.json({ message: 'Deployment toggled successfully' });
         } catch (error) {
-            res.status(500).json({ error: 'Failed to toggle gamemode' });
+            res.status(500).json({ error: 'Failed to toggle deployment' });
         }
     },
 
-    deleteGamemode: async (req, res) => {
+    deleteDeployment: async (req, res) => {
         try {
             const {name} = req.params;
-            await deleteGamemode(name);
-            res.json({message: 'Gamemode deleted successfully'});
+            await deleteDeployment(name);
+            res.json({message: 'Deployment deleted successfully'});
         } catch (error) {
-            res.status(500).json({error: 'Failed to delete gamemode'});
+            res.status(500).json({error: 'Failed to delete deployment'});
         }
     },
 
-    createGamemode: async (req, res) => {
+    createDeployment: async (req, res) => {
         try {
             const name = req.body.name;
             const type = req.body.type;
             const node = req.body.node;
 
-            await createGamemode(name, type, node);
-            res.json({message: 'Gamemode created successfully'});
+            await createDeployment(name, type, node);
+            res.json({message: 'Deployment created successfully'});
         } catch (error) {
-            res.status(500).json({error: 'Failed to create gamemode'});
+            res.status(500).json({error: 'Failed to create deployment'});
         }
     },
 
-    restartGamemode: async (req, res) => {
+    restartDeployment: async (req, res) => {
         try {
             const {name} = req.params;
-            await restartGamemode(name);
-            res.json({message: 'Gamemode restarted successfully'});
+            await restartDeployment(name);
+            res.json({message: 'Deployment restarted successfully'});
         } catch (error) {
-            res.status(500).json({error: 'Failed to restart gamemode'});
+            res.status(500).json({error: 'Failed to restart deployment'});
         }
     },
 

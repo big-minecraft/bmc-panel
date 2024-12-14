@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react
 import { InstancePage } from './pages/instancePage';
 import axios from "axios";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import GamemodesPage from "./pages/gamemodesPage";
+import DeploymentsPage from "./pages/deploymentsPage";
 import RegistrationPage from "./pages/registrationPage";
 import LoginPage from "./pages/loginPage";
 import PrivateRoute from "./components/privateRouter";
@@ -47,11 +47,11 @@ function App() {
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/register" element={<RegistrationPage />} />
                         <Route path="/" element={<PrivateRoute><HomePage instances={instances} proxies={proxies} /></PrivateRoute>} />
-                        <Route path="/gamemodes" element={<PrivateRoute><GamemodesPage /></PrivateRoute>} />
+                        <Route path="/deployments" element={<PrivateRoute><DeploymentsPage /></PrivateRoute>} />
                         <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
                         <Route path="/files/*" element={<PrivateRoute><SftpInterface /></PrivateRoute>} />
                         <Route path="/databases" element={<PrivateRoute><DatabasesPage /></PrivateRoute>} />
-                        <Route path="/gamemodes/:name/edit" element={<PrivateRoute><ConfigEditPage /></PrivateRoute>} />
+                        <Route path="/deployments/:name/edit" element={<PrivateRoute><ConfigEditPage /></PrivateRoute>} />
                         <Route path="/proxy/edit" element={<PrivateRoute><ConfigEditPage /></PrivateRoute>} />
                         <Route path="/instance/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
                         <Route path="/proxy/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
@@ -98,20 +98,19 @@ const HomePage = ({ instances: initialInstances, proxies: initialProxies }) => {
         </svg>
     );
 
-    const instancesByGamemode = instances.reduce((acc, instance) => {
-        const gamemode = instance.gamemode || 'Unknown';
-        if (!acc[gamemode]) {
-            acc[gamemode] = [];
+    const instancesByDeployment = instances.reduce((acc, instance) => {
+        const deployment = instance.deployment || 'Unknown';
+        if (!acc[deployment]) {
+            acc[deployment] = [];
         }
-        acc[gamemode].push(instance);
+        acc[deployment].push(instance);
         return acc;
     }, {});
 
-    const sortedGamemodes = Object.keys(instancesByGamemode).sort();
+    const sortedDeployments = Object.keys(instancesByDeployment).sort();
 
     return (
         <div className="container">
-            <h1 className="display-4 text-center mb-4">Instance Manager</h1>
             <div className="row g-4 mb-4">
                 <div className="col-12">
                     <h2 className="h5 mb-3">Proxies</h2>
@@ -138,10 +137,10 @@ const HomePage = ({ instances: initialInstances, proxies: initialProxies }) => {
                 </div>
             </div>
             <div className="row g-4">
-                {sortedGamemodes.map((gamemode) => (
-                    <div key={gamemode} className="col-12">
-                        <h2 className="h5 mb-3">{gamemode.charAt(0).toUpperCase() + gamemode.slice(1)}</h2>
-                        {instancesByGamemode[gamemode].map((instance, index) => (
+                {sortedDeployments.map((deployment) => (
+                    <div key={deployment} className="col-12">
+                        <h2 className="h5 mb-3">{deployment.charAt(0).toUpperCase() + deployment.slice(1)}</h2>
+                        {instancesByDeployment[deployment].map((instance, index) => (
                             <Link key={index} to={`/instance/${instance.name}`} state={{ instance }} className="text-decoration-none">
                                 <div className="card mb-3">
                                     <div className="card-body d-flex justify-content-between align-items-center">
