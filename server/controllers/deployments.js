@@ -5,15 +5,15 @@ const yaml = require('js-yaml');
 const kubernetesClient = require("./k8s");
 const {createSFTPDirectory, deleteSFTPDirectory} = require("./sftp");
 const util = require('util');
-const {sendGamemodeUpdate, redisPool} = require("./redis");
+const {sendDeploymentUpdate, redisPool} = require("./redis");
 const {createGrafanaDashboard, generateGrafanaSnapshot, listGrafanaDashboards, fetchGrafanaSnapshotImage,
     getPodCPUUsageForGraph, getPodMemoryUsageForGraph
 } = require("./prometheus");
 const exec = util.promisify(require('child_process').exec);
 
-// Centralized method to get full path for a gamemode file
-function getGamemodeFilePaths(name) {
-    const baseDir = config["bmc-path"] + "/local/gamemodes";
+// Centralized method to get full path for a deployment file
+function getDeploymentFilePaths(name) {
+    const baseDir = config["bmc-path"] + "/local/deployments";
     return {
         persistent: {
             enabled: path.join(baseDir, "persistent", `${name}.yaml`),
@@ -26,9 +26,8 @@ function getGamemodeFilePaths(name) {
     };
 }
 
-// Helper to find existing gamemode file
-async function findGamemodeFile(name) {
-    const paths = getGamemodeFilePaths(name);
+async function findDeploymentFile(name) {
+    const paths = getDeploymentFilePaths(name);
     const allPaths = [
         ...Object.values(paths.persistent),
         ...Object.values(paths.nonPersistent)
@@ -41,18 +40,17 @@ async function findGamemodeFile(name) {
         } catch {}
     }
 
-    throw new Error('Gamemode file not found');
+    throw new Error('Deployment file not found');
 }
 
-// Helper to determine gamemode type
-function getGamemodeType(filePath) {
+function getDeploymentType(filePath) {
     return filePath.includes('/persistent/') ? 'persistent' : 'non-persistent';
 }
 
-async function getGamemodes() {
-    const baseDir = path.join(config["bmc-path"], "local/gamemodes");
+async function getDeployments() {
+    const baseDir = path.join(config["bmc-path"], "local/deployments");
     const types = ['persistent', 'non-persistent'];
-    let gamemodes = [];
+    let deployments = [];
 
     await kubernetesClient.listNodeNames();
 
@@ -72,17 +70,16 @@ async function getGamemodes() {
                     const isEnabled = !file.startsWith('disabled-');
 
 
-                    let dataDir = `/gamemodes/${yamlContent.volume.dataDirectory || name}`;
+                    let dataDir = `/deployments/${yamlContent.volume.dataDirectory || name}`;
 
                     if (type === 'persistent') {
                         let node = yamlContent.dedicatedNode;
-                        dataDir = `/nodes/${node}/gamemodes/${yamlContent.volume.dataDirectory || name}`;
+                        dataDir = `/nodes/${node}/deployments/${yamlContent.volume.dataDirectory || name}`;
                     }
 
-                    // Check if this gamemode is already in the list
-                    const existingGamemode = gamemodes.find(g => g.name === name);
-                    if (!existingGamemode) {
-                        gamemodes.push({
+                    const existingDeployment = deployments.find(g => g.name === name);
+                    if (!existingDeployment) {
+                        deployments.push({
                             name: name,
                             path: filePath,
                             enabled: isEnabled,
@@ -93,34 +90,34 @@ async function getGamemodes() {
                 }
             }
         } catch (error) {
-            console.error(`Error reading ${type} gamemodes:`, error);
+            console.error(`Error reading ${type} deployments:`, error);
         }
     }
 
-    return gamemodes;
+    return deployments;
 }
 
-async function getGamemodeContent(name) {
-    const filePath = await findGamemodeFile(name);
+async function getDeploymentContent(name) {
+    const filePath = await findDeploymentFile(name);
     return await readFile(filePath, 'utf8');
 }
 
-async function updateGamemodeContent(name, content) {
-    const filePath = await findGamemodeFile(name);
+async function updateDeploymentContent(name, content) {
+    const filePath = await findDeploymentFile(name);
 
     try {
         await writeFile(filePath, content, 'utf8');
     } catch (error) {
-        throw new Error('Failed to write gamemode file');
+        throw new Error('Failed to write deployment file');
     }
 
     await runApplyScript();
-    await sendGamemodeUpdate();
+    await sendDeploymentUpdate();
 }
 
-async function toggleGamemode(name, enabled) {
-    const filePath = await findGamemodeFile(name);
-    const type = getGamemodeType(filePath);
+async function toggleDeployment(name, enabled) {
+    const filePath = await findDeploymentFile(name);
+    const type = getDeploymentType(filePath);
 
     try {
         const fileContent = await readFile(filePath, 'utf8');
@@ -161,46 +158,46 @@ async function toggleGamemode(name, enabled) {
             await kubernetesClient.scaleDeployment(name, 0);
         }
     } catch (error) {
-        console.error('Error in toggleGamemode:', error);
-        throw new Error('Failed to toggle gamemode');
+        console.error('Error in toggleDeployment:', error);
+        throw new Error('Failed to toggle deployment');
     }
 }
 
-async function deleteGamemode(name)  {
-    const filePath = await findGamemodeFile(name);
-    const type = getGamemodeType(filePath);
+async function deleteDeployment(name)  {
+    const filePath = await findDeploymentFile(name);
+    const type = getDeploymentType(filePath);
 
-    let config = await getGamemodeContent(name);
+    let config = await getDeploymentContent(name);
     let yamlContent = yaml.load(config);
 
     try {
         await unlinkSync(filePath);
 
-        let directoryPath = `/gamemodes/${name}`;
-        if (type === 'persistent') directoryPath = `/nodes/${yamlContent.dedicatedNode}/gamemodes/${name}`;
+        let directoryPath = `/deployments/${name}`;
+        if (type === 'persistent') directoryPath = `/nodes/${yamlContent.dedicatedNode}/deployments/${name}`;
 
         await deleteSFTPDirectory(`nfsshare${directoryPath}`);
     } catch (error) {
         console.error(error);
-        throw new Error('Failed to delete gamemode');
+        throw new Error('Failed to delete deployment');
     }
 
     await runApplyScript();
-    await sendGamemodeUpdate();
+    await sendDeploymentUpdate();
 }
 
-async function restartGamemode(name) {
+async function restartDeployment(name) {
     try {
         await kubernetesClient.scaleDeployment(name, 0);
 
-        let gamemode = await getGamemodeContent(name);
-        let yamlContent = yaml.load(gamemode);
+        let deployment = await getDeploymentContent(name);
+        let yamlContent = yaml.load(deployment);
         let minimumInstances = yamlContent.scaling.minInstances || 1;
 
         let retries = 3;
         while (retries > 0) {
             try {
-                await toggleGamemode(name, false);
+                await toggleDeployment(name, false);
                 break;
             } catch (err) {
                 retries--;
@@ -214,7 +211,7 @@ async function restartGamemode(name) {
         retries = 3;
         while (retries > 0) {
             try {
-                await toggleGamemode(name, true);
+                await toggleDeployment(name, true);
                 break;
             } catch (err) {
                 retries--;
@@ -228,18 +225,18 @@ async function restartGamemode(name) {
     }
 }
 
-async function createGamemode(name, type = 'non-persistent', node = null) {
-    const workingDir = path.join(config["bmc-path"], "local/gamemodes", type);
+async function createDeployment(name, type = 'non-persistent', node = null) {
+    const workingDir = path.join(config["bmc-path"], "local/deployments", type);
     const defaultsDir = config["bmc-path"] + "/defaults";
-    const sourceFile = path.join(defaultsDir, `${type}-gamemode.yaml`);
+    const sourceFile = path.join(defaultsDir, `${type}-deployment.yaml`);
     const destinationFile = path.join(workingDir, `${name}.yaml`);
 
     if (await fileExists(destinationFile)) {
-        throw new Error('Gamemode already exists');
+        throw new Error('Deployment already exists');
     }
 
     if (type === "persistent" && !node) {
-        throw new Error('Dedicated node required for persistent gamemode');
+        throw new Error('Dedicated node required for persistent deployment');
     }
 
     try {
@@ -265,14 +262,14 @@ async function createGamemode(name, type = 'non-persistent', node = null) {
         const updatedContent = updatedLines.join('\n');
         await writeFile(destinationFile, updatedContent, 'utf8');
 
-        let directoryPath = `/gamemodes/${name}`;
+        let directoryPath = `/deployments/${name}`;
 
-        if (type === 'persistent') directoryPath = `/nodes/${node}/gamemodes/${name}`;
+        if (type === 'persistent') directoryPath = `/nodes/${node}/deployments/${name}`;
 
         await createSFTPDirectory(`nfsshare${directoryPath}`);
     } catch (error) {
         console.error(error);
-        throw new Error('Failed to create gamemode');
+        throw new Error('Failed to create deployment');
     }
 
     await runApplyScript();
@@ -292,12 +289,12 @@ async function runApplyScript() {
     const scriptDir = path.join(config["bmc-path"], "scripts");
 
     try {
-        const { stdout, stderr } = await exec(`cd ${scriptDir} && ls && ./apply-gamemodes.sh`);
+        const { stdout, stderr } = await exec(`cd ${scriptDir} && ls && ./apply-deployments.sh`);
         if (stderr) {
             console.error(`Script stderr: ${stderr}`);
         }
     } catch (error) {
-        console.error(`Script execution error: ${error}`);
+        console.error(`Script execution error: ${erroÏΩr}`);
         throw error;
     }
 }
@@ -309,11 +306,11 @@ async function sendProxyUpdate() {
 }
 
 module.exports = {
-    getGamemodes,
-    getGamemodeContent,
-    updateGamemodeContent,
-    toggleGamemode,
-    deleteGamemode,
-    createGamemode,
-    restartGamemode
+    getDeployments: getDeployments,
+    getDeploymentContent: getDeploymentContent,
+    updateDeploymentContent: updateDeploymentContent,
+    toggleDeployment: toggleDeployment,
+    deleteDeployment: deleteDeployment,
+    createDeployment: createDeployment,
+    restartDeployment: restartDeployment
 };

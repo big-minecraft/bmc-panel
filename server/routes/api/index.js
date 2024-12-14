@@ -11,16 +11,16 @@ router.route('/instances')
 router.route('/proxies')
     .get(verifyToken, controller.getProxies);
 
-router.route('/gamemodes')
-    .get(verifyToken, controller.getGamemodes)
-    .post(verifyToken, controller.createGamemode);
+router.route('/deployments')
+    .get(verifyToken, controller.getDeployments)
+    .post(verifyToken, controller.createDeployment);
 
-router.route('/gamemodes/:name')
-    .get(verifyToken, controller.getGamemodeContent)
-    .put(verifyToken, controller.updateGamemodeContent)
-    .patch(verifyToken, controller.toggleGamemode)
-    .delete(verifyToken, controller.deleteGamemode)
-    .post(verifyToken, controller.restartGamemode);
+router.route('/deployments/:name')
+    .get(verifyToken, controller.getDeploymentContent)
+    .put(verifyToken, controller.updateDeploymentContent)
+    .patch(verifyToken, controller.toggleDeployment)
+    .delete(verifyToken, controller.deleteDeployment)
+    .post(verifyToken, controller.restartDeployment);
 
 router.route('/proxy-config')
     .get(verifyToken, controller.getProxyConfig)
@@ -39,6 +39,9 @@ router.route('/verify')
 
 router.route('/login')
     .post(controller.login);
+
+router.route('/logout')
+    .post(verifyToken, controller.logout);
 
 router.route('/verify-invite')
     .post(controller.verifyInvite);
@@ -64,9 +67,6 @@ router.route('/users/:id/password')
 
 router.route('/users/:id')
     .delete(verifyAdminToken, controller.deleteUser);
-
-router.route('/logout')
-    .post(verifyToken, controller.logout);
 
 router.route('/sftp/files')
     .get(verifyToken, controller.getSFTPFiles);
