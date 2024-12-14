@@ -7,13 +7,13 @@ import GamemodesPage from "./pages/gamemodesPage";
 import RegistrationPage from "./pages/registrationPage";
 import LoginPage from "./pages/loginPage";
 import PrivateRoute from "./components/privateRouter";
-import NavigationBar from "./components/navigationBar";
 import axiosInstance from "./utils/auth";
 import Admin from "./pages/Admin";
 import SftpInterface from "./pages/sftpInterface";
 import ConfigEditPage from "./pages/configEditPage";
 import NotFoundPage from "./pages/notFoundPage";
 import DatabasesPage from "./pages/databasesPage";
+import NavigationBar from "./components/navbar/NavigationBar";
 
 function App() {
     const [instances, setInstances] = useState([]);
@@ -40,25 +40,24 @@ function App() {
 
     return (
         <Router>
-            <div ref={ref} className="min-vh-100 bg-light p-4">
+            <div ref={ref} className="min-h-screen bg-gray-50">
                 <NavigationBar />
-                <Routes>
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegistrationPage />} />
-                    <Route path="/" element={<PrivateRoute><HomePage instances={instances} proxies={proxies} /></PrivateRoute>} />
-                    <Route path="/gamemodes" element={<PrivateRoute><GamemodesPage /></PrivateRoute>} />
-                    <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
-                    <Route path="/files/*" element={<PrivateRoute><SftpInterface /></PrivateRoute>} />
-                    <Route path="/databases" element={<PrivateRoute><DatabasesPage /></PrivateRoute>} />
-
-                    <Route path="/gamemodes/:name/edit" element={<PrivateRoute><ConfigEditPage /></PrivateRoute>} />
-                    <Route path="/proxy/edit" element={<PrivateRoute><ConfigEditPage /></PrivateRoute>} />
-
-                    <Route path="/instance/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
-                    <Route path="/proxy/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
-
-                    <Route path="*" element={<PrivateRoute><NotFoundPage /></PrivateRoute>} />
-                </Routes>
+                <div className="max-w-7xl mx-auto px-4 py-6">
+                    <Routes>
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<RegistrationPage />} />
+                        <Route path="/" element={<PrivateRoute><HomePage instances={instances} proxies={proxies} /></PrivateRoute>} />
+                        <Route path="/gamemodes" element={<PrivateRoute><GamemodesPage /></PrivateRoute>} />
+                        <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
+                        <Route path="/files/*" element={<PrivateRoute><SftpInterface /></PrivateRoute>} />
+                        <Route path="/databases" element={<PrivateRoute><DatabasesPage /></PrivateRoute>} />
+                        <Route path="/gamemodes/:name/edit" element={<PrivateRoute><ConfigEditPage /></PrivateRoute>} />
+                        <Route path="/proxy/edit" element={<PrivateRoute><ConfigEditPage /></PrivateRoute>} />
+                        <Route path="/instance/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
+                        <Route path="/proxy/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
+                        <Route path="*" element={<PrivateRoute><NotFoundPage /></PrivateRoute>} />
+                    </Routes>
+                </div>
             </div>
         </Router>
     );

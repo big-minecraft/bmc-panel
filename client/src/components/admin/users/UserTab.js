@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import axiosInstance from "../../utils/auth";
+import axiosInstance from "../../../utils/auth";
 import UsersList from './UsersList';
 import DeleteUserModal from './DeleteUserModal';
-import LoadingSpinner, {ErrorAlert} from '../common/LoadingSpinner';
+import LoadingSpinner, {ErrorAlert} from '../../common/LoadingSpinner';
 import ResetPasswordModal from "./ResetPasswrodModal";
 
 const UsersTab = () => {

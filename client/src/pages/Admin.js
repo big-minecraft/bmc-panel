@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import 'bootstrap/dist/css/bootstrap.min.css'
-import UsersTab from "../components/users/UserTab";
-import InviteCodesTab from '../components/inviteCodesTab'
-
+import UsersTab from "../components/admin/users/UserTab";
+import InviteCodesTab from "../components/admin/invite-codes/InviteCodesTab";
 export const ADMIN_TABS = [
     {
         id: 'users',
