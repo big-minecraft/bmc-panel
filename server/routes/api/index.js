@@ -40,6 +40,9 @@ router.route('/verify')
 router.route('/login')
     .post(controller.login);
 
+router.route('/logout')
+    .post(verifyToken, controller.logout);
+
 router.route('/verify-invite')
     .post(controller.verifyInvite);
 
@@ -64,9 +67,6 @@ router.route('/users/:id/password')
 
 router.route('/users/:id')
     .delete(verifyAdminToken, controller.deleteUser);
-
-router.route('/logout')
-    .post(verifyToken, controller.logout);
 
 router.route('/sftp/files')
     .get(verifyToken, controller.getSFTPFiles);
