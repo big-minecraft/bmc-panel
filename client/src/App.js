@@ -9,7 +9,7 @@ import LoginPage from "./pages/loginPage";
 import PrivateRoute from "./components/privateRouter";
 import NavigationBar from "./components/navigationBar";
 import axiosInstance from "./utils/auth";
-import AdminPage from "./pages/adminPage";
+import Admin from "./pages/Admin";
 import SftpInterface from "./pages/sftpInterface";
 import ConfigEditPage from "./pages/configEditPage";
 import NotFoundPage from "./pages/notFoundPage";
@@ -47,7 +47,7 @@ function App() {
                     <Route path="/register" element={<RegistrationPage />} />
                     <Route path="/" element={<PrivateRoute><HomePage instances={instances} proxies={proxies} /></PrivateRoute>} />
                     <Route path="/gamemodes" element={<PrivateRoute><GamemodesPage /></PrivateRoute>} />
-                    <Route path="/users" element={<PrivateRoute><AdminPage /></PrivateRoute>} />
+                    <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
                     <Route path="/files/*" element={<PrivateRoute><SftpInterface /></PrivateRoute>} />
                     <Route path="/databases" element={<PrivateRoute><DatabasesPage /></PrivateRoute>} />
 

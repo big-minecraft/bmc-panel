@@ -65,11 +65,11 @@ const NavigationBar = () => {
             <div className="d-flex gap-2">
                 {userIsAdmin && (
                     <Link
-                        to="/users"
+                        to="/admin"
                         className="btn"
                         style={{ backgroundColor: 'white', border: '1px solid black', color: 'black' }}
                     >
-                        Users
+                        Admin
                     </Link>
                 )}
                 <button
