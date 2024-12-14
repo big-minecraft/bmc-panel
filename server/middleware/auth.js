@@ -59,7 +59,7 @@ const verifyAdminToken = async (req, res, next) => {
         if (last_logout) {
             const lastLogoutTimestamp = new Date(last_logout).getTime() / 1000;
 
-            if (decoded.iat < lastLogoutTimestamp) {
+            if (decoded.iat < lastLogoutTimestamp && kubernetesClient.isRunningInCluster()) {
                 return res.status(401).send({ message: 'Token has expired.' });
             }
         }
