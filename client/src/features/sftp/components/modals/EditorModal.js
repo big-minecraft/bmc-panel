@@ -5,17 +5,17 @@ import { useFileOperations } from '../../hooks/useFileOperations';
 import { useSFTPState, useSFTPDispatch } from '../../context/SFTPContext';
 import { getEditorLanguage } from '../../utils/fileUtils';
 
-const EditorModal = ({ isOpen, file, initialContent = '' }) => {
+const EditorModal = ({ isOpen, file, content }) => {
     const dispatch = useSFTPDispatch();
     const { loading } = useSFTPState();
     const { handleSaveFile } = useFileOperations();
 
-    const [content, setContent] = useState('');
+    const [newContent, setNewContent] = useState('');
     const [editorLoading, setEditorLoading] = useState(true);
 
     useEffect(() => {
-        setContent(initialContent || '');
-    }, [initialContent]);
+        setNewContent(content || '');
+    }, [content]);
 
     if (!isOpen) return null;
 
@@ -31,7 +31,7 @@ const EditorModal = ({ isOpen, file, initialContent = '' }) => {
 
     const handleSave = async () => {
         try {
-            await handleSaveFile(file, content);
+            await handleSaveFile(file, newContent);
             closeModal();
         } catch (error) {
             console.error('Error saving file:', error);
@@ -75,8 +75,8 @@ const EditorModal = ({ isOpen, file, initialContent = '' }) => {
                     <Editor
                         height="100%"
                         language={getEditorLanguage(file?.name || '')}
-                        value={content}
-                        onChange={(value) => setContent(value || '')}
+                        value={newContent}
+                        onChange={(value) => setNewContent(value || '')}
                         theme="vs-light"
                         options={{
                             minimap: { enabled: false },
