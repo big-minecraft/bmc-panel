@@ -1,4 +1,4 @@
-// server/config/index.js
+// server/config/AppRoutes.js
 const { join } = require('path');
 const { existsSync, copyFileSync } = require('fs');
 

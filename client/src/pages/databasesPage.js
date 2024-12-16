@@ -148,8 +148,6 @@ const DatabasesPage = () => {
                 ))}
             </div>
 
-            <h1 className="display-4 mb-4">Database Management</h1>
-
             <div className="d-flex justify-content-end mb-4">
                 <button
                     className="btn btn-primary d-flex align-items-center gap-2"

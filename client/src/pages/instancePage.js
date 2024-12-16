@@ -1,8 +1,8 @@
 import { useParams } from "react-router-dom";
 import React, { useEffect, useState, useRef } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import PodCPUChart from "../components/podCPUChart";
-import PodMemoryChart from "../components/podMemoryChart";
+import CPUChart from "../components/instances/CPUChart";
+import MemoryChart from "../components/instances/MemoryChart";
 
 function InstancePage({ instances, proxies }) {
     const { instanceName } = useParams();
@@ -124,7 +124,7 @@ function InstancePage({ instances, proxies }) {
                     <h3>CPU Usage</h3>
                 </div>
                 <div className="card-body">
-                    <PodCPUChart podName={instance.podName}/>
+                    <CPUChart podName={instance.podName}/>
                 </div>
             </div>
 
@@ -133,11 +133,11 @@ function InstancePage({ instances, proxies }) {
                     <h3>Memory Usage</h3>
                 </div>
                 <div className="card-body">
-                    <PodMemoryChart podName={instance.podName}/>
+                    <MemoryChart podName={instance.podName}/>
                 </div>
             </div>
         </div>
     );
 }
 
-export {InstancePage};
+export default InstancePage;

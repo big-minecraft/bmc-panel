@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axiosInstance from "../utils/auth";
+import axiosInstance from "../../utils/auth";
 import {
   LineChart,
   Line,
@@ -10,7 +10,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-const PodCPUChart = ({ podName }) => {
+const CPUChart = ({ podName }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -82,4 +82,4 @@ const PodCPUChart = ({ podName }) => {
   );
 };
 
-export default PodCPUChart;
+export default CPUChart;

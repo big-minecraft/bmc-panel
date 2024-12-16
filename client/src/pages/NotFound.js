@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const NotFoundPage = () => {
+const NotFound = () => {
     return (
         <div className="d-flex align-items-start justify-content-center h-100 pt-5 mt-5">
             <div className="card shadow-sm" style={{ maxWidth: '400px' }}>
@@ -23,4 +23,4 @@ const NotFoundPage = () => {
     );
 };
 
-export default NotFoundPage;
+export default NotFound;

@@ -56,15 +56,15 @@ function setupPodLogs(ws, podName, cluster, user) {
         };
     }
 
-    console.log('Making request with options:', {
-        url: requestOptions.url,
-        method: requestOptions.method,
-        rejectUnauthorized: requestOptions.agentOptions?.rejectUnauthorized,
-        hasCert: !!requestOptions.agentOptions?.cert,
-        hasKey: !!requestOptions.agentOptions?.key,
-        hasCa: !!requestOptions.agentOptions?.ca,
-        hasToken: !!requestOptions.headers?.Authorization
-    });
+    // console.log('Making request with options:', {
+    //     url: requestOptions.url,
+    //     method: requestOptions.method,
+    //     rejectUnauthorized: requestOptions.agentOptions?.rejectUnauthorized,
+    //     hasCert: !!requestOptions.agentOptions?.cert,
+    //     hasKey: !!requestOptions.agentOptions?.key,
+    //     hasCa: !!requestOptions.agentOptions?.ca,
+    //     hasToken: !!requestOptions.headers?.Authorization
+    // });
 
     const logRequest = request(requestOptions)
         .on('response', (response) => {

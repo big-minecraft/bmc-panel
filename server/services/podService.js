@@ -11,9 +11,9 @@ async function handlePodConnection(ws, req, podName) {
 
     console.log(`Client connected for logs and commands of pod: ${podName}`);
 
-    console.log(`Cluster: ${JSON.stringify(cluster, null, 2)}`);
-    console.log('------------------------------------------')
-    console.log(`User: ${JSON.stringify(user, null, 2)}`);
+    // console.log(`Cluster: ${JSON.stringify(cluster, null, 2)}`);
+    // console.log('------------------------------------------')
+    // console.log(`User: ${JSON.stringify(user, null, 2)}`);
 
     setupPodLogs(ws, podName, cluster, user);
 
