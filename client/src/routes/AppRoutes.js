@@ -5,12 +5,14 @@ import LoginPage from '../pages/loginPage';
 import RegistrationPage from '../pages/registrationPage';
 import DeploymentsPage from '../pages/deploymentsPage';
 import Admin from '../pages/Admin';
-import SftpInterface from '../pages/sftpInterface';
 import DatabasesPage from '../pages/databasesPage';
 import ConfigEditPage from '../pages/configEditPage';
 import InstancePage from '../pages/instancePage';
 import NotFound from '../pages/NotFound';
 import PrivateRoute from './PrivateRoute';
+
+import SftpInterface from '../features/sftp/pages/SFTPInterface';
+// import SftpInterface from "../pages/sftpInterface";
 
 const AppRoutes = ({ instances, proxies }) => (
     <Routes>
