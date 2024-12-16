@@ -63,7 +63,7 @@ module.exports = {
     },
 
     toggleDeployment: async (req, res) => {
-        try {Ï
+        try {
             const { name } = req.params;
             const { enabled } = req.body;
             await toggleDeployment(name, enabled);
