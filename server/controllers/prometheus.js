@@ -50,7 +50,7 @@ async function getPodCPUUsageForGraph(podName) {
 
 async function getPodMemoryUsageForGraph(podName) {
     try {
-        const query = `(container_memory_working_set_bytes{pod="${podName}"} / on (container_name, pod) (container_spec_memory_limit_bytes > 0)) * 100`;
+        const query = `container_memory_working_set_bytes{pod="${podName}"}`;
         const endTime = Math.floor(Date.now() / 1000);
         const startTime = endTime - 60 * 5;
         const step = 15;
