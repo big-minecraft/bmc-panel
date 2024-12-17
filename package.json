@@ -1,7 +1,7 @@
 {
-    "name": "node_react_startup_structure",
+    "name": "bmc-panel",
+    "description": "panel for the big minecraft project",
     "version": "1.0.0",
-    "description": "The Node React Startup Structure",
     "main": "server/app.js",
     "scripts": {
         "start": "if-env NODE_ENV=production && npm run start:prod || npm run start:dev",
@@ -12,17 +12,12 @@
         "install": "cd client && npm install && cd ../server && npm install",
         "build": "cd client && npm run build"
     },
-    "author": "Anthony Rivas",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/anthonyrivas/Node-React-Startup-Structure/issues"
-    },
-    "devDependencies": {
-        "concurrently": "^4.1.2"
-    },
     "dependencies": {
         "if-env": "^1.0.4",
         "react-router-dom": "^6.27.0",
         "request": "^2.88.2"
+    },
+    "devDependencies": {
+        "concurrently": "^4.1.2"
     }
 }
