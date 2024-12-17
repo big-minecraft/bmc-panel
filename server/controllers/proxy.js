@@ -129,7 +129,7 @@ async function runApplyScript() {
     const scriptDir = path.join(config["bmc-path"], "scripts");
 
     try {
-        const { stdout, stderr } = await exec(`cd ${scriptDir} && ls && ./apply-proxy.sh`);
+        const { stdout, stderr } = await exec(`cd "${scriptDir}" && ls && ./apply-proxy.sh`);
         if (stderr) {
             console.error(`Script stderr: ${stderr}`);
         }

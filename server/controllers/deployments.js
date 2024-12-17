@@ -289,12 +289,12 @@ async function runApplyScript() {
     const scriptDir = path.join(config["bmc-path"], "scripts");
 
     try {
-        const { stdout, stderr } = await exec(`cd ${scriptDir} && ls && ./apply-deployments.sh`);
+        const { stdout, stderr } = await exec(`cd "${scriptDir}" && ls && ./apply-deployments.sh`);
         if (stderr) {
             console.error(`Script stderr: ${stderr}`);
         }
     } catch (error) {
-        console.error(`Script execution error: ${erroÏΩr}`);
+        console.error(`Script execution error: ${error}`);
         throw error;
     }
 }
