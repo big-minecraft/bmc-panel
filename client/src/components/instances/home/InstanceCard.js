@@ -1,26 +1,50 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import UserIcon from '../../icons/UserIcon';
+import { Users, Activity } from 'lucide-react';
 
-const InstanceCard = ({ instance, linkPrefix = "/instance" }) => (
-    <Link to={`${linkPrefix}/${instance.name}`} state={{ instance }} className="text-decoration-none">
-        <div className="card mb-3">
-            <div className="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 className="card-title mb-1">{instance.name}</h5>
-                    {instance.description && (
-                        <p className="card-text text-muted small mb-0">{instance.description}</p>
-                    )}
-                </div>
-                <div className="d-flex align-items-center">
-                    <span className="ml-2">
-                        {Object.keys(instance.players).length}
-                    </span>
-                    <UserIcon />
+const InstanceCard = ({ instance, linkPrefix = "/instance" }) => {
+    const playerCount = Object.keys(instance.players).length;
+
+    return (
+        <Link
+            to={`${linkPrefix}/${instance.name}`}
+            state={{ instance }}
+            className="block group"
+        >
+            <div className="bg-white rounded-xl p-6 border border-gray-200 transition-all duration-300
+                          hover:shadow-lg hover:border-blue-200">
+                <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600
+                                       transition-colors duration-200">
+                                {instance.name}
+                            </h3>
+                            {instance.description && (
+                                <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                                    {instance.description}
+                                </p>
+                            )}
+                        </div>
+                        <div className="flex items-center space-x-1 bg-blue-50 text-blue-600 px-3 py-1 rounded-full">
+                            <Users size={14} />
+                            <span className="text-sm font-medium">{playerCount}</span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-2">
+                            <Activity size={14} className="text-green-500" />
+                            <span className="text-sm text-gray-600">Active</span>
+                        </div>
+                        <div className="text-sm text-gray-400">
+                            ID: {instance.name.split('-')[0]}
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </Link>
-);
+        </Link>
+    );
+};
 
 export default InstanceCard;

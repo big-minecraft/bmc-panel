@@ -16,7 +16,7 @@ const NavigationBar = () => {
             <div className="max-w-7xl mx-auto px-4">
                 <div className="flex justify-between items-center h-16">
                     <div className="flex items-center space-x-4">
-                        <NavLink to="/">Instances</NavLink>
+                        <NavLink to="/">Overview</NavLink>
                         <NavLink to="/deployments">Deployments</NavLink>
                         <NavLink to="/files">Files</NavLink>
                         <NavLink to="/databases">Databases</NavLink>
