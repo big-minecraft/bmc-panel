@@ -1,9 +1,14 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCloudUploadAlt } from '@fortawesome/free-solid-svg-icons';
+import {useFileOperations} from "../../hooks/useFileOperations";
+import useDragAndDrop from "../../hooks/useDragAndDrop";
 
-const UploadOverlay = ({ active }) => {
-    if (!active) return null;
+const UploadOverlay = () => {
+    const { uploadFiles } = useFileOperations();
+    const dragActive = useDragAndDrop(uploadFiles);
+
+    if (!dragActive) return null;
 
     return (
         <div
