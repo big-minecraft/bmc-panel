@@ -3,7 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import HomePage from '../pages/HomePage';
 import LoginPage from '../pages/loginPage';
 import RegistrationPage from '../pages/registrationPage';
-import DeploymentsPage from '../pages/deploymentsPage';
+import Deployments from '../features/deployments/pages/Deployments';
 import Admin from '../pages/Admin';
 import DatabasesPage from '../pages/databasesPage';
 import ConfigEditPage from '../pages/configEditPage';
@@ -19,7 +19,7 @@ const AppRoutes = ({ instances, proxies }) => (
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegistrationPage />} />
         <Route path="/" element={<PrivateRoute><HomePage instances={instances} proxies={proxies} /></PrivateRoute>} />
-        <Route path="/deployments" element={<PrivateRoute><DeploymentsPage /></PrivateRoute>} />
+        <Route path="/deployments" element={<PrivateRoute><Deployments /></PrivateRoute>} />
         <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
         <Route path="/files/*" element={<PrivateRoute><SftpInterface /></PrivateRoute>} />
         <Route path="/databases" element={<PrivateRoute><DatabasesPage /></PrivateRoute>} />
