@@ -124,6 +124,40 @@ export function useFileOperations() {
         }
     }, [state.currentDirectory, state.selectedFiles, dispatch, fetchFiles]);
 
+    const handleRename = useCallback(async (file, newName) => {
+        if (!newName || !file) return;
+
+        dispatch({ type: 'SET_LOADING', payload: { key: 'renaming', value: true } });
+
+        try {
+            const parentDir = file.path.substring(0, file.path.lastIndexOf('/'));
+            const newPath = `${parentDir}/${newName}`.replace(/\/+/g, '/');
+
+            await axiosInstance.post('/api/sftp/move', {
+                sourcePath: file.path,
+                targetPath: newPath
+            });
+
+            await fetchFiles();
+
+            dispatch({
+                type: 'SET_SELECTED_FILES',
+                payload: state.selectedFiles.map(selectedFile =>
+                    selectedFile.path === file.path
+                        ? { ...selectedFile, path: newPath, name: newName }
+                        : selectedFile
+                )
+            });
+
+            return true;
+        } catch (error) {
+            console.error('Error renaming:', error);
+            throw new Error(error.response?.data?.message || 'Failed to rename. Please try again.');
+        } finally {
+            dispatch({ type: 'SET_LOADING', payload: { key: 'renaming', value: false } });
+        }
+    }, [dispatch, fetchFiles, state.selectedFiles]);
+
     const handleDownload = useCallback(async (file) => {
         dispatch({ type: 'SET_LOADING', payload: { key: 'downloading', value: true } });
         try {
@@ -252,6 +286,7 @@ export function useFileOperations() {
         uploadFiles,
         handleDelete,
         handleMove,
+        handleRename,
         handleDownload,
         handleMassDownload,
         handleSaveFile,
