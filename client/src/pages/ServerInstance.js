@@ -1,6 +1,5 @@
 import { useParams } from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import 'bootstrap/dist/css/bootstrap.min.css';
 import Console from "../components/instances/Console";
 import InstanceDetails from "../components/instances/InstanceDetails";
 import MetricsSection from "../components/instances/MetricsSection";

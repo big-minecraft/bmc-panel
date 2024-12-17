@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import axiosInstance from "../../../utils/auth";
 import InviteCodeList from './InviteCodeList';
 import CreateInviteModal from './CreateInviteModal';
