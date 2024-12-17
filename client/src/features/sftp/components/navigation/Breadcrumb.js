@@ -1,5 +1,5 @@
 import React from 'react';
-import { Folder } from 'lucide-react';
+import { Folder, ChevronRight } from 'lucide-react';
 import { useSFTPState } from '../../context/SFTPContext';
 import { useFileNavigation } from '../../hooks/useFileNavigation';
 
@@ -9,34 +9,38 @@ const Breadcrumb = () => {
     const parts = currentDirectory.split('/').filter(Boolean);
 
     return (
-        <nav aria-label="breadcrumb">
-            <ol className="breadcrumb mb-3 p-3 bg-light rounded">
-                <li className="breadcrumb-item">
+        <nav className="flex items-center overflow-x-auto">
+            <ol className="flex items-center gap-1">
+                <li>
                     <button
-                        className="btn btn-link p-0 text-decoration-none"
                         onClick={() => handleDirectoryChange('/nfsshare')}
+                        className="flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
                     >
-                        <Folder size={16} className="me-2 text-primary"/>
+                        <Folder size={16} className="mr-1" />
                         Root
                     </button>
                 </li>
+
                 {parts.map((dir, index) => (
-                    <li key={index} className={`breadcrumb-item ${index === parts.length - 1 ? 'active' : ''}`}>
-                        {index === parts.length - 1 ? (
-                            <span>
-                                <Folder size={16} className="me-2 text-warning"/>
-                                {dir}
-                            </span>
-                        ) : (
-                            <button
-                                className="btn btn-link p-0 text-decoration-none"
-                                onClick={() => handleDirectoryChange('/' + parts.slice(0, index + 1).join('/'))}
-                            >
-                                <Folder size={16} className="me-2 text-primary"/>
-                                {dir}
-                            </button>
-                        )}
-                    </li>
+                    <React.Fragment key={index}>
+                        <ChevronRight size={16} className="text-gray-400" />
+                        <li>
+                            {index === parts.length - 1 ? (
+                                <span className="flex items-center text-sm text-gray-600">
+                                    <Folder size={16} className="mr-1 text-yellow-500" />
+                                    {dir}
+                                </span>
+                            ) : (
+                                <button
+                                    onClick={() => handleDirectoryChange('/' + parts.slice(0, index + 1).join('/'))}
+                                    className="flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                                >
+                                    <Folder size={16} className="mr-1" />
+                                    {dir}
+                                </button>
+                            )}
+                        </li>
+                    </React.Fragment>
                 ))}
             </ol>
         </nav>

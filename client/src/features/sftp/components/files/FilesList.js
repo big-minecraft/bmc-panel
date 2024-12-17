@@ -2,6 +2,7 @@ import React from 'react';
 import { useSFTPState } from '../../context/SFTPContext';
 import { useFileSelection } from '../../hooks/useFileSelection';
 import FileRow from './FileRow';
+import { Loader2 } from 'lucide-react';
 
 const FilesList = () => {
     const { files, loading } = useSFTPState();
@@ -12,11 +13,9 @@ const FilesList = () => {
 
     if (loading.files) {
         return (
-            <div className="card shadow-sm">
-                <div className="text-center py-4">
-                    <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                    </div>
+            <div className="bg-white rounded-lg shadow-sm p-8">
+                <div className="flex justify-center items-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
             </div>
         );
@@ -24,8 +23,8 @@ const FilesList = () => {
 
     if (files.length === 0) {
         return (
-            <div className="card shadow-sm">
-                <div className="text-center py-4 text-muted">
+            <div className="bg-white rounded-lg shadow-sm p-8">
+                <div className="text-center text-gray-500">
                     This directory is empty
                 </div>
             </div>
@@ -33,27 +32,34 @@ const FilesList = () => {
     }
 
     return (
-        <div className="card shadow-sm">
-            <div className="table-responsive">
-                <table className="table">
-                    <thead className="table-light">
+        <div className="bg-white rounded-lg shadow-sm">
+            <div className="overflow-visible">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
                     <tr>
-                        <th style={{width: '40px'}}>
-                            <input
-                                type="checkbox"
-                                className="form-check-input"
-                                checked={allFilesSelected}
-                                onChange={() => handleSelectAllFiles(!allFilesSelected)}
-                            />
+                        <th className="w-12 py-3 px-4">
+                            <div className="flex h-[38px] items-center justify-center">
+                                <input
+                                    type="checkbox"
+                                    className="rounded border-gray-300 text-primary focus:ring-primary hover:border-blue-600 hover:bg-blue-50 h-4 w-4 cursor-pointer transition-colors"
+                                    checked={allFilesSelected}
+                                    onChange={() => handleSelectAllFiles(!allFilesSelected)}
+                                />
+                            </div>
                         </th>
-                        <th style={{width: '30%'}}>Name</th>
-                        <th style={{width: '15%'}}>Type</th>
-                        <th style={{width: '15%'}}>Size</th>
-                        <th style={{width: '25%'}}>Last Modified</th>
-                        <th style={{width: '15%'}}>Actions</th>
+                        <th className="w-[50%] py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Name
+                        </th>
+                        <th className="w-[15%] py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Size
+                        </th>
+                        <th className="w-[25%] py-3 px-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Last Modified
+                        </th>
+                        <th className="w-[10%] py-3 px-4"></th>
                     </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="bg-white divide-y divide-gray-200">
                     {files.map((file) => (
                         <FileRow
                             key={file.path}

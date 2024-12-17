@@ -3,9 +3,8 @@ import { useLocation } from 'react-router-dom';
 import { SFTPProvider } from '../context/SFTPContext';
 import { useFileOperations } from '../hooks/useFileOperations';
 import { useFileNavigation } from '../hooks/useFileNavigation';
-import Breadcrumb from '../components/navigation/Breadcrumb';
+import Toolbar from '../components/navigation/Toolbar';
 import FilesList from '../components/files/FilesList';
-import ActionBar from '../components/actions/ActionBar';
 import ModalsContainer from '../components/modals/ModalsContainer';
 import UploadOverlay from "../components/misc/UploadOverlay";
 import ActionOverlay from "../components/actions/ActionOverlay";
@@ -29,8 +28,7 @@ function SFTPContent() {
     return (
         <div className="container-fluid py-4">
             <UploadOverlay />
-            <Breadcrumb />
-            <ActionBar />
+            <Toolbar />
             <FilesList />
             <ActionOverlay />
             <ModalsContainer />

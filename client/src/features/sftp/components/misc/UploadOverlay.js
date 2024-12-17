@@ -1,8 +1,7 @@
 import React from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCloudUploadAlt } from '@fortawesome/free-solid-svg-icons';
-import {useFileOperations} from "../../hooks/useFileOperations";
-import useDragAndDrop from "../../hooks/useDragAndDrop";
+import { Upload } from 'lucide-react';
+import { useFileOperations } from '../../hooks/useFileOperations';
+import useDragAndDrop from '../../hooks/useDragAndDrop';
 
 const UploadOverlay = () => {
     const { uploadFiles } = useFileOperations();
@@ -11,19 +10,16 @@ const UploadOverlay = () => {
     if (!dragActive) return null;
 
     return (
-        <div
-            className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-            style={{
-                backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                zIndex: 1050,
-            }}
-        >
-            <div
-                className="text-center text-white p-4 rounded"
-                style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}
-            >
-                <FontAwesomeIcon icon={faCloudUploadAlt} size="3x" className="mb-3" />
-                <h4>Drop files here to upload</h4>
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
+            <div className="bg-black/80 rounded-2xl p-8 text-center">
+                <div className="flex flex-col items-center">
+                    <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4">
+                        <Upload size={32} className="text-white" />
+                    </div>
+                    <h4 className="text-xl font-medium text-white">
+                        Drop files here to upload
+                    </h4>
+                </div>
             </div>
         </div>
     );
