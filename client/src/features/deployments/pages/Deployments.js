@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Plus } from 'lucide-react';
 import { useDeployments } from '../hooks/useDeployments';
 import { useProxy } from '../hooks/useProxy';
 import { useNotifications } from '../hooks/useNotifications';
-import {DeploymentsProvider, useDeploymentsContext} from '../context/DeploymentsContext';
+import { DeploymentsProvider, useDeploymentsContext } from '../context/DeploymentsContext';
 import ProxyCard from '../components/cards/ProxyCard';
 import DeploymentCard from '../components/cards/DeploymentCard';
 import CreateDeploymentModal from '../components/modals/CreateDeploymentModal';
@@ -37,18 +39,16 @@ const DeploymentsContent = () => {
 
     if (isLoading) {
         return (
-            <div className="min-vh-100 d-flex align-items-center justify-content-center">
-                <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                </div>
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"/>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="min-vh-100 d-flex align-items-center justify-content-center">
-                <div className="alert alert-danger" role="alert">
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="bg-red-50 text-red-600 px-6 py-4 rounded-lg">
                     {error}
                 </div>
             </div>
@@ -56,62 +56,81 @@ const DeploymentsContent = () => {
     }
 
     return (
-        <div className="container py-4">
-            <div style={{ position: 'fixed', top: '1rem', right: '1rem', zIndex: 1050 }}>
-                {notifications.map(({ id, message, type }) => (
-                    <div key={id} className={`alert alert-${type} alert-dismissible fade show`} role="alert">
-                        {message}
-                        <button
-                            type="button"
-                            className="btn-close"
-                            onClick={() => removeNotification(id)}
-                        />
-                    </div>
-                ))}
-            </div>
-
-            <div className="d-flex justify-content-end mb-4">
-                <button className="btn btn-primary" onClick={handleOpenCreateModal}>
-                    Create Deployment
-                </button>
-            </div>
-
-            <div className="mb-5">
-                <h2 className="h3 mb-4">Proxy</h2>
-                <ProxyCard />
-            </div>
-
-            <div>
-                <h2 className="h3 mb-4">Deployments</h2>
-                <div className="row g-4">
-                    {deployments.length === 0 ? (
-                        <div className="col-12">
-                            <div className="card shadow-sm border">
-                                <div className="card-body text-center py-5">
-                                    <h5 className="card-title mb-0 text-muted">No Deployments Found</h5>
-                                </div>
-                            </div>
+        <div className="min-h-screen bg-gray-50">
+            <div className="max-w-7xl mx-auto px-4 py-8">
+                <div className="fixed top-4 right-4 z-50 space-y-2">
+                    {notifications.map(({ id, message, type }) => (
+                        <div
+                            key={id}
+                            className={`${
+                                type === 'success' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
+                            } px-4 py-3 rounded-lg shadow-sm flex justify-between items-center`}
+                        >
+                            <span>{message}</span>
+                            <button
+                                onClick={() => removeNotification(id)}
+                                className={`ml-3 ${
+                                    type === 'success' ? 'text-green-400 hover:text-green-500' : 'text-red-400 hover:text-red-500'
+                                }`}
+                            >
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                            </button>
                         </div>
-                    ) : (
-                        deployments.map((deployment) => (
-                            <DeploymentCard
-                                key={deployment.name}
-                                deployment={deployment}
-                            />
-                        ))
-                    )}
+                    ))}
                 </div>
+
+                <div className="flex justify-end mb-6">
+                    <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleOpenCreateModal}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600
+                                 transition-colors inline-flex items-center space-x-2"
+                    >
+                        <Plus className="w-5 h-5" />
+                        <span>Create Deployment</span>
+                    </motion.button>
+                </div>
+
+                <div className="space-y-8">
+                    <div>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Proxy</h2>
+                        <ProxyCard />
+                    </div>
+
+                    <div>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Deployments</h2>
+                        <div className="space-y-4">
+                            {deployments.length === 0 ? (
+                                <div className="bg-white rounded-xl border border-gray-200 p-8">
+                                    <div className="text-center text-gray-500">
+                                        <h5 className="text-lg font-medium">No Deployments Found</h5>
+                                    </div>
+                                </div>
+                            ) : (
+                                deployments.map((deployment) => (
+                                    <DeploymentCard
+                                        key={deployment.name}
+                                        deployment={deployment}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <CreateDeploymentModal
+                    show={showCreateModal}
+                    onClose={() => setShowCreateModal(false)}
+                />
+
+                <DeleteDeploymentModal
+                    deploymentName={deploymentToDelete}
+                    onClose={() => setDeploymentToDelete(null)}
+                />
             </div>
-
-            <CreateDeploymentModal
-                show={showCreateModal}
-                onClose={() => setShowCreateModal(false)}
-            />
-
-            <DeleteDeploymentModal
-                deploymentName={deploymentToDelete}
-                onClose={() => setDeploymentToDelete(null)}
-            />
         </div>
     );
 };

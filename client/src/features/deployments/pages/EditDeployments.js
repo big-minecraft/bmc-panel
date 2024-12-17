@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useConfig } from '../hooks/useConfig';
 import ConfigEditor from '../components/editor/ConfigEditor';
 import ConfigHeader from '../components/editor/ConfigHeader';
 import { DeploymentsProvider } from '../context/DeploymentsContext';
+import { CloseIcon } from '../../../components/icons/DeploymentIcons';
 
 const ConfigEditContent = () => {
     const { name } = useParams();
@@ -24,11 +25,8 @@ const ConfigEditContent = () => {
         saveContent
     } = useConfig(isProxy, name);
 
-    useEffect(() => {
-        fetchContent();
-    }, [isProxy, name]);
-
     const handleSave = async () => {
+        if (isSaving) return;
         const success = await saveContent(content);
         if (success) {
             // Optional: navigate back after successful save
@@ -36,61 +34,75 @@ const ConfigEditContent = () => {
         }
     };
 
+    const handleKeyDown = useCallback(async (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+            event.preventDefault();
+            await handleSave();
+        }
+    }, [handleSave]);
+
+    useEffect(() => {
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [handleKeyDown]);
+
+    useEffect(() => {
+        fetchContent();
+    }, [isProxy, name]);
+
     if (isLoading) {
         return (
-            <div className="min-vh-100 d-flex align-items-center justify-content-center">
-                <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                </div>
+            <div className="fixed inset-0 flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"/>
             </div>
         );
     }
 
     return (
-        <div className="container-fluid vh-100 d-flex flex-column p-3">
-            <style>{`
-        body, html {
-          overflow: hidden;
-        }
-      `}</style>
+        <div className="fixed inset-x-0 bottom-0 top-16 bg-gray-50">
+            <div className="h-full flex flex-col">
+                <div className="max-w-7xl w-full mx-auto flex-1 flex flex-col min-h-0">
+                    <div className="p-6">
+                        <ConfigHeader
+                            title={isProxy ? 'Proxy Configuration' : name}
+                            onBack={() => navigate('/deployments')}
+                            onSave={handleSave}
+                            isSaving={isSaving}
+                        />
 
-            <ConfigHeader
-                title={isProxy ? 'Proxy Configuration' : name}
-                onBack={() => navigate('/deployments')}
-                onSave={handleSave}
-                isSaving={isSaving}
-            />
+                        {error && (
+                            <div className="mb-4 bg-red-50 text-red-600 px-4 py-3 rounded-lg flex justify-between items-center">
+                                <span>{error}</span>
+                                <button
+                                    onClick={() => setError(null)}
+                                    className="text-red-400 hover:text-red-500"
+                                >
+                                    <CloseIcon />
+                                </button>
+                            </div>
+                        )}
 
-            {error && (
-                <div className="alert alert-danger alert-dismissible fade show" role="alert">
-                    {error}
-                    <button
-                        type="button"
-                        className="btn-close"
-                        onClick={() => setError(null)}
-                        aria-label="Close"
-                    />
-                </div>
-            )}
+                        {savedSuccessfully && (
+                            <div className="mb-4 bg-green-50 text-green-600 px-4 py-3 rounded-lg flex justify-between items-center">
+                                <span>Changes saved successfully!</span>
+                                <button
+                                    onClick={() => setSavedSuccessfully(false)}
+                                    className="text-green-400 hover:text-green-500"
+                                >
+                                    <CloseIcon />
+                                </button>
+                            </div>
+                        )}
+                    </div>
 
-            {savedSuccessfully && (
-                <div className="alert alert-success alert-dismissible" role="alert">
-                    Changes saved successfully!
-                    <button
-                        type="button"
-                        className="btn-close"
-                        onClick={() => setSavedSuccessfully(false)}
-                        aria-label="Close"
-                    />
-                </div>
-            )}
-
-            <div className="row flex-grow-1">
-                <div className="col">
-                    <ConfigEditor
-                        content={content}
-                        onChange={setContent}
-                    />
+                    <div className="flex-1 px-6 pb-6 min-h-0">
+                        <ConfigEditor
+                            content={content}
+                            onChange={setContent}
+                        />
+                    </div>
                 </div>
             </div>
         </div>

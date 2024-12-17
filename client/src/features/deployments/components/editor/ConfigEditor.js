@@ -1,11 +1,19 @@
 import React from 'react';
 import Editor from '@monaco-editor/react';
+import { motion } from 'framer-motion';
 
 const ConfigEditor = ({ content, onChange }) => {
     return (
-        <div className="card-body p-0 editor-container">
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="h-full rounded-2xl border border-gray-200 bg-white overflow-hidden shadow-sm"
+        >
+            <div className="border-b border-gray-100 px-4 py-2 flex items-center justify-between bg-gray-50">
+                <span className="text-sm text-gray-600 font-medium">Configuration</span>
+            </div>
             <Editor
-                height="100%"
+                height="calc(100% - 36px)"
                 defaultLanguage="yaml"
                 theme="vs-light"
                 value={content}
@@ -18,20 +26,20 @@ const ConfigEditor = ({ content, onChange }) => {
                     scrollBeyondLastLine: false,
                     lineNumbers: 'on',
                     tabSize: 2,
-                    readOnly: false
+                    readOnly: false,
+                    padding: { top: 16, bottom: 16 },
+                    fontFamily: 'JetBrains Mono, Monaco, Consolas, monospace',
+                    folding: true,
+                    foldingHighlight: true,
+                    renderLineHighlight: 'all',
+                    smoothScrolling: true,
+                    cursorBlinking: 'smooth',
+                    cursorSmoothCaretAnimation: true,
+                    roundedSelection: true,
+                    links: true
                 }}
             />
-            <style>
-                {`
-          .editor-container {
-            border-radius: 10px;
-            overflow: hidden;
-            height: 80%;
-            border: 1px solid gray;
-          }
-        `}
-            </style>
-        </div>
+        </motion.div>
     );
 };
 
