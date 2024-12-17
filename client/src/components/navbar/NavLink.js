@@ -32,6 +32,13 @@ const NavLink = ({ to, children, requireAdmin = false }) => {
                 }`}
             >
                 {children}
+                {isActive && (
+                    <motion.div
+                        layoutId="navbar-indicator"
+                        className="absolute -bottom-[1px] left-0 right-0 h-0.5 bg-blue-500 rounded-full"
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                )}
             </Link>
         </motion.div>
     );
