@@ -7,11 +7,16 @@ import Breadcrumb from '../components/navigation/Breadcrumb';
 import FilesList from '../components/files/FilesList';
 import ActionBar from '../components/actions/ActionBar';
 import ModalsContainer from '../components/modals/ModalsContainer';
+import useDragAndDrop from "../../../components/sftp/useDragAndDrop";
+import DragDropOverlay from "../../../components/sftp/dragDropOverlay";
+import UploadOverlay from "../components/misc/UploadOverlay";
+import ActionOverlay from "../components/actions/ActionOverlay";
 
 function SFTPContent() {
     const location = useLocation();
     const { fetchFiles } = useFileOperations();
     const { currentDirectory, handleDirectoryChange, getInitialDirectory } = useFileNavigation();
+    const { uploadFiles } = useFileOperations();
 
     useEffect(() => {
         const newDirectory = getInitialDirectory(location);
@@ -24,11 +29,15 @@ function SFTPContent() {
         fetchFiles();
     }, [currentDirectory, fetchFiles]);
 
+    const dragActive = useDragAndDrop(uploadFiles);
+
     return (
         <div className="container-fluid py-4">
+            <UploadOverlay active={dragActive} />
             <Breadcrumb />
             <ActionBar />
             <FilesList />
+            <ActionOverlay />
             <ModalsContainer />
         </div>
     );
