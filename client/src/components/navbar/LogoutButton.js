@@ -1,5 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { LogOut } from 'lucide-react';
 import axiosInstance, { clearToken } from '../../utils/auth';
 
 const LogoutButton = () => {
@@ -21,12 +23,16 @@ const LogoutButton = () => {
     };
 
     return (
-        <button
+        <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={handleLogout}
-            className="px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+            className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700
+                     hover:bg-red-50 rounded-lg transition-colors inline-flex items-center space-x-2"
         >
-            Logout
-        </button>
+            <LogOut className="w-4 h-4" />
+            <span>Logout</span>
+        </motion.button>
     );
 };
 

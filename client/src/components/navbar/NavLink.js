@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { isAdmin } from '../../utils/auth';
 
 const NavLink = ({ to, children, requireAdmin = false }) => {
@@ -17,17 +18,22 @@ const NavLink = ({ to, children, requireAdmin = false }) => {
         return location.pathname.startsWith(path);
     };
 
+    const isActive = isActivePath(to);
+
     return (
-        <Link
-            to={to}
-            className={`no-underline px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                isActivePath(to)
-                    ? 'bg-gray-100 text-gray-900'
-                    : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
-            }`}
-        >
-            {children}
-        </Link>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Link
+                to={to}
+                className={`relative no-underline px-4 py-2 text-sm font-medium rounded-lg
+                           transition-all duration-200 ${
+                    isActive
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+            >
+                {children}
+            </Link>
+        </motion.div>
     );
 };
 
