@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { LoadingButton } from './LoadingButton';
+import { Lock, User, ArrowRight } from 'lucide-react';
 
 const LoginForm = ({
                        username,
@@ -15,66 +17,128 @@ const LoginForm = ({
                        handleLogin,
                        handleVerifyToken
                    }) => {
+    const [focusedInput, setFocusedInput] = useState(null);
+
     if (authStep === 1) {
         return (
-            <form onSubmit={handleLogin}>
-                <div className="mb-3">
-                    <label className="form-label">Username</label>
-                    <input
-                        type="text"
-                        className="form-control"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                        autoFocus
-                    />
-                </div>
-                <div className="mb-3">
-                    <label className="form-label">Password</label>
-                    <input
-                        type="password"
-                        className="form-control"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                </div>
-                <div className="d-grid gap-2">
-                    <LoadingButton
-                        loading={loading}
-                        loadingText="Logging in..."
-                        text="Log In"
-                    />
-                    <a href="/register" className="btn btn-outline-secondary">
-                        Create Account
-                    </a>
-                </div>
-                <div className="mt-3 text-center">
+            <motion.form
+                onSubmit={handleLogin}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+            >
+                <div className="space-y-6">
+                    <motion.div
+                        className="relative"
+                        animate={{ scale: focusedInput === 'username' ? 0.98 : 1 }}
+                        transition={{ duration: 0.1 }}
+                    >
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <User className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                            type="text"
+                            className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg
+                       bg-gray-50 text-gray-900 placeholder-gray-500
+                       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
+                       transition duration-200"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            placeholder="Username"
+                            required
+                            onFocus={() => setFocusedInput('username')}
+                            onBlur={() => setFocusedInput(null)}
+                        />
+                    </motion.div>
+
+                    <motion.div
+                        className="relative"
+                        animate={{ scale: focusedInput === 'password' ? 0.98 : 1 }}
+                        transition={{ duration: 0.1 }}
+                    >
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Lock className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <input
+                            type="password"
+                            className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg
+                       bg-gray-50 text-gray-900 placeholder-gray-500
+                       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
+                       transition duration-200"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Password"
+                            required
+                            onFocus={() => setFocusedInput('password')}
+                            onBlur={() => setFocusedInput(null)}
+                        />
+                    </motion.div>
+
+                    <div className="space-y-4">
+                        <LoadingButton
+                            loading={loading}
+                            loadingText="Signing in..."
+                            text="Sign In"
+                        />
+
+                        <motion.a
+                            href="/register"
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.99 }}
+                            className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-gray-700
+                       bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100
+                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500
+                       transition-colors duration-200"
+                        >
+                            Create Account
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                        </motion.a>
+                    </div>
+
                     <button
                         type="button"
                         onClick={() => setShowForgotModal(true)}
-                        className="btn btn-link text-decoration-none"
+                        className="w-full text-sm text-indigo-600 hover:text-indigo-500
+                     focus:outline-none focus:underline transition-colors duration-200"
                     >
                         Forgot your password?
                     </button>
                 </div>
-            </form>
+            </motion.form>
         );
     }
 
     if (authStep === 2) {
         return (
-            <form onSubmit={handleVerifyToken}>
-                <div className="mb-4">
-                    <p className="text-center text-muted">
-                        Enter the code from your authenticator app
-                    </p>
-                </div>
-                <div className="mb-3">
+            <motion.form
+                onSubmit={handleVerifyToken}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+                className="space-y-6"
+            >
+                <motion.p
+                    className="text-center text-sm text-gray-600"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                >
+                    Enter the code from your authenticator app
+                </motion.p>
+
+                <motion.div
+                    className="flex justify-center"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 }}
+                >
                     <input
                         type="text"
-                        className="form-control form-control-lg text-center"
-                        placeholder="Enter 6-digit code"
+                        className="block w-48 text-center text-2xl py-3 border border-gray-300 rounded-lg
+                     bg-gray-50 text-gray-900 placeholder-gray-500
+                     focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent
+                     transition duration-200 tracking-wide"
+                        placeholder="000000"
                         value={token}
                         onChange={(e) => setToken(e.target.value)}
                         maxLength={6}
@@ -84,25 +148,32 @@ const LoginForm = ({
                         required
                         autoFocus
                     />
-                </div>
-                <div className="d-grid gap-2">
+                </motion.div>
+
+                <div className="space-y-4">
                     <LoadingButton
                         loading={loading}
                         loadingText="Verifying..."
                         text="Verify Code"
                     />
-                    <button
+
+                    <motion.button
                         type="button"
-                        className="btn btn-outline-secondary"
                         onClick={() => {
                             setAuthStep(1);
                             setToken('');
                         }}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium
+                     text-gray-700 bg-gray-50 border border-gray-300 rounded-lg
+                     hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2
+                     focus:ring-gray-500 transition-colors duration-200"
                     >
                         Back to Login
-                    </button>
+                    </motion.button>
                 </div>
-            </form>
+            </motion.form>
         );
     }
 
