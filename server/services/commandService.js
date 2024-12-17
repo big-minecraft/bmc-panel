@@ -29,7 +29,6 @@ async function executeCommand(ws, command, podName, cluster, user) {
     const fullUrl = `${execUrl}?${params.toString()}`;
     console.log('executing command with url:', fullUrl);
 
-    // Convert http URLs to WebSocket URLs
     const wsUrl = fullUrl.replace(/^http/, 'ws');
 
     let wsOptions = {
@@ -40,7 +39,6 @@ async function executeCommand(ws, command, podName, cluster, user) {
     };
 
     if (kubernetesClient.isRunningInCluster()) {
-        console.log('running in cluster environment')
         const tokenPath = path.join('/host-root', user.authProvider.config.tokenFile);
         const caPath = path.join('/host-root', cluster.caFile);
 
@@ -53,7 +51,6 @@ async function executeCommand(ws, command, podName, cluster, user) {
         });
         wsOptions.headers['Authorization'] = `Bearer ${token}`;
     } else {
-        console.log('running in development environment')
         const cert = Buffer.from(user.certData, 'base64');
         const key = Buffer.from(user.keyData, 'base64');
         const ca = cluster.caData ? Buffer.from(cluster.caData, 'base64') : undefined;
@@ -65,15 +62,6 @@ async function executeCommand(ws, command, podName, cluster, user) {
             rejectUnauthorized: true
         });
     }
-
-    console.log('creating websocket connection with options:', {
-        url: wsUrl,
-        rejectUnauthorized: wsOptions.agent.options.rejectUnauthorized,
-        hasCert: !!wsOptions.agent.options.cert,
-        hasKey: !!wsOptions.agent.options.key,
-        hasCa: !!wsOptions.agent.options.ca,
-        hasToken: !!wsOptions.headers.Authorization
-    });
 
     const execWs = new WebSocket(wsUrl, 'v4.channel.k8s.io', wsOptions);
 

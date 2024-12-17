@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import UserIcon from '../icons/UserIcon';
+import UserIcon from '../../icons/UserIcon';
 
 const InstanceCard = ({ instance, linkPrefix = "/instance" }) => (
     <Link to={`${linkPrefix}/${instance.name}`} state={{ instance }} className="text-decoration-none">

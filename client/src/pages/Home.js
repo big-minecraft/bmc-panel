@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import axiosInstance from '../utils/auth';
-import InstanceCard from "../components/instances/InstanceCard";
+import InstanceCard from "../components/instances/home/InstanceCard";
 
-const HomePage = ({ instances: initialInstances, proxies: initialProxies }) => {
+const Home = ({ instances: initialInstances, proxies: initialProxies }) => {
     const [instances, setInstances] = useState(initialInstances);
     const [proxies, setProxies] = useState(initialProxies);
     const location = useLocation();
@@ -76,4 +76,4 @@ const HomePage = ({ instances: initialInstances, proxies: initialProxies }) => {
     );
 };
 
-export default HomePage;
+export default Home;
