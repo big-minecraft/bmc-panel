@@ -22,7 +22,7 @@ const MemoryChart = ({ podName }) => {
                 const response = await axiosInstance.get(`/api/metrics/memory?pod=${podName}`);
                 const formattedData = response.data.map(point => ({
                     timestamp: new Date(point.timestamp).toLocaleTimeString(),
-                    value: parseFloat((point.value / 1024).toFixed(2)) // Convert KB to MB
+                    value: parseFloat((point.value / 1024).toFixed(2))
                 }));
                 setData(formattedData);
             } catch (err) {
@@ -40,24 +40,22 @@ const MemoryChart = ({ podName }) => {
 
     if (loading) {
         return (
-            <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '300px' }}>
-                <div className="spinner-border text-primary" role="status">
-                    <span className="visually-hidden">Loading...</span>
-                </div>
+            <div className="flex justify-center items-center min-h-[300px]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="alert alert-danger" style={{ minHeight: '300px' }} role="alert">
+            <div className="min-h-[300px] p-4 bg-red-50 text-red-600 rounded-lg">
                 Error loading memory metrics: {error}
             </div>
         );
     }
 
     return (
-        <div style={{ width: '100%', height: '300px', minHeight: '300px' }}>
+        <div className="w-full h-[300px] min-h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data} margin={{ top: 5, right: 30, left: 60, bottom: 40 }}>
                     <CartesianGrid strokeDasharray="3 3" />
@@ -73,7 +71,7 @@ const MemoryChart = ({ podName }) => {
                     <Line
                         type="monotone"
                         dataKey="value"
-                        stroke="#198754"  // Bootstrap success green color
+                        stroke="#059669"
                         dot={false}
                     />
                 </LineChart>

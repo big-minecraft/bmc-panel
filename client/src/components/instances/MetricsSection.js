@@ -4,25 +4,25 @@ import MemoryChart from './MemoryChart';
 
 const MetricsSection = ({ podName }) => {
     return (
-        <>
-            <div className="card mb-3">
-                <div className="card-header">
-                    <h3>CPU Usage</h3>
+        <div className="space-y-8">
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div className="border-b border-gray-200 px-6 py-4">
+                    <h3 className="text-xl font-semibold text-gray-900">CPU Usage</h3>
                 </div>
-                <div className="card-body">
-                    <CPUChart podName={podName}/>
+                <div className="p-6">
+                    <CPUChart podName={podName} />
                 </div>
             </div>
 
-            <div className="card mb-3">
-                <div className="card-header">
-                    <h3>Memory Usage</h3>
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div className="border-b border-gray-200 px-6 py-4">
+                    <h3 className="text-xl font-semibold text-gray-900">Memory Usage</h3>
                 </div>
-                <div className="card-body">
-                    <MemoryChart podName={podName}/>
+                <div className="p-6">
+                    <MemoryChart podName={podName} />
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 

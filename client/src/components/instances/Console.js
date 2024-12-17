@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Send, Terminal } from 'lucide-react';
 
 const Console = ({ podName }) => {
     const [logs, setLogs] = useState('');
@@ -66,39 +67,36 @@ const Console = ({ podName }) => {
     };
 
     return (
-        <div className="mb-3">
-            <style>
-                {`
-                    .log-pre {
-                        white-space: pre-wrap;
-                        word-wrap: break-word;
-                    }
-                `}
-            </style>
+        <div className="space-y-4">
+            <div className="flex items-center text-gray-500 mb-4">
+                <Terminal size={18} className="mr-2" />
+                <span className="text-sm">Connected to {podName}</span>
+            </div>
+
             <div
                 ref={consoleRef}
-                className="card bg-dark text-light"
-                style={{
-                    height: '630px',
-                    overflowY: 'auto',
-                    marginTop: "20px"
-                }}
+                className="bg-gray-900 text-gray-100 rounded-lg h-[500px] overflow-y-auto font-mono text-sm"
             >
-                <div className="card-body">
-                    <pre className="m-0 log-pre">{logs}</pre>
+                <div className="p-4">
+                    <pre className="whitespace-pre-wrap break-words">{logs}</pre>
                 </div>
             </div>
 
-            <div className="input-group mt-3">
+            <div className="relative">
                 <input
                     type="text"
-                    className="form-control"
+                    className="w-full pl-4 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                     value={command}
                     onChange={(e) => setCommand(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Enter command here"
+                    onKeyPress={(e) => e.key === 'Enter' && handleCommandSubmit()}
+                    placeholder="Enter command..."
                 />
-                <button className="btn btn-primary" onClick={handleCommandSubmit}>Send Command</button>
+                <button
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-blue-600 transition-colors"
+                    onClick={handleCommandSubmit}
+                >
+                    <Send size={18} />
+                </button>
             </div>
         </div>
     );

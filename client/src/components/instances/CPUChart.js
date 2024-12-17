@@ -40,24 +40,22 @@ const CPUChart = ({ podName }) => {
 
   if (loading) {
     return (
-        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '300px' }}>
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </div>
+        <div className="flex justify-center items-center min-h-[300px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
     );
   }
 
   if (error) {
     return (
-        <div className="alert alert-danger" style={{ minHeight: '300px' }} role="alert">
+        <div className="min-h-[300px] p-4 bg-red-50 text-red-600 rounded-lg">
           Error loading CPU metrics: {error}
         </div>
     );
   }
 
   return (
-      <div style={{ width: '100%', height: '300px', minHeight: '300px' }}>
+      <div className="w-full h-[300px] min-h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 15, right: 30, left: 60, bottom: 40 }}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -73,7 +71,7 @@ const CPUChart = ({ podName }) => {
             <Line
                 type="monotone"
                 dataKey="value"
-                stroke="#0d6efd"
+                stroke="#2563eb"
                 dot={false}
             />
           </LineChart>
