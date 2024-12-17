@@ -100,8 +100,6 @@ async function listDatabases() {
     try {
         conn = await pool.getConnection();
 
-        console.log(conn);
-
         const databases = await conn.query(`
                 SELECT 
                     s.schema_name as name,

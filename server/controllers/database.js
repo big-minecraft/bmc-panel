@@ -207,7 +207,6 @@ async function isCodeExpired(code) {
     try {
         conn = await pool.getConnection();
         const rows = await conn.query('SELECT created_at FROM invite_codes WHERE code = ?', [code]);
-        console.log(rows)
         let created_at = rows[0].created_at;
         let expiryDate = new Date(created_at);
         expiryDate.setDate(expiryDate.getDate() + expiryDays);
