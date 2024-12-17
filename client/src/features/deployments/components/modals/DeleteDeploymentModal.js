@@ -1,10 +1,12 @@
 import React from 'react';
 import { useDeployments } from '../../hooks/useDeployments';
 import { useNotifications } from '../../hooks/useNotifications';
+import {useDeploymentsContext} from "../../context/DeploymentsContext";
 
 const DeleteDeploymentModal = ({ deploymentName, onClose }) => {
     const { deleteDeployment } = useDeployments();
     const { addNotification } = useNotifications();
+    const { setDeploymentToDelete } = useDeploymentsContext();
 
     if (!deploymentName) return null;
 
@@ -12,7 +14,7 @@ const DeleteDeploymentModal = ({ deploymentName, onClose }) => {
         const success = await deleteDeployment(deploymentName);
         if (success) {
             addNotification(`Successfully deleted ${deploymentName}`, 'success');
-            onClose();
+            setDeploymentToDelete(null);
         } else {
             addNotification(`Failed to delete ${deploymentName}`, 'danger');
         }

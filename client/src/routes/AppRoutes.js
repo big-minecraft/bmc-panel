@@ -6,13 +6,11 @@ import RegistrationPage from '../pages/registrationPage';
 import Deployments from '../features/deployments/pages/Deployments';
 import Admin from '../pages/Admin';
 import DatabasesPage from '../pages/databasesPage';
-import ConfigEditPage from '../pages/configEditPage';
 import InstancePage from '../pages/instancePage';
 import NotFound from '../pages/NotFound';
 import PrivateRoute from './PrivateRoute';
-
 import SftpInterface from '../features/sftp/pages/SFTPInterface';
-// import SftpInterface from "../pages/sftpInterface";
+import EditDeployments from "../features/deployments/pages/EditDeployments";
 
 const AppRoutes = ({ instances, proxies }) => (
     <Routes>
@@ -23,8 +21,8 @@ const AppRoutes = ({ instances, proxies }) => (
         <Route path="/admin" element={<PrivateRoute><Admin /></PrivateRoute>} />
         <Route path="/files/*" element={<PrivateRoute><SftpInterface /></PrivateRoute>} />
         <Route path="/databases" element={<PrivateRoute><DatabasesPage /></PrivateRoute>} />
-        <Route path="/deployments/:name/edit" element={<PrivateRoute><ConfigEditPage /></PrivateRoute>} />
-        <Route path="/proxy/edit" element={<PrivateRoute><ConfigEditPage /></PrivateRoute>} />
+        <Route path="/deployments/:name/edit" element={<PrivateRoute><EditDeployments /></PrivateRoute>} />
+        <Route path="/proxy/edit" element={<PrivateRoute><EditDeployments /></PrivateRoute>} />
         <Route path="/instance/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
         <Route path="/proxy/:instanceName" element={<PrivateRoute><InstancePage instances={instances} proxies={proxies} /></PrivateRoute>} />
         <Route path="*" element={<PrivateRoute><NotFound /></PrivateRoute>} />

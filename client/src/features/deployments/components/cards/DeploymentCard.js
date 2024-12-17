@@ -3,11 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useDeployments } from '../../hooks/useDeployments';
 import { useNotifications } from '../../hooks/useNotifications';
 import { FolderIcon, RestartIcon, EditIcon, TrashIcon } from '../../../../components/icons/DeploymentIcons';
+import DeleteDeploymentModal from "../modals/DeleteDeploymentModal";
+import {useDeploymentsContext} from "../../context/DeploymentsContext";
 
 const DeploymentCard = ({ deployment }) => {
     const navigate = useNavigate();
     const { toggleDeployment, restartDeployment, restartingDeployments } = useDeployments();
     const { addNotification } = useNotifications();
+    const { deploymentToDelete, setDeploymentToDelete } = useDeploymentsContext();
 
     const handleToggle = async () => {
         const success = await toggleDeployment(deployment.name, deployment.enabled);
@@ -69,7 +72,7 @@ const DeploymentCard = ({ deployment }) => {
 
                         <button
                             className="btn btn-outline-danger btn-sm"
-                            onClick={() => {}}
+                            onClick={() => setDeploymentToDelete(deployment.name)}
                         >
                             <TrashIcon />
                         </button>
@@ -92,6 +95,13 @@ const DeploymentCard = ({ deployment }) => {
                     </div>
                 </div>
             </div>
+
+            {deployment.name === deploymentToDelete && (
+                <DeleteDeploymentModal
+                    deploymentName={deployment.name}
+                    onClose={() => setDeploymentToDelete(null)}
+                />
+            )}
         </div>
     );
 };

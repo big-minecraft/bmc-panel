@@ -92,9 +92,9 @@ export const useDeployments = () => {
         isLoading,
         error,
         fetchDeployments,
+        deleteDeployment,
         toggleDeployment,
         restartDeployment,
-        deleteDeployment,
         createDeployment,
         restartingDeployments
     };

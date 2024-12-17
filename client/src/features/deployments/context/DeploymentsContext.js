@@ -9,7 +9,9 @@ export const DeploymentsProvider = ({ children }) => {
     const [restartingProxy, setRestartingProxy] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [nodes, setNodes] = useState([]);
+    const [selectedNode, setSelectedNode] = useState('');
     const [isLoadingNodes, setIsLoadingNodes] = useState(false);
+    const [deploymentToDelete, setDeploymentToDelete] = useState(null);
 
     const value = {
         deployments,
@@ -24,8 +26,12 @@ export const DeploymentsProvider = ({ children }) => {
         setNotifications,
         nodes,
         setNodes,
+        selectedNode,
+        setSelectedNode,
         isLoadingNodes,
-        setIsLoadingNodes
+        setIsLoadingNodes,
+        deploymentToDelete,
+        setDeploymentToDelete
     };
 
     return (

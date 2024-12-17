@@ -12,8 +12,6 @@ const CreateDeploymentModal = ({ show, onClose }) => {
     const { addNotification } = useNotifications();
     const { nodes, isLoadingNodes, selectedNode, setSelectedNode } = useDeploymentsContext();
 
-    if (!show) return null;
-
     const handleCreate = async () => {
         if (!deploymentName.trim()) {
             setError('Deployment name is required');
@@ -43,13 +41,23 @@ const CreateDeploymentModal = ({ show, onClose }) => {
         }
     };
 
+    const handleClose = () => {
+        setDeploymentName('');
+        setDeploymentType('');
+        setSelectedNode('');
+        setError(null);
+        onClose();
+    };
+
+    if (!show) return null;
+
     return (
         <div className="modal d-block" tabIndex="-1" style={{backgroundColor: 'rgba(0,0,0,0.5)'}}>
             <div className="modal-dialog">
                 <div className="modal-content">
                     <div className="modal-header">
                         <h5 className="modal-title">Create New Deployment</h5>
-                        <button type="button" className="btn-close" onClick={onClose}></button>
+                        <button type="button" className="btn-close" onClick={handleClose}></button>
                     </div>
                     <div className="modal-body">
                         {error && (
@@ -123,7 +131,7 @@ const CreateDeploymentModal = ({ show, onClose }) => {
                         )}
                     </div>
                     <div className="modal-footer">
-                        <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
+                        <button type="button" className="btn btn-secondary" onClick={handleClose}>Cancel</button>
                         <button type="button" className="btn btn-primary" onClick={handleCreate}>Create</button>
                     </div>
                 </div>
