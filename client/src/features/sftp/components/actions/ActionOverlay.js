@@ -1,114 +1,90 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Check, Trash2, MoveVertical, Download, Archive, X } from 'lucide-react';
-import DeleteModal from "../modals/DeleteModal";
+import { useSFTPState, useSFTPDispatch } from '../../context/SFTPContext';
+import { useFileOperations } from '../../hooks/useFileOperations';
+import { useArchiveOperations } from '../../hooks/useArchiveOperations';
+import { useModalControls } from '../../hooks/useModalControls';
+import { useFileSelection } from '../../hooks/useFileSelection';
 
-const ActionOverlay = ({
-   selectedFiles,
-   onClose,
-   onDelete,
-   onMove,
-   onDownload,
-   onArchive,
-   loading
-}) => {
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const selectedCount = selectedFiles.length;
+const ActionOverlay = () => {
+    const { selectedFiles, loading } = useSFTPState();
+    const { clearSelection } = useFileSelection();
+    const { handleMassDownload } = useFileOperations();
+    const { handleMassArchive } = useArchiveOperations();
+    const { openDeleteModal, openMoveModal } = useModalControls();
 
-    if (selectedCount === 0) return null;
-
-    const handleDelete = () => {
-        onDelete();
-        setShowDeleteModal(false);
-    };
+    if (selectedFiles.length === 0) return null;
 
     return (
-        <>
-            <div
-                style={{
-                    position: 'fixed',
-                    bottom: '20px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    zIndex: 1000,
-                    minWidth: '500px'
-                }}
-            >
-                <div className="bg-white shadow-lg rounded-pill py-2 px-4 border d-flex align-items-center justify-content-between">
-                    <div className="d-flex align-items-center">
-                        <div className="d-flex align-items-center me-3">
-                            <Check size={16} className="text-primary me-2" />
-                            <span className="text-secondary small fw-medium">
-                                {selectedCount} selected
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 min-w-[500px]">
+            <div className="bg-white shadow-lg rounded-full p-2">
+                <div className="flex items-center justify-between px-3">
+                    <div className="flex items-center">
+                        <div className="flex items-center mr-3">
+                            <Check size={16} className="text-primary mr-2" />
+                            <span className="text-gray-600 text-sm font-medium">
+                                {selectedFiles.length} selected
                             </span>
                         </div>
 
-                        <div className="vr mx-2"></div>
+                        <div className="w-px h-4 bg-gray-200 mx-2" />
 
-                        <div className="btn-group">
+                        <div className="flex items-center gap-2">
                             <button
-                                onClick={() => onDelete(selectedFiles)}
-                                disabled={loading}
-                                className="btn btn-sm btn-outline-danger rounded-pill px-3 me-2"
+                                onClick={() => openDeleteModal(selectedFiles)}
+                                disabled={loading.deleting}
+                                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-full hover:bg-red-50 disabled:opacity-50"
                                 title="Delete"
                             >
-                                <Trash2 size={18} className="me-1" />
-                                <span className="d-none d-sm-inline">Delete</span>
+                                <Trash2 size={16} className="mr-1.5" />
+                                <span className="hidden sm:inline">Delete</span>
                             </button>
 
                             <button
-                                onClick={onMove}
-                                disabled={loading}
-                                className="btn btn-sm btn-outline-secondary rounded-pill px-3 me-2"
+                                onClick={openMoveModal}
+                                disabled={loading.moving}
+                                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 disabled:opacity-50"
                                 title="Move"
                             >
-                                <MoveVertical size={18} className="me-1" />
-                                <span className="d-none d-sm-inline">Move</span>
+                                <MoveVertical size={16} className="mr-1.5" />
+                                <span className="hidden sm:inline">Move</span>
                             </button>
 
                             <button
-                                onClick={onDownload}
-                                disabled={loading}
-                                className="btn btn-sm btn-outline-primary rounded-pill px-3 me-2"
+                                onClick={() => handleMassDownload()}
+                                disabled={loading.downloading}
+                                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 bg-white border border-blue-200 rounded-full hover:bg-blue-50 disabled:opacity-50"
                                 title="Download"
                             >
-                                <Download size={18} className="me-1" />
-                                <span className="d-none d-sm-inline">Download</span>
+                                <Download size={16} className="mr-1.5" />
+                                <span className="hidden sm:inline">Download</span>
                             </button>
 
                             <button
-                                onClick={onArchive}
-                                disabled={loading}
-                                className="btn btn-sm btn-outline-secondary rounded-pill px-3"
+                                onClick={() => handleMassArchive()}
+                                disabled={loading.archiving}
+                                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 disabled:opacity-50"
                                 title="Archive"
                             >
-                                <Archive size={18} className="me-1" />
-                                <span className="d-none d-sm-inline">Archive</span>
+                                <Archive size={16} className="mr-1.5" />
+                                <span className="hidden sm:inline">Archive</span>
                             </button>
                         </div>
                     </div>
 
-                    <div className="d-flex align-items-center">
-                        <div className="vr mx-2"></div>
+                    <div className="flex items-center">
+                        <div className="w-px h-4 bg-gray-200 mx-2" />
                         <button
-                            onClick={onClose}
-                            className="btn btn-sm btn-outline-secondary rounded-circle"
-                            style={{ width: '32px', height: '32px', padding: 0 }}
+                            onClick={clearSelection}
+                            className="p-1.5 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100"
                             title="Close"
                         >
-                            <X size={18} />
+                            <X size={16} />
                         </button>
                     </div>
                 </div>
             </div>
-
-            <DeleteModal
-                isOpen={showDeleteModal}
-                selectedFiles={selectedFiles}
-                onClose={() => setShowDeleteModal(false)}
-                onConfirm={handleDelete}
-                loading={loading}
-            />
-        </>
+        </div>
     );
 };
 
