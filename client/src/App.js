@@ -3,6 +3,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import NavigationBar from "./components/navbar/NavigationBar";
 import AppRoutes from "./routes/AppRoutes";
 import axiosInstance from "./utils/auth";
+import { AuthProvider } from './features/auth/context/AuthContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
@@ -30,12 +31,14 @@ function App() {
 
     return (
         <Router>
-            <div ref={ref} className="min-h-screen bg-gray-50">
-                <NavigationBar />
-                <div className="max-w-7xl mx-auto px-4 py-6">
-                    <AppRoutes instances={instances} proxies={proxies} />
+            <AuthProvider>
+                <div ref={ref} className="min-h-screen bg-gray-50">
+                    <NavigationBar />
+                    <div className="max-w-7xl mx-auto px-4 py-6">
+                        <AppRoutes instances={instances} proxies={proxies} />
+                    </div>
                 </div>
-            </div>
+            </AuthProvider>
         </Router>
     );
 }

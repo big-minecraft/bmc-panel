@@ -45,3 +45,17 @@ export const clearToken = () => {
 export const isAdmin = () => {
     return Cookies.get('isAdmin') === 'true';
 };
+
+export const checkAuthToken = () => {
+    const token = getToken();
+    if (!token) return false;
+
+    try {
+        const tokenData = JSON.parse(atob(token.split('.')[1]));
+        const currentTime = new Date().getTime() / 1000;
+        return tokenData.exp > currentTime;
+    } catch (error) {
+        console.error('failed to decode token:', error);
+        return false;
+    }
+};
