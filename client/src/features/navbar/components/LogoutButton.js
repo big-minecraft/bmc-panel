@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LogOut } from 'lucide-react';
-import axiosInstance, { clearToken } from '../../utils/auth';
+import axiosInstance, { clearToken } from '../../../utils/auth';
 
 const LogoutButton = () => {
     const navigate = useNavigate();

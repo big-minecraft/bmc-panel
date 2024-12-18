@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Server, Shield } from 'lucide-react';
-import axiosInstance from '../utils/auth';
-import DeploymentCard from "../components/instances/home/DeploymentCard";
+import axiosInstance from '../../../utils/auth';
+import DeploymentCard from "../components/home/DeploymentCard";
 
 const NetworkOverview = ({ instances: initialInstances, proxies: initialProxies }) => {
     const [instances, setInstances] = useState(initialInstances);

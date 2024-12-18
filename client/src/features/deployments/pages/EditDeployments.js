@@ -4,7 +4,7 @@ import { useConfig } from '../hooks/useConfig';
 import ConfigEditor from '../components/editor/ConfigEditor';
 import ConfigHeader from '../components/editor/ConfigHeader';
 import { DeploymentsProvider } from '../context/DeploymentsContext';
-import { CloseIcon } from '../../../components/icons/DeploymentIcons';
+import { CloseIcon } from '../icons/DeploymentIcons';
 
 const ConfigEditContent = () => {
     const { name } = useParams();

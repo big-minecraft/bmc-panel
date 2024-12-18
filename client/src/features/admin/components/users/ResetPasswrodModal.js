@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Key } from 'lucide-react';
-import Modal from '../../common/Modal';
+import Modal from '../../../../common/components/Modal';
 
 const ResetPasswordModal = ({ user, onClose, onReset }) => {
     const [newPassword, setNewPassword] = useState('');

@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useState, useRef } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
-import NavigationBar from "./components/navbar/NavigationBar";
+import NavigationBar from "./features/navbar/components/NavigationBar";
 import AppRoutes from "./routes/AppRoutes";
 import axiosInstance from "./utils/auth";
 import { AuthProvider } from './features/auth/context/AuthContext';

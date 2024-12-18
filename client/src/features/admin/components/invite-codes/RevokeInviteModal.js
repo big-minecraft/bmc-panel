@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
-import Modal from '../../common/Modal';
+import Modal from '../../../../common/components/Modal';
 
 const RevokeInviteModal = ({ code, onClose, onRevoke }) => {
     if (!code) return null;

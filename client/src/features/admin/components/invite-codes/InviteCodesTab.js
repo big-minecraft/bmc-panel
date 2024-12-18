@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import axiosInstance from "../../../utils/auth";
+import axiosInstance from "../../../../utils/auth";
 import InviteCodeList from './InviteCodeList';
 import CreateInviteModal from './CreateInviteModal';
 import RevokeInviteModal from './RevokeInviteModal';
-import LoadingSpinner from '../../common/LoadingSpinner';
+import LoadingSpinner from '../../../../common/components/LoadingSpinner';
 import { Plus, Search } from 'lucide-react';
 
 const InviteCodesTab = () => {

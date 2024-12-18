@@ -1,9 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
 import React, { useState } from "react";
 import { ArrowLeft, Activity, Server, Users, Play, RotateCw, Square, ChevronDown } from 'lucide-react';
-import Console from "../components/instances/Console";
-import InstanceDetails from "../components/instances/InstanceDetails";
-import MetricsSection from "../components/instances/MetricsSection";
+import Console from "../components/Console";
+import InstanceDetails from "../components/InstanceDetails";
+import MetricsSection from "../components/MetricsSection";
 
 function ServerInstance({ instances, proxies }) {
     const { instanceName } = useParams();

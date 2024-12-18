@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import UsersTab from "../components/admin/users/UserTab";
-import InviteCodesTab from "../components/admin/invite-codes/InviteCodesTab";
+import UsersTab from "../components/users/UserTab";
+import InviteCodesTab from "../components/invite-codes/InviteCodesTab";
 import { Users, Ticket } from 'lucide-react';
 
 export const ADMIN_TABS = [

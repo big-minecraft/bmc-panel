@@ -1,10 +1,10 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import NetworkOverview from '../pages/NetworkOverview';
+import NetworkOverview from '../features/overview/pages/NetworkOverview';
 import Deployments from '../features/deployments/pages/Deployments';
-import Admin from '../pages/Admin';
-import ServerInstance from '../pages/ServerInstance';
-import NotFound from '../pages/NotFound';
+import Admin from '../features/admin/pages/Admin';
+import ServerInstance from '../features/overview/pages/ServerInstance';
+import NotFound from '../common/pages/NotFound';
 import PrivateRoute from './PrivateRoute';
 import SftpInterface from '../features/sftp/pages/SFTPInterface';
 import EditDeployments from "../features/deployments/pages/EditDeployments";

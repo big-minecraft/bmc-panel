@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import Modal from '../../common/Modal';
+import Modal from '../../../../common/components/Modal';
 
 const DeleteUserModal = ({ user, onClose, onDelete }) => {
     return (

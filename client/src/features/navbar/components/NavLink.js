@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { isAdmin } from '../../utils/auth';
+import { isAdmin } from '../../../utils/auth';
 
 const NavLink = ({ to, children, requireAdmin = false }) => {
     const location = useLocation();
