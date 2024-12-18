@@ -2,11 +2,11 @@
     "name": "node_react_startup_structure_server",
     "version": "1.0.0",
     "description": "The server for the Node React Startup Structure",
-    "main": "app.js",
+    "main": "app.ts",
     "type": "commonjs",
     "scripts": {
-        "start": "node app.js",
-        "dev": "nodemon app.js"
+        "start": "node app.ts",
+        "dev": "nodemon app.ts"
     },
     "author": "Anthony Rivas",
     "license": "MIT",

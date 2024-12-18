@@ -1,4 +1,4 @@
-const { verifyInviteCode } = require('../controllers/database')
+const { verifyInviteCode } = require('./database')
 const {isCodeExpired} = require("./database");
 
 const tokens = {}

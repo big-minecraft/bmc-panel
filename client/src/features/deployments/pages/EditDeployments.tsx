@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { useConfig } from '../hooks/useConfig';
+import { useConfig } from '../hooks/useConfig.ts';
 import ConfigEditor from '../components/editor/ConfigEditor';
 import ConfigHeader from '../components/editor/ConfigHeader';
 import { DeploymentsProvider } from '../context/DeploymentsContext';

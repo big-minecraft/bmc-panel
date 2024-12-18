@@ -2,7 +2,7 @@
     "name": "bmc-panel",
     "description": "panel for the big minecraft project",
     "version": "1.0.0",
-    "main": "server/app.js",
+    "main": "server/app.ts",
     "scripts": {
         "start": "if-env NODE_ENV=production && npm run start:prod || npm run start:dev",
         "start:prod": "cd server && npm run start",

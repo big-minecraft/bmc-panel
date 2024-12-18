@@ -1,4 +1,4 @@
-const { pool } = require('./database.js');
+const { pool } = require('./database.ts');
 const config = require('../config');
 
 async function createDatabase(name) {
