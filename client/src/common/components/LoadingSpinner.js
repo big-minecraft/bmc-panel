@@ -1,56 +1,71 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
+import { useTheme } from '../styles/colors';
 
-export const LoadingSpinner = () => (
-    <div className="flex flex-col items-center justify-center min-h-[200px]">
-        <svg className="w-12 h-12" viewBox="0 0 45 45">
-            <motion.circle
-                cx="22.5"
-                cy="22.5"
-                r="20"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                className="text-blue-100"
-            />
-            <motion.circle
-                cx="22.5"
-                cy="22.5"
-                r="20"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                className="text-blue-600"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "linear"
-                }}
-            />
-        </svg>
-        <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="mt-4 text-sm text-gray-500"
-        >
-            Loading...
-        </motion.p>
-    </div>
-);
+const LoadingSpinner = ({
+                            size = 'md',
+                            text = 'Loading',
+                            fullScreen = false,
+                        }) => {
+    const theme = useTheme();
 
-export const LoadingSkeleton = () => (
-    <div className="space-y-4">
-        {[...Array(3)].map((_, i) => (
+    const sizes = {
+        sm: 'w-4 h-4',
+        md: 'w-8 h-8',
+        lg: 'w-12 h-12',
+    };
+
+    const Wrapper = fullScreen ? motion.div : motion.div;
+    const wrapperProps = fullScreen ? {
+        className: "fixed inset-0 bg-white bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-50",
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
+    } : {
+        className: "flex flex-col items-center justify-center min-h-[200px]",
+    };
+
+    return (
+        <Wrapper {...wrapperProps}>
+            <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.2 }}
+                className="flex flex-col items-center"
+            >
+                <Loader2 className={`${sizes[size]} text-indigo-600 animate-spin`} />
+                {text && (
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                        className="mt-4 text-sm text-gray-500 font-medium"
+                    >
+                        {text}
+                    </motion.p>
+                )}
+            </motion.div>
+        </Wrapper>
+    );
+};
+
+const LoadingSkeleton = ({
+                             rows = 3,
+                             avatar = true,
+                             className = ''
+                         }) => (
+    <div className={`space-y-4 ${className}`}>
+        {[...Array(rows)].map((_, i) => (
             <div key={i} className="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
                 <div className="flex items-center space-x-3">
-                    <motion.div
-                        className="h-10 w-10 rounded-full bg-gray-200"
-                        animate={{ opacity: [0.5, 1, 0.5] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                    />
+                    {avatar && (
+                        <motion.div
+                            className="h-10 w-10 rounded-full bg-gray-200"
+                            animate={{ opacity: [0.5, 1, 0.5] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                        />
+                    )}
                     <div className="space-y-2 flex-1">
                         <motion.div
                             className="h-4 w-1/4 bg-gray-200 rounded"
@@ -88,4 +103,5 @@ export const ErrorAlert = ({ message }) => (
     </motion.div>
 );
 
+export { LoadingSpinner, LoadingSkeleton };
 export default LoadingSpinner;

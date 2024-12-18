@@ -4,7 +4,6 @@ import NavigationBar from "./features/navbar/components/NavigationBar";
 import AppRoutes from "./routes/AppRoutes";
 import axiosInstance from "./utils/auth";
 import { AuthProvider } from './features/auth/context/AuthContext';
-// import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
     const [instances, setInstances] = useState([]);

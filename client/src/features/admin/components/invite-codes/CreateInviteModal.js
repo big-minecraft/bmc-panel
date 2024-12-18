@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Ticket, Info } from 'lucide-react';
-import Modal from '../../../../common/components/Modal';
+import Modal from '../../../../common/zold/Modal';
 
 const CreateInviteModal = ({ show, onClose, onCreate }) => {
     const [newInviteMessage, setNewInviteMessage] = useState('');

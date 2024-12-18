@@ -4,7 +4,7 @@ import axiosInstance from "../../../../utils/auth";
 import UsersList from './UsersList';
 import DeleteUserModal from './DeleteUserModal';
 import LoadingSpinner, { ErrorAlert } from '../../../../common/components/LoadingSpinner';
-import ResetPasswordModal from "./ResetPasswrodModal";
+import ResetPasswordModal from "./ResetPasswordModal";
 
 const UsersTab = () => {
     const [users, setUsers] = useState([]);
