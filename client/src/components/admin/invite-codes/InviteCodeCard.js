@@ -1,46 +1,70 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { getStatusBadge } from './utils';
+import { Trash2, Copy, Check } from 'lucide-react';
 
 const InviteCodeCard = ({ invite, onRevokeClick }) => {
     const status = getStatusBadge(invite);
+    const [copied, setCopied] = React.useState(false);
+
+    const handleCopy = async () => {
+        await navigator.clipboard.writeText(invite.code);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
 
     return (
-        <div className="card">
-            <div className="card-body d-flex justify-content-between align-items-center">
-                <div>
-                    <h5 className="card-title mb-1">Code: {invite.code}</h5>
-                    <p className="card-text text-muted small mb-0">
-                        Message: {invite.message}
-                    </p>
-                    <p className="card-text text-muted small mb-0">
-                        Created: {new Date(invite.created_at).toLocaleString()}
-                    </p>
-                    {invite.used_by && (
-                        <p className="card-text text-muted small mb-0">
-                            Used by: {invite.used_by}
-                        </p>
-                    )}
-                </div>
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="group bg-white rounded-lg border border-gray-100 hover:border-gray-200 shadow-sm hover:shadow transition-all"
+        >
+            <div className="p-6">
+                <div className="flex items-start justify-between">
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                            <div className="font-mono text-sm bg-gray-50 px-3 py-1.5 rounded border border-gray-100">
+                                {invite.code}
+                            </div>
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={handleCopy}
+                                className="p-1.5 text-gray-500 hover:text-gray-700 rounded-lg transition-colors"
+                            >
+                                {copied ? <Check size={16} /> : <Copy size={16} />}
+                            </motion.button>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-gray-500 text-sm flex items-center gap-2">
+                                {invite.message}
+                            </p>
+                            <div className="flex items-center gap-3 text-xs text-gray-400">
+                                <span>Created {new Date(invite.created_at).toLocaleString()}</span>
+                                {invite.used_by && (
+                                    <span>• Used by {invite.used_by}</span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
 
-                <div className="d-flex align-items-center gap-3">
-                    <button
-                        className="btn btn-outline-danger btn-sm"
-                        onClick={() => onRevokeClick(invite.code)}
-                        disabled={invite.revoked || invite.is_expired}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                             fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
-                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
-                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
-                        </svg>
-                    </button>
-
-                    <span className={`badge ${status.color}`}>
-                        {status.text}
-                    </span>
+                    <div className="flex items-center gap-3 min-w-[120px] justify-end">
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => onRevokeClick(invite.code)}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                        >
+                            <Trash2 size={16} />
+                        </motion.button>
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${status.color}`}>
+                            {status.text}
+                        </span>
+                    </div>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 };
 

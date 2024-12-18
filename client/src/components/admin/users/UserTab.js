@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import axiosInstance from "../../../utils/auth";
 import UsersList from './UsersList';
 import DeleteUserModal from './DeleteUserModal';
-import LoadingSpinner, {ErrorAlert} from '../../common/LoadingSpinner';
+import LoadingSpinner, { ErrorAlert } from '../../common/LoadingSpinner';
 import ResetPasswordModal from "./ResetPasswrodModal";
 
 const UsersTab = () => {
@@ -46,9 +47,15 @@ const UsersTab = () => {
     if (error) return <ErrorAlert message={error} />;
 
     return (
-        <div className="container py-4">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <h1 className="display-6 mb-0">Users</h1>
+        <div className="py-6 px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center mb-6">
+                <motion.h1
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="text-3xl font-semibold text-gray-900"
+                >
+                    Users
+                </motion.h1>
             </div>
 
             <UsersList

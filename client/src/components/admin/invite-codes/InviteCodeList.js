@@ -1,32 +1,45 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import InviteCodeCard from './InviteCodeCard';
 
 const InviteCodeList = ({ inviteCodes, onRevokeClick }) => {
     if (inviteCodes.length === 0) {
         return (
-            <div className="row g-4">
-                <div className="col-12">
-                    <div className="card shadow-sm border">
-                        <div className="card-body text-center py-5">
-                            <h5 className="card-title mb-0 text-muted">No Invite Codes Found</h5>
-                        </div>
-                    </div>
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-lg shadow-sm border border-gray-200"
+            >
+                <div className="p-12 text-center">
+                    <h5 className="text-xl font-medium text-gray-500">No Invite Codes Found</h5>
                 </div>
-            </div>
+            </motion.div>
         );
     }
 
     return (
-        <div className="row g-4">
-            {inviteCodes.map((invite) => (
-                <div key={invite.code} className="col-12">
-                    <InviteCodeCard
-                        invite={invite}
-                        onRevokeClick={onRevokeClick}
-                    />
-                </div>
-            ))}
-        </div>
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-4"
+        >
+            <AnimatePresence>
+                {inviteCodes.map((invite) => (
+                    <motion.div
+                        key={invite.code}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <InviteCodeCard
+                            invite={invite}
+                            onRevokeClick={onRevokeClick}
+                        />
+                    </motion.div>
+                ))}
+            </AnimatePresence>
+        </motion.div>
     );
 };
 
