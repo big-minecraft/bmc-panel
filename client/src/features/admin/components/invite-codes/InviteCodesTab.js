@@ -4,7 +4,7 @@ import axiosInstance from "../../../../utils/auth";
 import InviteCodeList from './InviteCodeList.js';
 import CreateInviteModal from './CreateInviteModal.js';
 import RevokeInviteModal from './RevokeInviteModal';
-import LoadingSpinner from '../../../../common/components/LoadingSpinner';
+import LoadingSpinner from '../../../../common/zold/LoadingSpinner';
 import { Plus, Search } from 'lucide-react';
 
 const InviteCodesTab = () => {

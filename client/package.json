@@ -25,10 +25,22 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@chromatic-com/storybook": "^3.2.2",
+    "@storybook/addon-essentials": "^8.4.7",
+    "@storybook/addon-interactions": "^8.4.7",
+    "@storybook/addon-onboarding": "^8.4.7",
+    "@storybook/blocks": "^8.4.7",
+    "@storybook/preset-create-react-app": "^8.4.7",
+    "@storybook/react": "^8.4.7",
+    "@storybook/react-webpack5": "^8.4.7",
+    "@storybook/test": "^8.4.7",
     "autoprefixer": "^10.4.20",
     "eslint-plugin-storybook": "^0.11.1",
     "postcss": "^8.4.49",
-    "tailwindcss": "^3.4.16"
+    "prop-types": "^15.8.1",
+    "storybook": "^8.4.7",
+    "tailwindcss": "^3.4.16",
+    "webpack": "^5.97.1"
   },
   "overrides": {
     "nth-check": ">=2.0.1"
@@ -37,7 +49,9 @@
     "start": "BROWSER=none NODE_OPTIONS=--openssl-legacy-provider react-scripts start",
     "build": "NODE_OPTIONS=--openssl-legacy-provider react-scripts build",
     "test": "NODE_OPTIONS=--openssl-legacy-provider react-scripts test",
-    "eject": "NODE_OPTIONS=--openssl-legacy-provider react-scripts eject"
+    "eject": "NODE_OPTIONS=--openssl-legacy-provider react-scripts eject",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "eslintConfig": {
     "extends": [

@@ -14,7 +14,7 @@ export interface InputValidation {
 
 export interface UseInputProps {
     name?: string;
-    value?: string | number | readonly string[];  // Updated to match HTML input value types
+    value?: string | number | readonly string[];
     onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
     validation?: InputValidation;
     type?: string;
@@ -24,7 +24,7 @@ export interface UseInputReturn {
     inputProps: {
         name?: string;
         type: string;
-        value?: string | number | readonly string[];  // Updated to match HTML input value types
+        value?: string | number | readonly string[];
         onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
         onFocus: () => void;
         onBlur: () => void;

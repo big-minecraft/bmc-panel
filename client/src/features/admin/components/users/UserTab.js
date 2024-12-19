@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import axiosInstance from "../../../../utils/auth";
 import UsersList from './UsersList.js';
 import DeleteUserModal from './DeleteUserModal.js';
-import LoadingSpinner, { ErrorAlert } from '../../../../common/components/LoadingSpinner';
+import LoadingSpinner, { ErrorAlert } from '../../../../common/zold/LoadingSpinner';
 import ResetPasswordModal from "./ResetPasswordModal.js";
 
 const UsersTab = () => {
