@@ -1,7 +1,7 @@
-const jwt = require('jsonwebtoken');
-const config = require('../config');
-const { getUser } = require("../controllers/database");
-const kubernetesClient = require("../controllers/k8s.js");
+import jwt from 'jsonwebtoken';
+import config from '../config';
+import {getUser} from "../controllers/database";
+import kubernetesClient from "../controllers/k8s";
 
 const verifyToken = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -80,7 +80,7 @@ const verifyAdminToken = async (req, res, next) => {
     }
 };
 
-module.exports = {
+export {
     verifyToken,
     verifyAdminToken
 };

@@ -1,21 +1,36 @@
-const config = require('../config');
-const path = require('path');
-const { promises: { readFile, writeFile } } = require("fs");
-const yaml = require('js-yaml');
-const {scaleDeployment} = require("./k8s.js");
-const {sendProxyUpdate} = require("./redis.js");
-const util = require('util');
-const exec = util.promisify(require('child_process').exec);
+import config from '../config';
+import path from 'path';
+import { promises as fs } from 'fs';
+import yaml from 'js-yaml';
+import kubernetesClient from './k8s';
+import { sendProxyUpdate } from './redis';
+import { promisify } from 'util';
+import { exec as execCallback } from 'child_process';
 
-async function getProxyConfig() {
-    const workingDir = config["bmc-path"] + "/local";
+const exec = promisify(execCallback);
+
+interface ProxyConfig {
+    enabled: boolean;
+    path: string;
+    dataDirectory: string;
+}
+
+interface ProxyYaml {
+    disabled?: boolean;
+    scaling: {
+        minInstances?: number;
+    };
+}
+
+async function getProxyConfig(): Promise<ProxyConfig> {
+    const workingDir = `${config["bmc-path"]}/local`;
     const filePath = path.join(workingDir, "proxy.yaml");
 
     try {
-        const fileContent = await readFile(filePath, 'utf8');
-        const yamlContent = yaml.load(fileContent);
+        const fileContent = await fs.readFile(filePath, 'utf8');
+        const yamlContent = yaml.load(fileContent) as ProxyYaml;
         const isEnabled = !yamlContent.disabled;
-        const dataDir = "/system/proxy"
+        const dataDir = "/system/proxy";
 
         return {
             enabled: isEnabled,
@@ -27,24 +42,24 @@ async function getProxyConfig() {
     }
 }
 
-async function getProxyContent() {
-    const workingDir = config["bmc-path"] + "/local";
+async function getProxyContent(): Promise<string> {
+    const workingDir = `${config["bmc-path"]}/local`;
     const filePath = path.join(workingDir, "proxy.yaml");
 
     try {
-        return await readFile(filePath, 'utf8');
+        return await fs.readFile(filePath, 'utf8');
     } catch (error) {
         console.error(error);
         throw new Error('Failed to read proxy configuration file');
     }
 }
 
-async function updateProxyContent(content) {
-    const workingDir = config["bmc-path"] + "/local";
+async function updateProxyContent(content: string): Promise<void> {
+    const workingDir = `${config["bmc-path"]}/local`;
     const filePath = path.join(workingDir, "proxy.yaml");
 
     try {
-        await writeFile(filePath, content, 'utf8');
+        await fs.writeFile(filePath, content, 'utf8');
     } catch (error) {
         throw new Error('Failed to write proxy configuration file');
     }
@@ -53,15 +68,15 @@ async function updateProxyContent(content) {
     await sendProxyUpdate();
 }
 
-async function toggleProxy(enabled) {
-    const workingDir = config["bmc-path"] + "/local";
+async function toggleProxy(enabled: boolean): Promise<void> {
+    const workingDir = `${config["bmc-path"]}/local`;
     const filePath = path.join(workingDir, "proxy.yaml");
 
     try {
-        const fileContent = await readFile(filePath, 'utf8');
+        const fileContent = await fs.readFile(filePath, 'utf8');
         const lines = fileContent.split('\n');
 
-        const yamlContent = yaml.load(fileContent);
+        const yamlContent = yaml.load(fileContent) as ProxyYaml;
 
         const updatedLines = lines.map(line => {
             if (line.trim().startsWith('disabled:')) {
@@ -69,20 +84,20 @@ async function toggleProxy(enabled) {
             }
             return line;
         })
-            .filter(line => line !== null);
+            .filter((line): line is string => line !== null);
 
         if (!enabled && !lines.some(line => line.trim().startsWith('disabled:'))) {
             updatedLines.push('disabled: true');
         }
 
         const updatedContent = updatedLines.join('\n');
-        await writeFile(filePath, updatedContent, 'utf8');
+        await fs.writeFile(filePath, updatedContent, 'utf8');
 
         if (enabled) {
             const minimumInstances = yamlContent.scaling.minInstances || 1;
-            await scaleDeployment('proxy', minimumInstances);
+            await kubernetesClient.scaleDeployment('proxy', minimumInstances);
         } else {
-            await scaleDeployment('proxy', 0);
+            await kubernetesClient.scaleDeployment('proxy', 0);
         }
     } catch (error) {
         console.error('Error in toggleProxy:', error);
@@ -90,9 +105,9 @@ async function toggleProxy(enabled) {
     }
 }
 
-async function restartProxy() {
+async function restartProxy(): Promise<void> {
     try {
-        await scaleDeployment('proxy', 0);
+        await kubernetesClient.scaleDeployment('proxy', 0);
 
         let retries = 3;
         while (retries > 0) {
@@ -125,7 +140,7 @@ async function restartProxy() {
     }
 }
 
-async function runApplyScript() {
+async function runApplyScript(): Promise<void> {
     const scriptDir = path.join(config["bmc-path"], "scripts");
 
     try {
@@ -134,15 +149,17 @@ async function runApplyScript() {
             console.error(`Script stderr: ${stderr}`);
         }
     } catch (error) {
-        console.error(`Script execution error: ${error}`);
+        console.error(`Script execution error:`, error);
         throw error;
     }
 }
 
-module.exports = {
+export {
     getProxyConfig,
     getProxyContent,
     updateProxyContent,
     toggleProxy,
-    restartProxy
+    restartProxy,
+    ProxyConfig,
+    ProxyYaml
 };

@@ -1,5 +1,5 @@
-const { pool } = require('./database.ts');
-const config = require('../config');
+import {pool} from './database';
+import config from '../config';
 
 async function createDatabase(name) {
     let conn;
@@ -211,7 +211,7 @@ function isValidDatabaseName(name) {
     return /^[a-zA-Z0-9_]+$/.test(name);
 }
 
-module.exports = {
+export {
     createDatabase,
     listDatabases,
     deleteDatabase,

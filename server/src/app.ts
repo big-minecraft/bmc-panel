@@ -1,50 +1,82 @@
-const express = require('express');
-const http = require('http');
-const cors = require('cors');
-const config = require('./config'); // This will initialize the config
-const router = require('./routes');
-const { setupWebSocket } = require('./services/websocketService');
-const { databaseInit } = require('./controllers/database');
-const { authInit } = require('./controllers/authentication');
-const path = require("path");
-const {exec} = require("child_process");
+import express, { Application } from 'express';
+import { Server as HttpServer } from 'http';
+import cors from 'cors';
+import path from 'path';
+import { exec } from 'child_process';
 
-const app = express();
-const server = http.createServer(app);
+// Import local modules
+import config from './config';
+import router from './routes';
+import { setupWebSocket } from './services/websocketService';
+import { databaseInit } from './controllers/database';
+import { authInit } from './controllers/authentication';
+import kubernetesClient from "./controllers/k8s";
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+class AppServer {
+    private app: Application;
+    private server: HttpServer;
 
-app.use(cors());
-app.use('/', router);
+    constructor() {
+        this.app = express();
+        this.server = new HttpServer(this.app);
+        this.configureMiddleware();
+        this.configureRoutes();
+        this.initializeServices();
+    }
 
-// Setup WebSocket handling
-setupWebSocket(server);
+    private configureMiddleware(): void {
+        this.app.use(express.json());
+        this.app.use(express.urlencoded({ extended: true }));
+        this.app.use(cors());
+    }
 
-// Initialize other services
-databaseInit();
-authInit();
-installDependencies();
+    private configureRoutes(): void {
+        this.app.use('/', router);
+    }
 
-server.listen(3001, () => {
-    console.log('Server is listening on port 3001');
-});
+    private async initializeServices(): Promise<void> {
+        // Setup WebSocket handling
+        setupWebSocket(this.server);
 
+        // Initialize other services
+        await databaseInit();
+        await authInit();
+        if (kubernetesClient.isRunningInCluster()) await this.installDependencies();
+    }
 
-async function installDependencies() {
-    const { exec } = require('child_process');
-    const scriptDir = path.join(config["bmc-path"], "scripts");
+    private async installDependencies(): Promise<void> {
+        const scriptDir: string = path.join(config["bmc-path"], "scripts");
 
-    console.log('Installing dependencies...');
+        console.log('Installing dependencies...');
 
-    exec(`cd ${scriptDir} && ls && ./install-dependents.sh`, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`exec error: ${error}`);
-            return;
-        }
+        return new Promise((resolve, reject) => {
+            exec(
+                `cd ${scriptDir} && ls && ./install-dependents.sh`,
+                (error: Error | null, stdout: string, stderr: string) => {
+                    if (error) {
+                        console.error(`exec error: ${error}`);
+                        reject(error);
+                        return;
+                    }
 
-        // console.log(`stdout: ${stdout}`);
-        console.error(`Failed to install dependencies: ${stderr}`);
-    });
+                    if (stderr) {
+                        console.error(`Failed to install dependencies: ${stderr}`);
+                    }
+
+                    // console.log(`stdout: ${stdout}`);
+                    resolve();
+                }
+            );
+        });
+    }
+
+    public start(): void {
+        this.server.listen(3001, () => {
+            console.log('Server is listening on port 3001');
+        });
+    }
 }
+
+// Initialize and start the server
+const appServer = new AppServer();
+appServer.start();

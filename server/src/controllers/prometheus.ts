@@ -1,5 +1,5 @@
-const axios = require('axios');
-const config = require('../config');
+import axios from 'axios';
+import config from '../config';
 
 const PROMETHEUS_API_URL = `http://${config.prometheus.host}:${config.prometheus.port}/api/v1/query_range`;
 
@@ -93,7 +93,7 @@ async function getPodMemoryUsageForGraph(podName) {
     }
 }
 
-module.exports = {
+export {
     getPodCPUUsageForGraph,
     getPodMemoryUsageForGraph,
 };

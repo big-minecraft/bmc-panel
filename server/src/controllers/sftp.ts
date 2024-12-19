@@ -1,17 +1,17 @@
-const Client = require('ssh2-sftp-client');
-const config = require('../config');
-const multer = require('multer');
-const genericPool = require('generic-pool');
+import Client from 'ssh2-sftp-client';
+import config from '../config';
+import genericPool from 'generic-pool';
 
-const sftpPool = genericPool.createPool({
-    create: () => {
+const sftpPool = genericPool.createPool<Client>({
+    create: async () => {
         const sftp = new Client();
-        return sftp.connect({
+        await sftp.connect({
             host: config.sftp.host,
             port: config.sftp.port,
             username: config.sftp.username,
             password: config.sftp.password
-        }).then(() => sftp);
+        });
+        return sftp;
     },
     destroy: (sftp) => {
         return sftp.end();
@@ -271,7 +271,7 @@ async function listSFTPRecursive(path) {
     return results;
 }
 
-module.exports = {
+export {
     listSFTPFiles,
     getSFTPFileContent,
     createSFTPFile,

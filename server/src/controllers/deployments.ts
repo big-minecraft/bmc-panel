@@ -1,19 +1,48 @@
-const config = require('../config');
-const path = require('path');
-const { readdirSync, unlinkSync, promises: { readFile, writeFile, rename, copyFile } } = require("fs");
-const yaml = require('js-yaml');
-const kubernetesClient = require("./k8s.js");
-const {createSFTPDirectory, deleteSFTPDirectory} = require("./sftp");
-const util = require('util');
-const {sendDeploymentUpdate, redisPool} = require("./redis.js");
-const {createGrafanaDashboard, generateGrafanaSnapshot, listGrafanaDashboards, fetchGrafanaSnapshotImage,
-    getPodCPUUsageForGraph, getPodMemoryUsageForGraph
-} = require("./prometheus");
-const exec = util.promisify(require('child_process').exec);
+import config from '../config';
+import path from 'path';
+import { readdirSync, unlinkSync, promises as fs } from 'fs';
+import yaml from 'js-yaml';
+import kubernetesClient from './k8s';
+import { createSFTPDirectory, deleteSFTPDirectory } from './sftp';
+import { promisify } from 'util';
+import { sendDeploymentUpdate, redisPool } from './redis';
+import { exec as execCallback } from 'child_process';
+
+const exec = promisify(execCallback);
+
+interface DeploymentPaths {
+    persistent: {
+        enabled: string;
+        disabled: string;
+    };
+    nonPersistent: {
+        enabled: string;
+        disabled: string;
+    };
+}
+
+interface Deployment {
+    name: string;
+    path: string;
+    enabled: boolean;
+    dataDirectory: string;
+    type: 'persistent' | 'non-persistent';
+}
+
+interface DeploymentYaml {
+    volume: {
+        dataDirectory?: string;
+    };
+    dedicatedNode?: string;
+    scaling: {
+        minInstances?: number;
+    };
+    disabled?: boolean;
+}
 
 // Centralized method to get full path for a deployment file
-function getDeploymentFilePaths(name) {
-    const baseDir = config["bmc-path"] + "/local/deployments";
+function getDeploymentFilePaths(name: string): DeploymentPaths {
+    const baseDir = `${config["bmc-path"]}/local/deployments`;
     return {
         persistent: {
             enabled: path.join(baseDir, "persistent", `${name}.yaml`),
@@ -26,7 +55,7 @@ function getDeploymentFilePaths(name) {
     };
 }
 
-async function findDeploymentFile(name) {
+async function findDeploymentFile(name: string): Promise<string> {
     const paths = getDeploymentFilePaths(name);
     const allPaths = [
         ...Object.values(paths.persistent),
@@ -35,7 +64,7 @@ async function findDeploymentFile(name) {
 
     for (const filePath of allPaths) {
         try {
-            await readFile(filePath);
+            await fs.readFile(filePath);
             return filePath;
         } catch {}
     }
@@ -43,14 +72,14 @@ async function findDeploymentFile(name) {
     throw new Error('Deployment file not found');
 }
 
-function getDeploymentType(filePath) {
+function getDeploymentType(filePath: string): 'persistent' | 'non-persistent' {
     return filePath.includes('/persistent/') ? 'persistent' : 'non-persistent';
 }
 
-async function getDeployments() {
+async function getDeployments(): Promise<Deployment[]> {
     const baseDir = path.join(config["bmc-path"], "local/deployments");
-    const types = ['persistent', 'non-persistent'];
-    let deployments = [];
+    const types: Array<'persistent' | 'non-persistent'> = ['persistent', 'non-persistent'];
+    const deployments: Deployment[] = [];
 
     await kubernetesClient.listNodeNames();
 
@@ -65,26 +94,25 @@ async function getDeployments() {
                     const name = file.split(".")[0].replace(/^disabled-/, '');
                     const filePath = path.join(dirPath, file);
 
-                    const fileContent = await readFile(filePath, 'utf8');
-                    const yamlContent = yaml.load(fileContent);
+                    const fileContent = await fs.readFile(filePath, 'utf8');
+                    const yamlContent = yaml.load(fileContent) as DeploymentYaml;
                     const isEnabled = !file.startsWith('disabled-');
-
 
                     let dataDir = `/deployments/${yamlContent.volume.dataDirectory || name}`;
 
                     if (type === 'persistent') {
-                        let node = yamlContent.dedicatedNode;
+                        const node = yamlContent.dedicatedNode;
                         dataDir = `/nodes/${node}/deployments/${yamlContent.volume.dataDirectory || name}`;
                     }
 
                     const existingDeployment = deployments.find(g => g.name === name);
                     if (!existingDeployment) {
                         deployments.push({
-                            name: name,
+                            name,
                             path: filePath,
                             enabled: isEnabled,
                             dataDirectory: dataDir,
-                            type: type
+                            type
                         });
                     }
                 }
@@ -97,16 +125,16 @@ async function getDeployments() {
     return deployments;
 }
 
-async function getDeploymentContent(name) {
+async function getDeploymentContent(name: string): Promise<string> {
     const filePath = await findDeploymentFile(name);
-    return await readFile(filePath, 'utf8');
+    return await fs.readFile(filePath, 'utf8');
 }
 
-async function updateDeploymentContent(name, content) {
+async function updateDeploymentContent(name: string, content: string): Promise<void> {
     const filePath = await findDeploymentFile(name);
 
     try {
-        await writeFile(filePath, content, 'utf8');
+        await fs.writeFile(filePath, content, 'utf8');
     } catch (error) {
         throw new Error('Failed to write deployment file');
     }
@@ -115,15 +143,15 @@ async function updateDeploymentContent(name, content) {
     await sendDeploymentUpdate();
 }
 
-async function toggleDeployment(name, enabled) {
+async function toggleDeployment(name: string, enabled: boolean): Promise<void> {
     const filePath = await findDeploymentFile(name);
     const type = getDeploymentType(filePath);
 
     try {
-        const fileContent = await readFile(filePath, 'utf8');
+        const fileContent = await fs.readFile(filePath, 'utf8');
         const lines = fileContent.split('\n');
 
-        const yamlContent = yaml.load(fileContent);
+        const yamlContent = yaml.load(fileContent) as DeploymentYaml;
 
         const updatedLines = lines.map(line => {
             if (line.trim().startsWith('disabled:')) {
@@ -131,7 +159,7 @@ async function toggleDeployment(name, enabled) {
             }
             return line;
         })
-            .filter(line => line !== null);
+            .filter((line): line is string => line !== null);
 
         if (!enabled && !lines.some(line => line.trim().startsWith('disabled:'))) {
             updatedLines.push('disabled: true');
@@ -144,11 +172,11 @@ async function toggleDeployment(name, enabled) {
             ? filePath.replace('disabled-', '')
             : path.join(path.dirname(filePath), `disabled-${path.basename(filePath)}`);
 
-        await writeFile(newFilePath, updatedContent, 'utf8');
+        await fs.writeFile(newFilePath, updatedContent, 'utf8');
 
         // Remove old file if renamed
         if (newFilePath !== filePath) {
-            await unlinkSync(filePath);
+            unlinkSync(filePath);
         }
 
         if (enabled) {
@@ -163,15 +191,15 @@ async function toggleDeployment(name, enabled) {
     }
 }
 
-async function deleteDeployment(name)  {
+async function deleteDeployment(name: string): Promise<void> {
     const filePath = await findDeploymentFile(name);
     const type = getDeploymentType(filePath);
 
-    let config = await getDeploymentContent(name);
-    let yamlContent = yaml.load(config);
+    const config = await getDeploymentContent(name);
+    const yamlContent = yaml.load(config) as DeploymentYaml;
 
     try {
-        await unlinkSync(filePath);
+        unlinkSync(filePath);
 
         let directoryPath = `/deployments/${name}`;
         if (type === 'persistent') directoryPath = `/nodes/${yamlContent.dedicatedNode}/deployments/${name}`;
@@ -186,13 +214,13 @@ async function deleteDeployment(name)  {
     await sendDeploymentUpdate();
 }
 
-async function restartDeployment(name) {
+async function restartDeployment(name: string): Promise<void> {
     try {
         await kubernetesClient.scaleDeployment(name, 0);
 
-        let deployment = await getDeploymentContent(name);
-        let yamlContent = yaml.load(deployment);
-        let minimumInstances = yamlContent.scaling.minInstances || 1;
+        const deployment = await getDeploymentContent(name);
+        const yamlContent = yaml.load(deployment) as DeploymentYaml;
+        const minimumInstances = yamlContent.scaling.minInstances || 1;
 
         let retries = 3;
         while (retries > 0) {
@@ -225,9 +253,13 @@ async function restartDeployment(name) {
     }
 }
 
-async function createDeployment(name, type = 'non-persistent', node = null) {
+async function createDeployment(
+    name: string,
+    type: 'persistent' | 'non-persistent' = 'non-persistent',
+    node?: string
+): Promise<void> {
     const workingDir = path.join(config["bmc-path"], "local/deployments", type);
-    const defaultsDir = config["bmc-path"] + "/defaults";
+    const defaultsDir = `${config["bmc-path"]}/defaults`;
     const sourceFile = path.join(defaultsDir, `${type}-deployment.yaml`);
     const destinationFile = path.join(workingDir, `${name}.yaml`);
 
@@ -240,8 +272,8 @@ async function createDeployment(name, type = 'non-persistent', node = null) {
     }
 
     try {
-        await copyFile(sourceFile, destinationFile);
-        let originalContent = await readFile(sourceFile, 'utf8');
+        await fs.copyFile(sourceFile, destinationFile);
+        let originalContent = await fs.readFile(sourceFile, 'utf8');
         const lines = originalContent.split('\n');
 
         const updatedLines = lines.map(line => {
@@ -260,7 +292,7 @@ async function createDeployment(name, type = 'non-persistent', node = null) {
         });
 
         const updatedContent = updatedLines.join('\n');
-        await writeFile(destinationFile, updatedContent, 'utf8');
+        await fs.writeFile(destinationFile, updatedContent, 'utf8');
 
         let directoryPath = `/deployments/${name}`;
 
@@ -276,16 +308,16 @@ async function createDeployment(name, type = 'non-persistent', node = null) {
     await sendProxyUpdate();
 }
 
-async function fileExists(filePath) {
+async function fileExists(filePath: string): Promise<boolean> {
     try {
-        await readFile(filePath);
+        await fs.readFile(filePath);
         return true;
     } catch {
         return false;
     }
 }
 
-async function runApplyScript() {
+async function runApplyScript(): Promise<void> {
     const scriptDir = path.join(config["bmc-path"], "scripts");
 
     try {
@@ -294,23 +326,25 @@ async function runApplyScript() {
             console.error(`Script stderr: ${stderr}`);
         }
     } catch (error) {
-        console.error(`Script execution error: ${error}`);
+        console.error(`Script execution error:`, error);
         throw error;
     }
 }
 
-async function sendProxyUpdate() {
+async function sendProxyUpdate(): Promise<void> {
     const client = await redisPool.acquire();
     client.publish('proxy-modified', 'update');
     await redisPool.release(client);
 }
 
-module.exports = {
-    getDeployments: getDeployments,
-    getDeploymentContent: getDeploymentContent,
-    updateDeploymentContent: updateDeploymentContent,
-    toggleDeployment: toggleDeployment,
-    deleteDeployment: deleteDeployment,
-    createDeployment: createDeployment,
-    restartDeployment: restartDeployment
+export {
+    getDeployments,
+    getDeploymentContent,
+    updateDeploymentContent,
+    toggleDeployment,
+    deleteDeployment,
+    createDeployment,
+    restartDeployment,
+    Deployment,
+    DeploymentYaml
 };

@@ -1,13 +1,28 @@
-const k8s = require('@kubernetes/client-node');
-const { Agent } = require("https");
-const request = require('request');
-const { setupPodLogs } = require('./logService.js');
-const { executeCommand } = require('./commandService');
-const { kc } = require('../controllers/k8s.js');
+import * as k8s from '@kubernetes/client-node';
+import { WebSocket } from 'ws';
+import { setupPodLogs } from './logService';
+import { executeCommand } from './commandService';
+import kubernetesClient from '../controllers/k8s';
 
-async function handlePodConnection(ws, req, podName) {
-    const cluster = kc.getCurrentCluster();
-    const user = kc.getCurrentUser();
+interface CommandMessage {
+    command: string;
+}
+
+interface Cluster extends k8s.Cluster {
+    // Add any additional cluster properties if needed
+}
+
+interface User extends k8s.User {
+    // Add any additional user properties if needed
+}
+
+async function handlePodConnection(
+    ws: WebSocket,
+    req: any,
+    podName: string
+): Promise<void> {
+    const cluster: Cluster = kubernetesClient.kc.getCurrentCluster();
+    const user: User = kubernetesClient.kc.getCurrentUser();
 
     console.log(`Client connected for logs and commands of pod: ${podName}`);
 
@@ -17,9 +32,9 @@ async function handlePodConnection(ws, req, podName) {
 
     setupPodLogs(ws, podName, cluster, user);
 
-    ws.on('message', async (message) => {
+    ws.on('message', async (message: WebSocket.Data) => {
         try {
-            const { command } = JSON.parse(message);
+            const { command } = JSON.parse(message.toString()) as CommandMessage;
             if (!command) {
                 console.error('No command received');
                 return;
@@ -28,7 +43,7 @@ async function handlePodConnection(ws, req, podName) {
             await executeCommand(ws, command, podName, cluster, user);
         } catch (error) {
             console.error('Error handling message:', error);
-            ws.send(`Error: ${error.message}`);
+            ws.send(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     });
 
@@ -37,6 +52,9 @@ async function handlePodConnection(ws, req, podName) {
     });
 }
 
-module.exports = {
-    handlePodConnection
+export {
+    handlePodConnection,
+    CommandMessage,
+    Cluster,
+    User
 };

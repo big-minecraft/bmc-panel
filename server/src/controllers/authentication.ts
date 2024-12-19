@@ -1,11 +1,11 @@
-const speakeasy = require('speakeasy');
-const qrcode = require('qrcode');
-const {userExists, addUser, getPassword, setInviteTokenUsed, getUser} = require("./database");
-const config = require('../config');
-const jwt = require('jsonwebtoken');
-const {join} = require("path");
-const {writeFileSync} = require("fs");
-const {checkToken, setUsed, removeToken, getCode} = require("./inviteCodes");
+import speakeasy from 'speakeasy';
+import qrcode from 'qrcode';
+import {userExists, addUser, getPassword, setInviteTokenUsed, getUser} from "./database";
+import config from '../config';
+import jwt from 'jsonwebtoken';
+import {join} from "path";
+import {writeFileSync} from "fs";
+import {checkToken, removeToken, getCode} from "./inviteCodes";
 
 const users = {};
 const tempTokens = {};
@@ -112,7 +112,7 @@ async function generateToken(username) {
     return jwt.sign(payload, config["token-secret"], options);
 }
 
-module.exports = {
+export {
     authInit,
     register,
     verify,

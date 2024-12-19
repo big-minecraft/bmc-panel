@@ -1,22 +1,30 @@
-const JSZip = require('jszip');
-const tar = require('tar');
-const SevenZip = require('7zip-min');
-const { promisify } = require('util');
-const fs = require('fs').promises;
-const path = require('path');
-const os = require('os');
-const { pipeline } = require('stream/promises');
-const zlib = require('zlib');
-const { createReadStream, createWriteStream } = require('fs');
-const unrar = require('node-unrar-js');
-const {uploadSFTPFile} = require("./sftp");
-const {downloadSFTPFile} = require("./sftp");
+import JSZip from 'jszip';
+import tar from 'tar';
+import SevenZip from '7zip-min';
+import { promisify } from 'util';
+import fs from 'fs/promises';
+import path from 'path';
+import os from 'os';
+import zlib from 'zlib';
+import * as unrar from 'node-unrar-js';
+import { uploadSFTPFile } from './sftp';
+import { downloadSFTPFile } from './sftp';
 
-const createTempDir = async () => {
+// Type definitions
+type FileContent = Buffer | string;
+
+interface ExtractedEntry {
+    type: 'file' | 'directory';
+    name: string;
+    buffer?: Buffer;
+}
+
+// Helper functions
+const createTempDir = async (): Promise<string> => {
     return await fs.mkdtemp(path.join(os.tmpdir(), 'sftp-extract-'));
 };
 
-const cleanupTempDir = async (tempPath) => {
+const cleanupTempDir = async (tempPath: string): Promise<void> => {
     try {
         await fs.rm(tempPath, { recursive: true, force: true });
     } catch (error) {
@@ -24,9 +32,15 @@ const cleanupTempDir = async (tempPath) => {
     }
 };
 
-const getDirectory = (filePath) => path.dirname(filePath);
+const getDirectory = (filePath: string): string => path.dirname(filePath);
 
-const handleZip = async (fileBuffer, originalPath) => {
+const ensureRemoteDirectory = async (dirPath: string): Promise<void> => {
+    // Implementation of ensureRemoteDirectory should be provided in the SFTP module
+    // This is just a placeholder type definition
+};
+
+// Archive handlers
+const handleZip = async (fileBuffer: Buffer, originalPath: string): Promise<void> => {
     const zip = new JSZip();
     await zip.loadAsync(fileBuffer);
     const files = Object.keys(zip.files);
@@ -43,7 +57,7 @@ const handleZip = async (fileBuffer, originalPath) => {
     }
 };
 
-const handleTar = async (tempFilePath, originalPath) => {
+const handleTar = async (tempFilePath: string, originalPath: string): Promise<void> => {
     const targetDir = getDirectory(originalPath);
     const tempExtractPath = path.join(path.dirname(tempFilePath), 'extracted');
     await fs.mkdir(tempExtractPath, { recursive: true });
@@ -53,7 +67,7 @@ const handleTar = async (tempFilePath, originalPath) => {
         cwd: tempExtractPath
     });
 
-    const processDirectory = async (dir, baseDir) => {
+    const processDirectory = async (dir: string, baseDir: string): Promise<void> => {
         const entries = await fs.readdir(dir, { withFileTypes: true });
 
         for (const entry of entries) {
@@ -74,7 +88,7 @@ const handleTar = async (tempFilePath, originalPath) => {
     await processDirectory(tempExtractPath, tempExtractPath);
 };
 
-const handleGzip = async (tempFilePath, originalPath) => {
+const handleGzip = async (tempFilePath: string, originalPath: string): Promise<void> => {
     const gunzip = promisify(zlib.gunzip);
     const fileContent = await fs.readFile(tempFilePath);
     const unzippedContent = await gunzip(fileContent);
@@ -92,36 +106,40 @@ const handleGzip = async (tempFilePath, originalPath) => {
     }
 };
 
-const handleRar = async (tempFilePath, originalPath) => {
+const handleRar = async (tempFilePath: string, originalPath: string): Promise<void> => {
     const targetDir = getDirectory(originalPath);
     const tempExtractPath = path.join(path.dirname(tempFilePath), 'extracted');
     await fs.mkdir(tempExtractPath, { recursive: true });
 
     const rarBuffer = await fs.readFile(tempFilePath);
-    const extractor = await unrar.createExtractor({data: rarBuffer});
+    const extractor = await unrar.createExtractorFromData({
+        data: rarBuffer
+    });
 
-    for (const entry of extractor.extract()) {
-        if (entry.type === 'file' && entry.buffer) {
-            const targetPath = path.join(targetDir, entry.name).replace(/\\/g, '/');
+    const list = extractor.extract();
+
+    for (const file of list.files) {
+        if (!file.fileHeader.flags.directory && file.extraction) {
+            const targetPath = path.join(targetDir, file.fileHeader.name).replace(/\\/g, '/');
             await ensureRemoteDirectory(path.dirname(targetPath));
-            await uploadSFTPFile(entry.buffer, targetPath);
+            await uploadSFTPFile(Buffer.from(file.extraction), targetPath);
         }
     }
 };
 
-const handleSevenZip = async (tempFilePath, originalPath) => {
+const handleSevenZip = async (tempFilePath: string, originalPath: string): Promise<void> => {
     const targetDir = getDirectory(originalPath);
     const tempExtractPath = path.join(path.dirname(tempFilePath), 'extracted');
     await fs.mkdir(tempExtractPath, { recursive: true });
 
-    await new Promise((resolve, reject) => {
-        SevenZip.unpack(tempFilePath, tempExtractPath, (err) => {
+    await new Promise<void>((resolve, reject) => {
+        SevenZip.unpack(tempFilePath, tempExtractPath, (err: Error | null) => {
             if (err) reject(err);
             else resolve();
         });
     });
 
-    const processDirectory = async (dir, baseDir) => {
+    const processDirectory = async (dir: string, baseDir: string): Promise<void> => {
         const entries = await fs.readdir(dir, { withFileTypes: true });
 
         for (const entry of entries) {
@@ -142,8 +160,8 @@ const handleSevenZip = async (tempFilePath, originalPath) => {
     await processDirectory(tempExtractPath, tempExtractPath);
 };
 
-async function unarchiveFile(filePath) {
-    let tempDir = null;
+async function unarchiveFile(filePath: string): Promise<void> {
+    let tempDir: string | null = null;
 
     try {
         const fileBuffer = await downloadSFTPFile(filePath);
@@ -179,6 +197,6 @@ async function unarchiveFile(filePath) {
     }
 }
 
-module.exports = {
+export {
     unarchiveFile
 };

@@ -1,10 +1,41 @@
-const WebSocket = require('ws');
-const { Agent } = require("https");
-const fs = require('fs');
-const path = require('path');
-const kubernetesClient = require('../controllers/k8s.js');
+import WebSocket from 'ws';
+import { Agent } from 'https';
+import * as fs from 'fs';
+import * as path from 'path';
+import kubernetesClient from '../controllers/k8s';
 
-async function executeCommand(ws, command, podName, cluster, user) {
+interface Cluster {
+    server: string;
+    caFile?: string;
+    caData?: string;
+    skipTLSVerify?: boolean;
+}
+
+interface User {
+    authProvider?: {
+        config: {
+            tokenFile: string;
+        };
+    };
+    certData?: string;
+    keyData?: string;
+}
+
+interface WebSocketOptions {
+    agent: Agent;
+    headers: {
+        Authorization?: string;
+        [key: string]: string | undefined;
+    };
+}
+
+async function executeCommand(
+    ws: WebSocket,
+    command: string,
+    podName: string,
+    cluster: Cluster,
+    user: User
+): Promise<void> {
     if (!podName) {
         throw new Error('Pod name is required');
     }
@@ -31,7 +62,7 @@ async function executeCommand(ws, command, podName, cluster, user) {
 
     const wsUrl = fullUrl.replace(/^http/, 'ws');
 
-    let wsOptions = {
+    const wsOptions: WebSocketOptions = {
         agent: new Agent({
             rejectUnauthorized: true
         }),
@@ -39,8 +70,8 @@ async function executeCommand(ws, command, podName, cluster, user) {
     };
 
     if (kubernetesClient.isRunningInCluster()) {
-        const tokenPath = path.join('/host-root', user.authProvider.config.tokenFile);
-        const caPath = path.join('/host-root', cluster.caFile);
+        const tokenPath = path.join('/host-root', user.authProvider?.config.tokenFile || '');
+        const caPath = path.join('/host-root', cluster.caFile || '');
 
         const token = fs.readFileSync(tokenPath, 'utf8');
         const ca = fs.readFileSync(caPath);
@@ -51,8 +82,8 @@ async function executeCommand(ws, command, podName, cluster, user) {
         });
         wsOptions.headers['Authorization'] = `Bearer ${token}`;
     } else {
-        const cert = Buffer.from(user.certData, 'base64');
-        const key = Buffer.from(user.keyData, 'base64');
+        const cert = user.certData ? Buffer.from(user.certData, 'base64') : undefined;
+        const key = user.keyData ? Buffer.from(user.keyData, 'base64') : undefined;
         const ca = cluster.caData ? Buffer.from(cluster.caData, 'base64') : undefined;
 
         wsOptions.agent = new Agent({
@@ -66,39 +97,42 @@ async function executeCommand(ws, command, podName, cluster, user) {
     const execWs = new WebSocket(wsUrl, 'v4.channel.k8s.io', wsOptions);
 
     execWs.on('open', () => {
-        console.log('exec websocket opened')
+        console.log('exec websocket opened');
     });
 
     execWs.on('close', () => {
-        console.log('exec websocket closed')
+        console.log('exec websocket closed');
     });
 
-    execWs.on('message', (data) => {
+    execWs.on('message', (data: Buffer) => {
         const channel = data[0];
         const message = data.slice(1).toString();
 
         if (channel === 1) {
             console.log('exec stdout:', message);
-            if (ws.readyState === ws.OPEN) {
+            if (ws.readyState === WebSocket.OPEN) {
                 ws.send(message);
             }
         } else if (channel === 2) {
             console.log('exec stderr:', message);
-            if (ws.readyState === ws.OPEN) {
+            if (ws.readyState === WebSocket.OPEN) {
                 ws.send(`Error: ${message}`);
             }
         }
     });
 
-    execWs.on('error', (error) => {
+    execWs.on('error', (error: Error) => {
         console.error('exec websocket error:', error);
-        if (ws.readyState === ws.OPEN) {
+        if (ws.readyState === WebSocket.OPEN) {
             ws.send(`Error: ${error.message}`);
             ws.close();
         }
     });
 }
 
-module.exports = {
-    executeCommand
+export {
+    executeCommand,
+    Cluster,
+    User,
+    WebSocketOptions
 };

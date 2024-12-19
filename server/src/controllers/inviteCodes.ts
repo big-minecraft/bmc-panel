@@ -1,5 +1,5 @@
-const { verifyInviteCode } = require('./database')
-const {isCodeExpired} = require("./database");
+import {verifyInviteCode} from './database';
+import {isCodeExpired} from "./database";
 
 const tokens = {}
 
@@ -40,7 +40,7 @@ function getCode(token) {
 
 
 
-module.exports = {
+export {
     tokens,
     verifyInvite,
     checkToken,

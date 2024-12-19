@@ -1,5 +1,5 @@
-const WebSocket = require('ws');
-const { handlePodConnection } = require('./podService');
+import WebSocket from 'ws';
+import {handlePodConnection} from './podService';
 
 function setupWebSocket(server) {
     const wss = new WebSocket.Server({ noServer: true });
@@ -25,6 +25,6 @@ function setupWebSocket(server) {
     wss.on('connection', handlePodConnection);
 }
 
-module.exports = {
+export {
     setupWebSocket
 };

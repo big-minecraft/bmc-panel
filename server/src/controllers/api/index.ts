@@ -1,27 +1,64 @@
-const { getInstances, getProxies } = require("../redis.js");
-const { getDeployments, getDeploymentContent, updateDeploymentContent, toggleDeployment, deleteDeployment, createDeployment,
+import multer from 'multer';
+import JSZip from 'jszip';
+import { getInstances, getProxies } from '../redis';
+import {
+    getDeployments,
+    getDeploymentContent,
+    updateDeploymentContent,
+    toggleDeployment,
+    deleteDeployment,
+    createDeployment,
     restartDeployment
-} = require("../deployments");
-const { register, verify, verifyLogin, login} = require("../authentication");
-const {getInviteCodes, createInviteCode, revokeInviteCode, getUsers, setAdmin, resetPassword, deleteUser, logout,
-    getUser, getUserByID
-} = require("../database");
-const {verifyInvite} = require("../inviteCodes");
-const {deleteSFTPDirectory, createSFTPDirectory, deleteSFTPFile, updateSFTPFile, createSFTPFile, listSFTPFiles,
-    getSFTPFileContent, downloadSFTPFile, uploadSFTPFile, moveFileOrFolder, listSFTPRecursive
-} = require("../sftp");
-const multer = require("multer");
-const JSZip = require("jszip");
-const config = require("../../config");
-const {unarchiveFile} = require("../unzip.js");
-const {getProxyContent, updateProxyContent, toggleProxy, restartProxy, getProxyConfig} = require("../proxy");
-const DatabaseService = require("../databaseService");
-const {createDatabase, listDatabases} = require("../databaseService");
-const kubernetesClient = require("../k8s.js");
-const {getPodCPUUsageForGraph, getPodMemoryUsageForGraph} = require("../prometheus");
+} from '../deployments';
+import {
+    register,
+    verify,
+    verifyLogin,
+    login
+} from '../authentication';
+import {
+    getInviteCodes,
+    createInviteCode,
+    revokeInviteCode,
+    getUsers,
+    setAdmin,
+    resetPassword,
+    deleteUser,
+    logout,
+    getUser,
+    getUserByID
+} from '../database';
+import { verifyInvite } from '../inviteCodes';
+import {
+    deleteSFTPDirectory,
+    createSFTPDirectory,
+    deleteSFTPFile,
+    updateSFTPFile,
+    createSFTPFile,
+    listSFTPFiles,
+    getSFTPFileContent,
+    downloadSFTPFile,
+    uploadSFTPFile,
+    moveFileOrFolder,
+    listSFTPRecursive
+} from '../sftp';
+import config from '../../config';
+import { unarchiveFile } from '../unzip';
+import {
+    getProxyContent,
+    updateProxyContent,
+    toggleProxy,
+    restartProxy,
+    getProxyConfig
+} from '../proxy';
+import {createDatabase, deleteDatabase, listDatabases, resetDatabasePassword} from '../databaseService';
+import kubernetesClient from '../k8s';
+import {
+    getPodCPUUsageForGraph,
+    getPodMemoryUsageForGraph
+} from '../prometheus';
 
-
-module.exports = {
+const api = {
     getInstances: async (req, res) => {
         const instances = await getInstances();
         res.json(instances);
@@ -592,7 +629,7 @@ module.exports = {
     deleteDatabase: async (req, res) => {
         const {name} = req.params;
         try {
-            await DatabaseService.deleteDatabase(name);
+            await deleteDatabase(name);
             res.json({message: 'Database deleted successfully'});
         } catch (error) {
             res.status(500).json({error: 'Failed to delete database'});
@@ -602,7 +639,7 @@ module.exports = {
     resetDatabasePassword: async (req, res) => {
         const {name} = req.params;
         try {
-            const {username, password} = await DatabaseService.resetDatabasePassword(name);
+            const {username, password} = await resetDatabasePassword(name);
             res.json({message: 'Database password reset successfully', username, password});
         } catch (error) {
             res.status(500).json({error: 'Failed to reset database password'});
@@ -638,4 +675,6 @@ module.exports = {
         }
     }
 };
+
+export default api;
 

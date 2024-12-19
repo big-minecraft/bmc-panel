@@ -16,6 +16,7 @@
     "dependencies": {
         "@kubernetes/client-node": "^0.22.1",
         "@types/node": "^22.10.2",
+        "@types/ssh2-sftp-client": "^9.0.4",
         "7zip-min": "^1.4.5",
         "axios": "^1.7.9",
         "cookie-parser": "^1.4.7",
@@ -29,6 +30,7 @@
         "jszip": "^3.10.1",
         "mariadb": "^3.4.0",
         "multer": "^1.4.5-lts.1",
+        "node-ssh": "^13.2.0",
         "node-unrar-js": "^2.0.2",
         "path": "^0.12.7",
         "qrcode": "^1.5.4",

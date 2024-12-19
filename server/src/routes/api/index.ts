@@ -1,7 +1,6 @@
-const express = require('express');
-const { api: controller } = require('../../controllers');
-const {verifyToken, verifyAdminToken} = require('../../middleware/auth');
-const {patch} = require("request");
+import express from 'express';
+import controller from '../../controllers/api/index';
+import {verifyToken, verifyAdminToken} from '../../middleware/auth';
 
 const router = express.Router();
 
@@ -122,4 +121,4 @@ router.route('/metrics/memory')
     .get(verifyToken, controller.getMemoryMetrics);
 
 
-module.exports = router;
+export default router;

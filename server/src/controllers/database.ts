@@ -1,5 +1,5 @@
-const config = require('../config');
-const mariadb = require('mariadb');
+import config from '../config';
+import mariadb from 'mariadb';
 
 const pool = mariadb.createPool({
     host: config.mariadb.host,
@@ -291,7 +291,7 @@ async function checkAndCreateInitialInviteCode() {
     }
 }
 
-module.exports = {
+export {
     pool,
     databaseInit,
     userExists,
