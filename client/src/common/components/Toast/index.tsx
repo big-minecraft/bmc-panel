@@ -1,33 +1,32 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react';
-import { TOAST_TYPES } from './hooks/useToast';
-import { useTheme } from '../../context/ThemeContext';
+import { ToastMessageProps, ToastContainerProps, ToastType, ToastConfig } from './types';
 
-const toastConfig = {
-    [TOAST_TYPES.SUCCESS]: {
+const toastConfig: Record<ToastType, ToastConfig> = {
+    success: {
         icon: CheckCircle,
         className: 'bg-green-50 text-green-800 border-green-100',
         iconClass: 'text-green-400'
     },
-    [TOAST_TYPES.ERROR]: {
+    error: {
         icon: XCircle,
         className: 'bg-red-50 text-red-800 border-red-100',
         iconClass: 'text-red-400'
     },
-    [TOAST_TYPES.WARNING]: {
+    warning: {
         icon: AlertTriangle,
         className: 'bg-yellow-50 text-yellow-800 border-yellow-100',
         iconClass: 'text-yellow-400'
     },
-    [TOAST_TYPES.INFO]: {
+    info: {
         icon: Info,
         className: 'bg-blue-50 text-blue-800 border-blue-100',
         iconClass: 'text-blue-400'
     }
 };
 
-const ToastMessage = ({ toast, onDismiss }) => {
+const ToastMessage: React.FC<ToastMessageProps> = ({ toast, onDismiss }) => {
     const config = toastConfig[toast.type];
     const Icon = config.icon;
 
@@ -38,10 +37,10 @@ const ToastMessage = ({ toast, onDismiss }) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             className={`
-                pointer-events-auto w-full max-w-sm rounded-lg border
-                shadow-lg ring-1 ring-black ring-opacity-5
-                ${config.className}
-            `}
+        pointer-events-auto w-full max-w-sm rounded-lg border
+        shadow-lg ring-1 ring-black ring-opacity-5
+        ${config.className}
+      `}
         >
             <div className="p-4">
                 <div className="flex items-start">
@@ -59,11 +58,11 @@ const ToastMessage = ({ toast, onDismiss }) => {
                     <button
                         onClick={() => onDismiss(toast.id)}
                         className={`
-                            ml-4 inline-flex rounded-md
-                            hover:bg-black hover:bg-opacity-10
-                            focus:outline-none focus:ring-2 focus:ring-offset-2
-                            ${config.iconClass.replace('text', 'focus:ring')}
-                        `}
+              ml-4 inline-flex rounded-md
+              hover:bg-black hover:bg-opacity-10
+              focus:outline-none focus:ring-2 focus:ring-offset-2
+              ${config.iconClass.replace('text', 'focus:ring')}
+            `}
                     >
                         <X className="h-5 w-5" />
                     </button>
@@ -73,7 +72,7 @@ const ToastMessage = ({ toast, onDismiss }) => {
     );
 };
 
-const ToastContainer = ({ toasts, onDismiss }) => {
+const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismiss }) => {
     return (
         <div className="fixed inset-0 z-50 pointer-events-none flex flex-col items-end gap-2 p-4 sm:p-6">
             <AnimatePresence mode="popLayout">

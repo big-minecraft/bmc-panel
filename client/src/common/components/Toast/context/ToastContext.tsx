@@ -1,9 +1,10 @@
 import React, { createContext, useContext } from 'react';
 import { useToast } from '../hooks/useToast';
+import { ToastContextValue } from '../types';
 
-const ToastContext = createContext(null);
+const ToastContext = createContext<ToastContextValue | null>(null);
 
-export const ToastProvider = ({ children }) => {
+export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const toast = useToast();
 
     return (
@@ -13,7 +14,7 @@ export const ToastProvider = ({ children }) => {
     );
 };
 
-export const useToastContext = () => {
+export const useToastContext = (): ToastContextValue => {
     const context = useContext(ToastContext);
     if (!context) {
         throw new Error('useToastContext must be used within a ToastProvider');

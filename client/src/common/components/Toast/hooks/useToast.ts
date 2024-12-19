@@ -1,33 +1,26 @@
 import { useState, useCallback, useRef } from 'react';
+import { Toast, ToastType, ToastContextValue, UseToastOptions } from '../types';
 
-export const TOAST_TYPES = {
-    SUCCESS: 'success',
-    ERROR: 'error',
-    WARNING: 'warning',
-    INFO: 'info',
-};
-
-export const useToast = (timeout = 5000) => {
-    const [toasts, setToasts] = useState([]);
+export const useToast = (timeout: number = 5000): ToastContextValue => {
+    const [toasts, setToasts] = useState<Toast[]>([]);
     const toastIdCounter = useRef(0);
 
-    const removeToast = useCallback((id) => {
+    const removeToast = useCallback((id: number) => {
         setToasts(prevToasts => prevToasts.filter(toast => toast.id !== id));
     }, []);
 
-    const addToast = useCallback(({ type, title, message }) => {
+    const addToast = useCallback(({ type, title, message }: Omit<Toast, 'id' | 'timestamp'>): number => {
         const id = toastIdCounter.current++;
 
-        setToasts(prevToasts => [
-            ...prevToasts,
-            {
-                id,
-                type,
-                title,
-                message,
-                timestamp: Date.now()
-            }
-        ]);
+        const newToast: Toast = {
+            id,
+            type,
+            title,
+            message,
+            timestamp: Date.now()
+        };
+
+        setToasts(prevToasts => [...prevToasts, newToast]);
 
         if (timeout) {
             setTimeout(() => removeToast(id), timeout);
@@ -40,26 +33,19 @@ export const useToast = (timeout = 5000) => {
         setToasts([]);
     }, []);
 
-    const success = useCallback((message, title) =>
-        addToast({ type: TOAST_TYPES.SUCCESS, title, message }), [addToast]);
-
-    const error = useCallback((message, title) =>
-        addToast({ type: TOAST_TYPES.ERROR, title, message }), [addToast]);
-
-    const warning = useCallback((message, title) =>
-        addToast({ type: TOAST_TYPES.WARNING, title, message }), [addToast]);
-
-    const info = useCallback((message, title) =>
-        addToast({ type: TOAST_TYPES.INFO, title, message }), [addToast]);
+    const createToastMethod = useCallback((type: ToastType) => {
+        return (message: string, title?: string) =>
+            addToast({ type, title, message });
+    }, [addToast]);
 
     return {
         toasts,
         addToast,
         removeToast,
         clearToasts,
-        success,
-        error,
-        warning,
-        info
+        success: createToastMethod('success'),
+        error: createToastMethod('error'),
+        warning: createToastMethod('warning'),
+        info: createToastMethod('info')
     };
 };

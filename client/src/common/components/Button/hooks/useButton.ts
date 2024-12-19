@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
-import { useTheme } from '../../../context/ThemeContext';
+import { UseButtonProps, ButtonVariantClasses, ButtonSizeClasses } from '../types';
+import { useTheme } from '../../../context/theme/ThemeContext';
 
 export const useButton = ({
                               disabled = false,
@@ -7,11 +8,11 @@ export const useButton = ({
                               fullWidth = false,
                               variant = 'primary',
                               size = 'md'
-                          }) => {
+                          }: UseButtonProps) => {
     const theme = useTheme();
 
-    const getVariantClasses = useCallback(() => {
-        const variants = {
+    const getVariantClasses = useCallback((): string => {
+        const variants: ButtonVariantClasses = {
             primary: `bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500`,
             secondary: `bg-gray-100 text-gray-700 hover:bg-gray-200 focus:ring-gray-400`,
             outline: `border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 focus:ring-indigo-500`,
@@ -21,8 +22,8 @@ export const useButton = ({
         return variants[variant];
     }, [variant]);
 
-    const getSizeClasses = useCallback(() => {
-        const sizes = {
+    const getSizeClasses = useCallback((): string => {
+        const sizes: ButtonSizeClasses = {
             sm: 'px-3 py-1.5 text-sm',
             md: 'px-4 py-2',
             lg: 'px-6 py-3 text-lg',
@@ -30,17 +31,17 @@ export const useButton = ({
         return sizes[size];
     }, [size]);
 
-    const getBaseClasses = useCallback(() => {
+    const getBaseClasses = useCallback((): string => {
         return `
-            inline-flex items-center justify-center
-            font-medium rounded-lg
-            focus:outline-none focus:ring-2 focus:ring-offset-2
-            transition-colors duration-200
-            disabled:opacity-50 disabled:cursor-not-allowed
-            ${fullWidth ? 'w-full' : ''}
-            ${getVariantClasses()}
-            ${getSizeClasses()}
-        `;
+      inline-flex items-center justify-center
+      font-medium rounded-lg
+      focus:outline-none focus:ring-2 focus:ring-offset-2
+      transition-colors duration-200
+      disabled:opacity-50 disabled:cursor-not-allowed
+      ${fullWidth ? 'w-full' : ''}
+      ${getVariantClasses()}
+      ${getSizeClasses()}
+    `;
     }, [fullWidth, getVariantClasses, getSizeClasses]);
 
     return {

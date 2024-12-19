@@ -1,14 +1,19 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { CardHeaderProps, CardBodyProps, CardFooterProps } from './types';
 
-export const CardHeader = ({
-                               children,
-                               className = '',
-                               actions,
-                               divider = true,
-                               ...props
-                           }) => (
-    <div
+export const CardHeader = React.forwardRef<HTMLDivElement, CardHeaderProps>(({
+                                                                                 children,
+                                                                                 className = '',
+                                                                                 actions,
+                                                                                 divider = true,
+                                                                                 ...props
+                                                                             }, ref) => (
+    <motion.div
+        ref={ref}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         className={`
       px-6 py-4
       ${divider ? 'border-b border-gray-100' : ''}
@@ -28,16 +33,20 @@ export const CardHeader = ({
                 </div>
             )}
         </div>
-    </div>
-);
+    </motion.div>
+));
 
-export const CardBody = ({
-                             children,
-                             className = '',
-                             padding = true,
-                             ...props
-                         }) => (
-    <div
+export const CardBody = React.forwardRef<HTMLDivElement, CardBodyProps>(({
+                                                                             children,
+                                                                             className = '',
+                                                                             padding = true,
+                                                                             ...props
+                                                                         }, ref) => (
+    <motion.div
+        ref={ref}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         className={`
       ${padding ? 'p-6' : ''}
       ${className}
@@ -45,17 +54,21 @@ export const CardBody = ({
         {...props}
     >
         {children}
-    </div>
-);
+    </motion.div>
+));
 
-export const CardFooter = ({
-                               children,
-                               className = '',
-                               divider = true,
-                               align = 'right',
-                               ...props
-                           }) => (
-    <div
+export const CardFooter = React.forwardRef<HTMLDivElement, CardFooterProps>(({
+                                                                                 children,
+                                                                                 className = '',
+                                                                                 divider = true,
+                                                                                 align = 'right',
+                                                                                 ...props
+                                                                             }, ref) => (
+    <motion.div
+        ref={ref}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         className={`
       px-6 py-4
       ${divider ? 'border-t border-gray-100 bg-gray-50' : ''}
@@ -66,5 +79,9 @@ export const CardFooter = ({
         <div className={`flex ${align === 'right' ? 'justify-end' : align === 'center' ? 'justify-center' : 'justify-start'} gap-2`}>
             {children}
         </div>
-    </div>
-);
+    </motion.div>
+));
+
+CardHeader.displayName = 'CardHeader';
+CardBody.displayName = 'CardBody';
+CardFooter.displayName = 'CardFooter';

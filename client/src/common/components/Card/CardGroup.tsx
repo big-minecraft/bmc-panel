@@ -1,20 +1,21 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { CardGroupProps } from './types';
 
-const CardGroup = ({
-                       children,
-                       className = '',
-                       gap = 4,
-                       cols = {
-                           default: 1,
-                           sm: 1,
-                           md: 2,
-                           lg: 3,
-                           xl: 4
-                       },
-                       equalHeight = true,
-                       ...props
-                   }) => {
+const CardGroup = React.forwardRef<HTMLDivElement, CardGroupProps>(({
+                                                                        children,
+                                                                        className = '',
+                                                                        gap = 4,
+                                                                        cols = {
+                                                                            default: 1,
+                                                                            sm: 1,
+                                                                            md: 2,
+                                                                            lg: 3,
+                                                                            xl: 4
+                                                                        },
+                                                                        equalHeight = true,
+                                                                        ...props
+                                                                    }, ref) => {
     const gapSizes = {
         0: 'gap-0',
         1: 'gap-1',
@@ -40,6 +41,11 @@ const CardGroup = ({
 
     return (
         <motion.div
+            ref={ref}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
             className={`
         grid ${getGridCols()} ${gapSizes[gap]}
         ${equalHeight ? 'grid-flow-row-dense' : ''}
@@ -50,6 +56,8 @@ const CardGroup = ({
             {children}
         </motion.div>
     );
-};
+});
+
+CardGroup.displayName = 'CardGroup';
 
 export default CardGroup;

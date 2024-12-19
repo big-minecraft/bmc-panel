@@ -1,8 +1,19 @@
 import React, { createContext, useContext, useReducer, useCallback } from 'react';
+import { ModalContextValue } from '../types';
 
-const ModalContext = createContext(null);
+type ModalState = {
+    openModals: string[];
+};
 
-const modalReducer = (state, action) => {
+type ModalAction =
+    | { type: 'REGISTER_MODAL'; payload: string }
+    | { type: 'UNREGISTER_MODAL'; payload: string }
+    | { type: 'CLOSE_MODAL'; payload: string }
+    | { type: 'CLOSE_ALL_MODALS' };
+
+const ModalContext = createContext<ModalContextValue | null>(null);
+
+const modalReducer = (state: ModalState, action: ModalAction): ModalState => {
     switch (action.type) {
         case 'REGISTER_MODAL':
             if (state.openModals.includes(action.payload)) {
@@ -36,20 +47,20 @@ const modalReducer = (state, action) => {
     }
 };
 
-export const ModalProvider = ({ children }) => {
+export const ModalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [state, dispatch] = useReducer(modalReducer, {
         openModals: []
     });
 
-    const registerModal = useCallback((id) => {
+    const registerModal = useCallback((id: string) => {
         dispatch({ type: 'REGISTER_MODAL', payload: id });
     }, []);
 
-    const unregisterModal = useCallback((id) => {
+    const unregisterModal = useCallback((id: string) => {
         dispatch({ type: 'UNREGISTER_MODAL', payload: id });
     }, []);
 
-    const closeModal = useCallback((id) => {
+    const closeModal = useCallback((id: string) => {
         dispatch({ type: 'CLOSE_MODAL', payload: id });
     }, []);
 
@@ -57,7 +68,7 @@ export const ModalProvider = ({ children }) => {
         dispatch({ type: 'CLOSE_ALL_MODALS' });
     }, []);
 
-    const value = {
+    const value: ModalContextValue = {
         openModals: state.openModals,
         registerModal,
         unregisterModal,
@@ -72,7 +83,7 @@ export const ModalProvider = ({ children }) => {
     );
 };
 
-export const useModalContext = () => {
+export const useModalContext = (): ModalContextValue => {
     const context = useContext(ModalContext);
     if (!context) {
         throw new Error('useModalContext must be used within a ModalProvider');

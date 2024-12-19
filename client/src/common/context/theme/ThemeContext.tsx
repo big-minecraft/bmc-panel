@@ -1,24 +1,8 @@
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useContext, useMemo, ReactNode } from 'react';
+import { Theme } from './types';
+import { baseColors } from './colors';
 
-const ThemeContext = createContext(null);
-
-export const baseColors = {
-    indigo: {
-        50: '#eef2ff',
-        100: '#e0e7ff',
-        200: '#c7d2fe',
-        300: '#a5b4fc',
-        400: '#818cf8',
-        500: '#6366f1',
-        600: '#4f46e5',
-        700: '#4338ca',
-        800: '#3730a3',
-        900: '#312e81',
-    },
-    // ... other colors from colors.js
-};
-
-const defaultTheme = {
+const defaultTheme: Theme = {
     colors: baseColors,
     spacing: {
         xs: '0.5rem',
@@ -53,7 +37,17 @@ const defaultTheme = {
     }
 };
 
-export const ThemeProvider = ({ theme = defaultTheme, children }) => {
+const ThemeContext = createContext<Theme | null>(null);
+
+type ThemeProviderProps = {
+    theme?: Partial<Theme>;
+    children: ReactNode;
+};
+
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({
+                                                                theme = defaultTheme,
+                                                                children
+                                                            }) => {
     const memoizedTheme = useMemo(() => ({
         ...defaultTheme,
         ...theme,
@@ -66,9 +60,9 @@ export const ThemeProvider = ({ theme = defaultTheme, children }) => {
     );
 };
 
-export const useTheme = () => {
+export const useTheme = (): Theme => {
     const context = useContext(ThemeContext);
-    if (context === undefined) {
+    if (context === null) {
         throw new Error('useTheme must be used within a ThemeProvider');
     }
     return context;

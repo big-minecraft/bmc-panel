@@ -1,8 +1,21 @@
-import React, { createContext, useContext, useCallback, useReducer } from 'react';
+import React, { createContext, useContext, useCallback, useReducer, ReactNode } from 'react';
+import { FormContextValue, FormFields, FormErrors } from './types';
 
-const FormContext = createContext(null);
+type FormState = {
+    fields: FormFields;
+    errors: FormErrors;
+};
 
-const formReducer = (state, action) => {
+type FormAction =
+    | { type: 'REGISTER_FIELD'; payload: { name: string; value: unknown; error: string; } }
+    | { type: 'UNREGISTER_FIELD'; payload: string }
+    | { type: 'SET_FIELD_VALUE'; payload: { name: string; value: unknown; error: string; } }
+    | { type: 'SET_FORM_ERRORS'; payload: FormErrors }
+    | { type: 'RESET_FORM' };
+
+const FormContext = createContext<FormContextValue | null>(null);
+
+const formReducer = (state: FormState, action: FormAction): FormState => {
     switch (action.type) {
         case 'REGISTER_FIELD':
             return {
@@ -15,12 +28,13 @@ const formReducer = (state, action) => {
                     }
                 }
             };
-        case 'UNREGISTER_FIELD':
+        case 'UNREGISTER_FIELD': {
             const { [action.payload]: _, ...remainingFields } = state.fields;
             return {
                 ...state,
                 fields: remainingFields
             };
+        }
         case 'SET_FIELD_VALUE':
             return {
                 ...state,
@@ -47,46 +61,56 @@ const formReducer = (state, action) => {
     }
 };
 
-export const FormProvider = ({ children, onSubmit, initialValues = {} }) => {
+type FormProviderProps = {
+    children: ReactNode;
+    onSubmit?: (values: Record<string, unknown>) => void;
+    initialValues?: Record<string, unknown>;
+};
+
+export const FormProvider: React.FC<FormProviderProps> = ({
+                                                              children,
+                                                              onSubmit,
+                                                              initialValues = {}
+                                                          }) => {
     const [state, dispatch] = useReducer(formReducer, {
         fields: {},
         errors: {}
     });
 
-    const registerField = useCallback((name, value = '', error = '') => {
+    const registerField = useCallback((name: string, value: unknown = '', error: string = '') => {
         dispatch({
             type: 'REGISTER_FIELD',
             payload: { name, value, error }
         });
     }, []);
 
-    const unregisterField = useCallback((name) => {
+    const unregisterField = useCallback((name: string) => {
         dispatch({
             type: 'UNREGISTER_FIELD',
             payload: name
         });
     }, []);
 
-    const setFieldValue = useCallback((name, value, error = '') => {
+    const setFieldValue = useCallback((name: string, value: unknown, error: string = '') => {
         dispatch({
             type: 'SET_FIELD_VALUE',
             payload: { name, value, error }
         });
     }, []);
 
-    const getFieldError = useCallback((name) => {
+    const getFieldError = useCallback((name: string): string => {
         return state.fields[name]?.error || '';
     }, [state.fields]);
 
-    const handleSubmit = useCallback((e) => {
+    const handleSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();
 
-        const values = Object.entries(state.fields).reduce((acc, [key, field]) => {
+        const values = Object.entries(state.fields).reduce<Record<string, unknown>>((acc, [key, field]) => {
             acc[key] = field.value;
             return acc;
         }, {});
 
-        const errors = Object.entries(state.fields).reduce((acc, [key, field]) => {
+        const errors = Object.entries(state.fields).reduce<Record<string, string>>((acc, [key, field]) => {
             if (field.error) {
                 acc[key] = field.error;
             }
@@ -103,7 +127,7 @@ export const FormProvider = ({ children, onSubmit, initialValues = {} }) => {
         }
     }, [state.fields, onSubmit]);
 
-    const value = {
+    const value: FormContextValue = {
         fields: state.fields,
         errors: state.errors,
         registerField,
@@ -120,7 +144,7 @@ export const FormProvider = ({ children, onSubmit, initialValues = {} }) => {
     );
 };
 
-export const useFormContext = () => {
+export const useFormContext = (): Partial<FormContextValue> => {
     const context = useContext(FormContext);
     if (!context) {
         return {};

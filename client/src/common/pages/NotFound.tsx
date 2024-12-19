@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Home, MoveLeft, XCircle } from 'lucide-react';
-import { useTheme } from '../styles/colors';
+import { useTheme } from '../context/theme/colors';
 import Button from '../components/Button';
 
 const NotFound = () => {

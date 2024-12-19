@@ -1,22 +1,23 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
+import { ButtonProps } from './types';
 import { useButton } from './hooks/useButton';
 
-const Button = ({
-                    children,
-                    variant = 'primary',
-                    size = 'md',
-                    icon: Icon,
-                    iconPosition = 'left',
-                    loading = false,
-                    disabled = false,
-                    fullWidth = false,
-                    className = '',
-                    onClick,
-                    type = 'button',
-                    ...props
-                }) => {
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
+                                                                     children,
+                                                                     variant = 'primary',
+                                                                     size = 'md',
+                                                                     icon: Icon,
+                                                                     iconPosition = 'left',
+                                                                     loading = false,
+                                                                     disabled = false,
+                                                                     fullWidth = false,
+                                                                     className = '',
+                                                                     onClick,
+                                                                     type = 'button',
+                                                                     ...props
+                                                                 }, ref) => {
     const { disabled: isDisabled, baseClasses, isLoading } = useButton({
         disabled,
         loading,
@@ -27,8 +28,9 @@ const Button = ({
 
     return (
         <motion.button
-            whileHover={!isDisabled ? { scale: 1.02 } : {}}
-            whileTap={!isDisabled ? { scale: 0.98 } : {}}
+            ref={ref}
+            whileHover={!isDisabled ? { scale: 1.02 } : undefined}
+            whileTap={!isDisabled ? { scale: 0.98 } : undefined}
             type={type}
             disabled={isDisabled}
             onClick={onClick}
@@ -53,6 +55,8 @@ const Button = ({
             )}
         </motion.button>
     );
-};
+});
+
+Button.displayName = 'Button';
 
 export default Button;

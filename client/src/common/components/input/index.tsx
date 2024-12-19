@@ -1,27 +1,28 @@
-import React, { forwardRef } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { InputProps } from './types';
 import { useInput } from './hooks/useInput';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme } from '../../context/theme/ThemeContext';
 
-const Input = forwardRef(({
-                              label,
-                              error,
-                              success,
-                              icon: Icon,
-                              rightIcon: RightIcon,
-                              className = '',
-                              inputClassName = '',
-                              disabled = false,
-                              required = false,
-                              helper,
-                              validation,
-                              name,
-                              value,
-                              onChange,
-                              type = 'text',
-                              ...props
-                          }, ref) => {
+const Input = React.forwardRef<HTMLInputElement, InputProps>(({
+                                                                  label,
+                                                                  error,
+                                                                  success,
+                                                                  icon: Icon,
+                                                                  rightIcon: RightIcon,
+                                                                  className = '',
+                                                                  inputClassName = '',
+                                                                  disabled = false,
+                                                                  required = false,
+                                                                  helper,
+                                                                  validation,
+                                                                  name,
+                                                                  value,
+                                                                  onChange,
+                                                                  type = 'text',
+                                                                  ...props
+                                                              }, ref) => {
     const theme = useTheme();
     const {
         inputProps,
@@ -38,7 +39,7 @@ const Input = forwardRef(({
 
     const displayError = error || validationError;
 
-    const renderIcon = (IconComponent, position = 'left') => {
+    const renderIcon = (IconComponent?: React.FC<any>, position: 'left' | 'right' = 'left') => {
         if (!IconComponent) return null;
 
         return (
@@ -52,6 +53,7 @@ const Input = forwardRef(({
         <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
             className={className}
         >
             {label && (
@@ -68,20 +70,20 @@ const Input = forwardRef(({
                     {...inputProps}
                     disabled={disabled}
                     className={`
-                        w-full px-4 py-2
-                        bg-white border rounded-lg
-                        text-gray-900 text-sm
-                        placeholder:text-gray-400
-                        transition-colors duration-200
-                        disabled:bg-gray-50 disabled:text-gray-500
-                        ${Icon ? 'pl-10' : ''}
-                        ${RightIcon || displayError || success ? 'pr-10' : ''}
-                        ${displayError ? 'border-red-300 focus:border-red-500 focus:ring-red-200' :
+            w-full px-4 py-2
+            bg-white border rounded-lg
+            text-gray-900 text-sm
+            placeholder:text-gray-400
+            transition-colors duration-200
+            disabled:bg-gray-50 disabled:text-gray-500
+            ${Icon ? 'pl-10' : ''}
+            ${RightIcon || displayError || success ? 'pr-10' : ''}
+            ${displayError ? 'border-red-300 focus:border-red-500 focus:ring-red-200' :
                         success ? 'border-green-300 focus:border-green-500 focus:ring-green-200' :
                             'border-gray-300 focus:border-indigo-500 focus:ring-indigo-200'}
-                        focus:outline-none focus:ring-2
-                        ${inputClassName}
-                    `}
+            focus:outline-none focus:ring-2
+            ${inputClassName}
+          `}
                     {...props}
                 />
                 {renderIcon(RightIcon, 'right')}
@@ -97,6 +99,7 @@ const Input = forwardRef(({
                 <motion.p
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
                     className={`mt-1 text-sm ${displayError ? 'text-red-500' : 'text-gray-500'}`}
                 >
                     {displayError || helper}
@@ -105,5 +108,7 @@ const Input = forwardRef(({
         </motion.div>
     );
 });
+
+Input.displayName = 'Input';
 
 export default Input;

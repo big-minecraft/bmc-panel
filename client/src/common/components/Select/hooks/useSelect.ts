@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useFormContext } from '../../../context/FormContext';
+import { useFormContext } from '../../../context/form/FormContext';
+import { UseSelectProps, UseSelectReturn, SelectOption } from '../types';
 
 export const useSelect = ({
                               name,
@@ -9,12 +10,12 @@ export const useSelect = ({
                               multiple = false,
                               searchable = false,
                               validation = {}
-                          }) => {
+                          }: UseSelectProps): UseSelectReturn => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
-    const containerRef = useRef(null);
-    const listRef = useRef(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const listRef = useRef<HTMLDivElement>(null);
     const { registerField, unregisterField, setFieldValue, getFieldError } = useFormContext();
 
     const filteredOptions = options.filter(option =>
@@ -22,36 +23,26 @@ export const useSelect = ({
     );
 
     const selectedOption = multiple
-        ? options.filter(option => value?.includes(option.value))
-        : options.find(option => option.value === value);
+        ? options.filter(option => Array.isArray(value) && value.includes(option.value))
+        : options.find(option => option.value === value) || null;
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (containerRef.current && !containerRef.current.contains(event.target)) {
-                setIsOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    const validateValue = useCallback((val) => {
+    const validateValue = useCallback((val: any): string => {
         if (validation.required && !val) {
             return 'This field is required';
         }
         if (validation.custom) {
-            return validation.custom(val);
+            return validation.custom(val) || '';
         }
         return '';
     }, [validation]);
 
-    const handleSelect = useCallback((option) => {
-        let newValue;
+    const handleSelect = useCallback((option: SelectOption) => {
+        let newValue: string | number | (string | number)[];
         if (multiple) {
-            newValue = value?.includes(option.value)
-                ? value.filter(v => v !== option.value)
-                : [...(value || []), option.value];
+            const currentValues = Array.isArray(value) ? value : [];
+            newValue = currentValues.includes(option.value)
+                ? currentValues.filter(v => v !== option.value)
+                : [...currentValues, option.value];
         } else {
             newValue = option.value;
             setIsOpen(false);
@@ -70,7 +61,7 @@ export const useSelect = ({
         }
     }, [multiple, onChange, searchable, setFieldValue, name, validateValue, value]);
 
-    const handleKeyDown = useCallback((e) => {
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         if (!isOpen) {
             if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
                 e.preventDefault();
@@ -107,6 +98,17 @@ export const useSelect = ({
                 break;
         }
     }, [isOpen, filteredOptions, highlightedIndex, handleSelect]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     return {
         isOpen,

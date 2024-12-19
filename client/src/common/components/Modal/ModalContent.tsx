@@ -1,17 +1,19 @@
-import React, { forwardRef } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
+import { ModalContentProps } from './types';
 
-const ModalContent = forwardRef(({
-                                     title,
-                                     children,
-                                     footer,
-                                     onClose,
-                                     showClose,
-                                     size = 'md',
-                                     className = '',
-                                     isTopModal
-                                 }, ref) => {
+const ModalContent = React.forwardRef<HTMLDivElement, ModalContentProps>(({
+                                                                              title,
+                                                                              children,
+                                                                              footer,
+                                                                              onClose,
+                                                                              showClose = true,
+                                                                              size = 'md',
+                                                                              className = '',
+                                                                              isTopModal,
+                                                                              ...props
+                                                                          }, ref) => {
     const sizes = {
         sm: 'max-w-md',
         md: 'max-w-lg',
@@ -37,6 +39,7 @@ const ModalContent = forwardRef(({
         ${className}
       `}
             style={{ zIndex: isTopModal ? 51 : 50 }}
+            {...props}
         >
             {(title || showClose) && (
                 <div className="flex items-center justify-between p-4 border-b border-gray-100">
@@ -68,5 +71,7 @@ const ModalContent = forwardRef(({
         </motion.div>
     );
 });
+
+ModalContent.displayName = 'ModalContent';
 
 export default ModalContent;

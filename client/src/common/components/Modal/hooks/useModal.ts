@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useModalContext } from '../context/ModalContext';
+import { UseModalProps, UseModalReturn } from '../types';
 
 export const useModal = ({
                              id,
@@ -8,7 +9,7 @@ export const useModal = ({
                              preventBackdropClose = false,
                              closeOnEsc = true,
                              trapFocus = true
-                         }) => {
+                         }: UseModalProps): UseModalReturn => {
     const {
         openModals,
         registerModal,
@@ -16,8 +17,8 @@ export const useModal = ({
         closeModal
     } = useModalContext();
 
-    const modalRef = useRef(null);
-    const previousActiveElement = useRef(null);
+    const modalRef = useRef<HTMLDivElement>(null);
+    const previousActiveElement = useRef<HTMLElement | null>(null);
 
     const isOpen = openModals.includes(id);
     const isTopModal = openModals[openModals.length - 1] === id;
@@ -27,10 +28,10 @@ export const useModal = ({
 
         return Array.from(modalRef.current.querySelectorAll(
             'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        ));
+        )) as HTMLElement[];
     }, []);
 
-    const handleKeyDown = useCallback((e) => {
+    const handleKeyDown = useCallback((e: KeyboardEvent) => {
         if (!isTopModal) return;
 
         if (closeOnEsc && e.key === 'Escape') {
@@ -57,7 +58,7 @@ export const useModal = ({
         }
     }, [isTopModal, closeOnEsc, trapFocus, focusableElements, closeModal, id, onClose]);
 
-    const handleBackdropClick = useCallback((e) => {
+    const handleBackdropClick = useCallback((e: React.MouseEvent) => {
         if (e.target === e.currentTarget && !preventBackdropClose) {
             onClose?.();
             closeModal(id);
@@ -66,7 +67,7 @@ export const useModal = ({
 
     useEffect(() => {
         if (isOpen) {
-            previousActiveElement.current = document.activeElement;
+            previousActiveElement.current = document.activeElement as HTMLElement;
             registerModal(id);
             document.addEventListener('keydown', handleKeyDown);
 

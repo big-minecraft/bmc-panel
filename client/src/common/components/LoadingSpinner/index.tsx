@@ -1,33 +1,36 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
-import { useTheme } from '../context/theme/colors';
+import { LoadingSpinnerProps, LoadingSkeletonProps, ErrorAlertProps, SpinnerSizeClasses } from './types';
+import { useTheme } from '../../context/theme/ThemeContext';
 
-const LoadingSpinner = ({
-                            size = 'md',
-                            text = 'Loading',
-                            fullScreen = false,
-                        }) => {
+const LoadingSpinner = React.forwardRef<HTMLDivElement, LoadingSpinnerProps>(({
+                                                                                  size = 'md',
+                                                                                  text = 'Loading',
+                                                                                  fullScreen = false,
+                                                                                  className = '',
+                                                                                  ...props
+                                                                              }, ref) => {
     const theme = useTheme();
 
-    const sizes = {
+    const sizes: SpinnerSizeClasses = {
         sm: 'w-4 h-4',
         md: 'w-8 h-8',
         lg: 'w-12 h-12',
     };
 
-    const Wrapper = fullScreen ? motion.div : motion.div;
-    const wrapperProps = fullScreen ? {
+    const Container = fullScreen ? motion.div : motion.div;
+    const containerProps = fullScreen ? {
         className: "fixed inset-0 bg-white bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-50",
         initial: { opacity: 0 },
         animate: { opacity: 1 },
         exit: { opacity: 0 },
     } : {
-        className: "flex flex-col items-center justify-center min-h-[200px]",
+        className: `flex flex-col items-center justify-center min-h-[200px] ${className}`,
     };
 
     return (
-        <Wrapper {...wrapperProps}>
+        <Container ref={ref} {...containerProps} {...props}>
             <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -46,16 +49,17 @@ const LoadingSpinner = ({
                     </motion.p>
                 )}
             </motion.div>
-        </Wrapper>
+        </Container>
     );
-};
+});
 
-const LoadingSkeleton = ({
-                             rows = 3,
-                             avatar = true,
-                             className = ''
-                         }) => (
-    <div className={`space-y-4 ${className}`}>
+const LoadingSkeleton = React.forwardRef<HTMLDivElement, LoadingSkeletonProps>(({
+                                                                                    rows = 3,
+                                                                                    avatar = true,
+                                                                                    className = '',
+                                                                                    ...props
+                                                                                }, ref) => (
+    <div ref={ref} className={`space-y-4 ${className}`} {...props}>
         {[...Array(rows)].map((_, i) => (
             <div key={i} className="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
                 <div className="flex items-center space-x-3">
@@ -82,13 +86,19 @@ const LoadingSkeleton = ({
             </div>
         ))}
     </div>
-);
+));
 
-export const ErrorAlert = ({ message }) => (
+const ErrorAlert = React.forwardRef<HTMLDivElement, ErrorAlertProps>(({
+                                                                          message,
+                                                                          className = '',
+                                                                          ...props
+                                                                      }, ref) => (
     <motion.div
+        ref={ref}
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-lg bg-red-50 p-4 mt-4"
+        className={`rounded-lg bg-red-50 p-4 mt-4 ${className}`}
+        {...props}
     >
         <div className="flex">
             <div className="flex-shrink-0">
@@ -101,7 +111,11 @@ export const ErrorAlert = ({ message }) => (
             </div>
         </div>
     </motion.div>
-);
+));
 
-export { LoadingSpinner, LoadingSkeleton };
+LoadingSpinner.displayName = 'LoadingSpinner';
+LoadingSkeleton.displayName = 'LoadingSkeleton';
+ErrorAlert.displayName = 'ErrorAlert';
+
+export { LoadingSpinner, LoadingSkeleton, ErrorAlert };
 export default LoadingSpinner;

@@ -1,27 +1,27 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ChevronDown, Check, X, Search } from 'lucide-react';
+import { SelectProps } from './types';
 import { useSelect } from './hooks/useSelect';
-import { useTheme } from '../../context/ThemeContext';
 import SelectMenu from './SelectMenu';
 
-const Select = ({
-                    options = [],
-                    value,
-                    onChange,
-                    placeholder = 'Select option',
-                    label,
-                    error,
-                    disabled = false,
-                    required = false,
-                    clearable = false,
-                    searchable = false,
-                    multiple = false,
-                    className = '',
-                    validation = {},
-                    name,
-                }) => {
-    const theme = useTheme();
+const Select = React.forwardRef<HTMLDivElement, SelectProps>(({
+                                                                  options = [],
+                                                                  value,
+                                                                  onChange,
+                                                                  placeholder = 'Select option',
+                                                                  label,
+                                                                  error,
+                                                                  disabled = false,
+                                                                  required = false,
+                                                                  clearable = false,
+                                                                  searchable = false,
+                                                                  multiple = false,
+                                                                  className = '',
+                                                                  validation,
+                                                                  name,
+                                                                  ...props
+                                                              }, ref) => {
     const {
         isOpen,
         searchQuery,
@@ -30,12 +30,12 @@ const Select = ({
         highlightedIndex,
         containerRef,
         listRef,
+        error: validationError,
         setIsOpen,
         setSearchQuery,
         setHighlightedIndex,
         handleSelect,
-        handleKeyDown,
-        error: validationError
+        handleKeyDown
     } = useSelect({
         options,
         value,
@@ -47,6 +47,9 @@ const Select = ({
     });
 
     const displayError = error || validationError;
+    const displayValue = Array.isArray(selectedOption)
+        ? selectedOption.map(opt => opt.label).join(', ')
+        : selectedOption?.label || '';
 
     return (
         <div className={className} ref={containerRef}>
@@ -59,7 +62,8 @@ const Select = ({
 
             <div className="relative">
                 <motion.div
-                    whileTap={!disabled ? { scale: 0.995 } : {}}
+                    ref={ref}
+                    whileTap={!disabled ? { scale: 0.995 } : undefined}
                     onClick={() => !disabled && setIsOpen(!isOpen)}
                     onKeyDown={handleKeyDown}
                     tabIndex={0}
@@ -75,6 +79,7 @@ const Select = ({
             ${displayError ? 'border-red-300' : 'border-gray-300'}
             ${isOpen ? 'ring-2 ring-indigo-200 border-indigo-500' : ''}
           `}
+                    {...props}
                 >
                     {searchable && isOpen ? (
                         <input
@@ -88,12 +93,7 @@ const Select = ({
                         />
                     ) : (
                         <span className={`block truncate ${!value ? 'text-gray-500' : 'text-gray-900'}`}>
-              {multiple
-                  ? selectedOption.length
-                      ? selectedOption.map(opt => opt.label).join(', ')
-                      : placeholder
-                  : selectedOption?.label || placeholder
-              }
+              {displayValue || placeholder}
             </span>
                     )}
 
@@ -102,7 +102,7 @@ const Select = ({
                 <button
                     onClick={(e) => {
                         e.stopPropagation();
-                        onChange(multiple ? [] : null);
+                        onChange?.(multiple ? [] : '');
                     }}
                     className="p-1 hover:bg-gray-100 rounded-full mr-2"
                 >
@@ -139,6 +139,8 @@ const Select = ({
             )}
         </div>
     );
-};
+});
+
+Select.displayName = 'Select';
 
 export default Select;

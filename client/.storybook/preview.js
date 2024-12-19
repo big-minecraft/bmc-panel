@@ -1,6 +1,6 @@
 import React from 'react'
 import './preview.css'
-import {ThemeProvider} from "../src/common/context/ThemeContext";
+import {ThemeProvider} from "../src/common/context/theme/ThemeContext";
 
 const withTheme = (Story) => (
     <ThemeProvider>
