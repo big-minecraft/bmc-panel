@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 import { HTMLMotionProps } from 'framer-motion';
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
@@ -23,7 +23,7 @@ export interface UseModalProps {
 export interface UseModalReturn {
     isOpen: boolean;
     isTopModal: boolean;
-    modalRef: React.RefObject<HTMLDivElement>;
+    modalRef: React.RefObject<HTMLDivElement | null>;
     handleBackdropClick: (e: React.MouseEvent) => void;
 }
 
@@ -32,7 +32,7 @@ export interface ModalBackdropProps extends HTMLMotionProps<"div"> {
     onClick: (e: React.MouseEvent) => void;
 }
 
-export interface ModalContentProps extends HTMLMotionProps<"div"> {
+export interface ModalContentProps {
     title?: ReactNode;
     children: ReactNode;
     footer?: ReactNode;
@@ -40,6 +40,8 @@ export interface ModalContentProps extends HTMLMotionProps<"div"> {
     showClose?: boolean;
     size?: ModalSize;
     isTopModal: boolean;
+    className?: string;
+    containerProps?: Omit<HTMLMotionProps<"div">, 'title'>;
 }
 
 export interface ModalProps extends Omit<HTMLMotionProps<"div">, 'title'> {

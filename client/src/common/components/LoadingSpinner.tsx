@@ -1,30 +1,35 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
-import { useTheme } from '../context/theme/colors';
 
-const LoadingSpinner = ({
-                            size = 'md',
-                            text = 'Loading',
-                            fullScreen = false,
-                        }) => {
-    const theme = useTheme();
+interface LoadingSpinnerProps {
+    size?: 'sm' | 'md' | 'lg';
+    text?: string;
+    fullScreen?: boolean;
+}
 
-    const sizes = {
+const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+                                                           size = 'md',
+                                                           text = 'Loading',
+                                                           fullScreen = false,
+                                                       }) => {
+    const sizes: Record<'sm' | 'md' | 'lg', string> = {
         sm: 'w-4 h-4',
         md: 'w-8 h-8',
         lg: 'w-12 h-12',
     };
 
     const Wrapper = fullScreen ? motion.div : motion.div;
-    const wrapperProps = fullScreen ? {
-        className: "fixed inset-0 bg-white bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-50",
-        initial: { opacity: 0 },
-        animate: { opacity: 1 },
-        exit: { opacity: 0 },
-    } : {
-        className: "flex flex-col items-center justify-center min-h-[200px]",
-    };
+    const wrapperProps = fullScreen
+        ? {
+            className: "fixed inset-0 bg-white bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-50",
+            initial: { opacity: 0 },
+            animate: { opacity: 1 },
+            exit: { opacity: 0 },
+        }
+        : {
+            className: "flex flex-col items-center justify-center min-h-[200px]",
+        };
 
     return (
         <Wrapper {...wrapperProps}>
@@ -50,11 +55,17 @@ const LoadingSpinner = ({
     );
 };
 
-const LoadingSkeleton = ({
-                             rows = 3,
-                             avatar = true,
-                             className = ''
-                         }) => (
+interface LoadingSkeletonProps {
+    rows?: number;
+    avatar?: boolean;
+    className?: string;
+}
+
+const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
+                                                             rows = 3,
+                                                             avatar = true,
+                                                             className = '',
+                                                         }) => (
     <div className={`space-y-4 ${className}`}>
         {[...Array(rows)].map((_, i) => (
             <div key={i} className="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
@@ -84,7 +95,11 @@ const LoadingSkeleton = ({
     </div>
 );
 
-export const ErrorAlert = ({ message }) => (
+interface ErrorAlertProps {
+    message: string;
+}
+
+export const ErrorAlert: React.FC<ErrorAlertProps> = ({ message }) => (
     <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -93,7 +108,10 @@ export const ErrorAlert = ({ message }) => (
         <div className="flex">
             <div className="flex-shrink-0">
                 <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" />
+                    <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    />
                 </svg>
             </div>
             <div className="ml-3">

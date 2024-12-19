@@ -11,31 +11,21 @@ export type BaseColor = {
     900: string;
 };
 
+export type ColorPalette = {
+    light: string;
+    DEFAULT: string;
+    dark: string;
+};
+
 export type BaseColors = {
     indigo: BaseColor;
     gray: BaseColor;
     white: string;
     black: string;
-    success: {
-        light: string;
-        DEFAULT: string;
-        dark: string;
-    };
-    warning: {
-        light: string;
-        DEFAULT: string;
-        dark: string;
-    };
-    error: {
-        light: string;
-        DEFAULT: string;
-        dark: string;
-    };
-    info: {
-        light: string;
-        DEFAULT: string;
-        dark: string;
-    };
+    success: ColorPalette;
+    warning: ColorPalette;
+    error: ColorPalette;
+    info: ColorPalette;
 };
 
 export type ThemeColors = {
@@ -58,7 +48,8 @@ export type ThemeColors = {
     info: string;
 };
 
-export type Theme = ThemeColors & {
+export type ThemeConfig = {
+    colors: ThemeColors;
     spacing: {
         xs: string;
         sm: string;
@@ -91,3 +82,5 @@ export type Theme = ThemeColors & {
         lg: string;
     };
 };
+
+export type ThemeMode = 'light' | 'dark';

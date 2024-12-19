@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 import { HTMLMotionProps } from 'framer-motion';
 
 export interface SelectOption {

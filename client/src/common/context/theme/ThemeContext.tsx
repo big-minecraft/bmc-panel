@@ -1,68 +1,50 @@
-import React, { createContext, useContext, useMemo, ReactNode } from 'react';
-import { Theme } from './types';
-import { baseColors } from './colors';
+import React, { createContext, useContext, useMemo, useState, useCallback } from 'react';
+import { ThemeConfig, ThemeMode } from './types';
+import { themes } from './colors';
 
-const defaultTheme: Theme = {
-    colors: baseColors,
-    spacing: {
-        xs: '0.5rem',
-        sm: '0.75rem',
-        md: '1rem',
-        lg: '1.5rem',
-        xl: '2rem',
-    },
-    borderRadius: {
-        sm: '0.25rem',
-        md: '0.375rem',
-        lg: '0.5rem',
-        xl: '0.75rem',
-        full: '9999px',
-    },
-    animation: {
-        bouncy: {
-            type: "spring",
-            stiffness: 500,
-            damping: 30
-        },
-        smooth: {
-            type: "spring",
-            stiffness: 100,
-            damping: 20
-        }
-    },
-    shadows: {
-        sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-        md: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-        lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-    }
+type ThemeContextType = {
+    theme: ThemeConfig;
+    mode: ThemeMode;
+    toggleTheme: () => void;
+    setThemeMode: (mode: ThemeMode) => void;
 };
 
-const ThemeContext = createContext<Theme | null>(null);
+const ThemeContext = createContext<ThemeContextType | null>(null);
 
 type ThemeProviderProps = {
-    theme?: Partial<Theme>;
-    children: ReactNode;
+    initialMode?: ThemeMode;
+    children: React.ReactNode;
 };
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({
-                                                                theme = defaultTheme,
+                                                                initialMode = 'light',
                                                                 children
                                                             }) => {
-    const memoizedTheme = useMemo(() => ({
-        ...defaultTheme,
-        ...theme,
-    }), [theme]);
+    const [mode, setMode] = useState<ThemeMode>(initialMode);
+
+    const toggleTheme = useCallback(() => {
+        setMode(current => current === 'light' ? 'dark' : 'light');
+    }, []);
+
+    const theme = useMemo(() => themes[mode], [mode]);
+
+    const value = useMemo(() => ({
+        theme,
+        mode,
+        toggleTheme,
+        setThemeMode: setMode
+    }), [theme, mode, toggleTheme]);
 
     return (
-        <ThemeContext.Provider value={memoizedTheme}>
+        <ThemeContext.Provider value={value}>
             {children}
         </ThemeContext.Provider>
     );
 };
 
-export const useTheme = (): Theme => {
+export const useTheme = () => {
     const context = useContext(ThemeContext);
-    if (context === null) {
+    if (!context) {
         throw new Error('useTheme must be used within a ThemeProvider');
     }
     return context;

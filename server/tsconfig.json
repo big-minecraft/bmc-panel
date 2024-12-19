@@ -8,9 +8,9 @@
 
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "allowJs": true,
+    "allowJs": false,
 
-    "strict": true,
+    "strict": false,
     "strictPropertyInitialization": false,
     "jsx": "react"
   },

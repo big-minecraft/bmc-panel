@@ -2,11 +2,11 @@
     "name": "node_react_startup_structure_server",
     "version": "1.0.0",
     "description": "The server for the Node React Startup Structure",
-    "main": "app.ts",
+    "main": "src/app.ts",
     "type": "commonjs",
     "scripts": {
-        "start": "node app.ts",
-        "dev": "nodemon app.ts"
+        "start": "node src/app.ts",
+        "dev": "nodemon src/app.ts"
     },
     "author": "Anthony Rivas",
     "license": "MIT",
@@ -36,6 +36,7 @@
         "speakeasy": "^2.0.0",
         "ssh2-sftp-client": "^11.0.0",
         "tar": "^7.4.3",
+        "ts-node": "^10.9.2",
         "typescript": "^5.7.2",
         "ws": "^8.18.0"
     }

@@ -1,22 +1,25 @@
-import { ReactNode } from 'react';
-import { HTMLMotionProps } from 'framer-motion';
+import type { HTMLMotionProps } from 'framer-motion';
 
 export type SpinnerSize = 'sm' | 'md' | 'lg';
 
-export interface LoadingSpinnerProps extends HTMLMotionProps<"div"> {
+interface BaseLoadingSpinnerProps {
     size?: SpinnerSize;
     text?: string;
     fullScreen?: boolean;
 }
 
-export interface LoadingSkeletonProps extends HTMLMotionProps<"div"> {
+interface BaseLoadingSkeletonProps {
     rows?: number;
     avatar?: boolean;
 }
 
-export interface ErrorAlertProps extends HTMLMotionProps<"div"> {
+interface BaseErrorAlertProps {
     message: string;
 }
+
+export interface LoadingSpinnerProps extends HTMLMotionProps<"div">, BaseLoadingSpinnerProps {}
+export interface LoadingSkeletonProps extends HTMLMotionProps<"div">, BaseLoadingSkeletonProps {}
+export interface ErrorAlertProps extends HTMLMotionProps<"div">, BaseErrorAlertProps {}
 
 export type SpinnerSizeClasses = {
     [key in SpinnerSize]: string;

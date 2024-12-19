@@ -14,8 +14,8 @@ export const useSelect = ({
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const listRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null!);
+    const listRef = useRef<HTMLDivElement>(null!);
     const { registerField, unregisterField, setFieldValue, getFieldError } = useFormContext();
 
     const filteredOptions = options.filter(option =>
@@ -110,13 +110,15 @@ export const useSelect = ({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    const fieldError = name && getFieldError ? getFieldError(name) : undefined;
+
     return {
         isOpen,
         searchQuery,
         filteredOptions,
         selectedOption,
         highlightedIndex,
-        error: getFieldError ? getFieldError(name) : undefined,
+        error: fieldError,
         containerRef,
         listRef,
         setIsOpen,
