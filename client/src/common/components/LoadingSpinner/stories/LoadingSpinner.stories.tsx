@@ -45,7 +45,6 @@ export const CustomText: Story = {
 
 export const FullScreen: Story = {
     args: {
-        fullScreen: true,
         text: 'Loading Application'
     }
 };

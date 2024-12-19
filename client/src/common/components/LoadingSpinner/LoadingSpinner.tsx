@@ -6,7 +6,6 @@ import type { LoadingSpinnerProps, SpinnerSizeClasses } from './types';
 const LoadingSpinner = React.forwardRef<HTMLDivElement, LoadingSpinnerProps>(({
                                                                                   size = 'md',
                                                                                   text = 'Loading',
-                                                                                  fullScreen = false,
                                                                                   className = '',
                                                                                   ...props
                                                                               }, ref) => {
@@ -16,21 +15,12 @@ const LoadingSpinner = React.forwardRef<HTMLDivElement, LoadingSpinnerProps>(({
         lg: 'w-12 h-12',
     };
 
-    const containerClassName = fullScreen
-        ? "fixed inset-0 bg-white bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-50"
-        : `flex flex-col items-center justify-center min-h-[200px] ${className}`;
-
-    const containerProps = fullScreen ? {
-        initial: { opacity: 0 },
-        animate: { opacity: 1 },
-        exit: { opacity: 0 },
-    } : {};
+    const containerClassName = `flex flex-col items-center justify-center min-h-[200px] ${className}`;
 
     return (
         <motion.div
             ref={ref}
             className={containerClassName}
-            {...containerProps}
             {...props}
         >
             <motion.div
