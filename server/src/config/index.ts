@@ -18,6 +18,14 @@ interface MariaDBConfig {
     database: string;
 }
 
+interface MongoDBConfig {
+    host: string;
+    port: number;
+    username: string;
+    password: string;
+    database: string;
+}
+
 interface SFTPConfig {
     host: string;
     port: number;
@@ -40,6 +48,7 @@ interface AppConfig extends Record<string, unknown> {
     redis: RedisConfig;
     k8s: KubernetesConfig;
     mariadb: MariaDBConfig;
+    mongodb: MongoDBConfig;
     sftp: SFTPConfig;
     prometheus: PrometheusConfig;
 }
@@ -83,6 +92,17 @@ const validateConfig = (config: AppConfig): void => {
         typeof mariadb.password !== 'string' ||
         typeof mariadb.database !== 'string') {
         throw new Error('Invalid MariaDB configuration');
+    }
+
+    // Validate MongoDB configuration
+    const mongodb = config.mongodb;
+    if (!mongodb ||
+        typeof mongodb.host !== 'string' ||
+        typeof mongodb.port !== 'number' ||
+        typeof mongodb.username !== 'string' ||
+        typeof mongodb.password !== 'string' ||
+        typeof mongodb.database !== 'string') {
+        throw new Error('Invalid MongoDB configuration');
     }
 
     // Validate SFTP configuration
@@ -157,6 +177,10 @@ const initializeConfig = (): AppConfig => {
 
         if (process.env.MARIADB_PASSWORD) {
             config.mariadb.password = process.env.MARIADB_PASSWORD;
+        }
+
+        if (process.env.MONGO_INITDB_ROOT_PASSWORD) {
+            config.mongodb.password = process.env.MONGO_INITDB_ROOT_PASSWORD;
         }
 
         if (process.env.PANEL_HOST) {

@@ -108,13 +108,21 @@ router.route('/sftp/move')
 router.route('/sftp/unarchive')
     .post(verifyToken, controller.unarchiveSFTPFile);
 
-router.route('/databases')
-    .get(verifyToken, controller.getDatabases)
-    .post(verifyToken, controller.createDatabase);
+router.route('/databases/sql')
+    .get(verifyToken, controller.getSqlDatabases)
+    .post(verifyToken, controller.createSqlDatabase);
 
-router.route('/databases/:name')
-    .delete(verifyToken, controller.deleteDatabase)
-    .patch(verifyToken, controller.resetDatabasePassword);
+router.route('/databases/sql/:name')
+    .delete(verifyToken, controller.deleteSqlDatabase)
+    .patch(verifyToken, controller.resetSqlDatabasePassword);
+
+router.route('/databases/mongo')
+    .get(verifyToken, controller.getMongoDatabases)
+    .post(verifyToken, controller.createMongoDatabase);
+
+router.route('/databases/mongo/:name')
+    .delete(verifyToken, controller.deleteMongoDatabase)
+    .patch(verifyToken, controller.resetMongoDatabasePassword);
 
 router.route('/nodes')
     .get(verifyToken, controller.getNodes);
