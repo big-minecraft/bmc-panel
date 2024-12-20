@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Database, Loader2 } from 'lucide-react';
 import { DatabasesProvider, useDatabases } from '../context/DatabasesContext';
 import { useNotifications } from '../hooks/useNotifications';
+import { useDatabaseName } from '../hooks/useDatabaseName';
 import { DatabaseCard } from '../components/DatabaseCard';
 import { Notifications } from '../components/Notifications';
 import { CreateDatabaseModal } from '../modals/CreateDatabaseModal';
@@ -49,7 +50,7 @@ const DatabasesContent: React.FC = () => {
 
     const { notifications, addNotification, removeNotification } = useNotifications()
     const [showCreateModal, setShowCreateModal] = useState(false)
-    const [newDatabaseName, setNewDatabaseName] = useState('')
+    const { name: newDatabaseName, setName: setNewDatabaseName, validation: nameValidation } = useDatabaseName('')
     const [databaseToDelete, setDatabaseToDelete] = useState<string | null>(null)
     const [databaseToReset, setDatabaseToReset] = useState<string | null>(null)
     const [showCredentials, setShowCredentials] = useState<Record<string, boolean>>({})
@@ -59,25 +60,28 @@ const DatabasesContent: React.FC = () => {
     }, [fetchDatabases]);
 
     const handleCreate = async () => {
-        if (!newDatabaseName.trim()) return;
+        if (!nameValidation.isValid || !newDatabaseName.trim()) {
+            addNotification('Invalid database name', 'danger')
+            return;
+        }
 
         try {
             const response = await createDatabase(newDatabaseName);
             setShowCreateModal(false);
             setNewDatabaseName('');
-            addNotification(`Successfully created database ${newDatabaseName}`, 'success');
+            addNotification(`successfully created database ${newDatabaseName}`, 'success');
             setShowCredentials(prev => ({ ...prev, [response.name]: true }));
         } catch (err) {
-            addNotification(`Failed to create database ${newDatabaseName}`, 'danger');
+            addNotification(`failed to create database ${newDatabaseName}`, 'danger');
         }
     };
 
     const handleDelete = async () => {
         try {
             await deleteDatabase(databaseToDelete);
-            addNotification(`Successfully deleted database ${databaseToDelete}`, 'success');
+            addNotification(`successfully deleted database ${databaseToDelete}`, 'success');
         } catch (err) {
-            addNotification(`Failed to delete database ${databaseToDelete}`, 'danger');
+            addNotification(`failed to delete database ${databaseToDelete}`, 'danger');
         } finally {
             setDatabaseToDelete(null);
         }
@@ -86,10 +90,10 @@ const DatabasesContent: React.FC = () => {
     const handleResetPassword = async () => {
         try {
             await resetPassword(databaseToReset);
-            addNotification(`Successfully reset password for ${databaseToReset}`, 'success');
+            addNotification(`successfully reset password for ${databaseToReset}`, 'success');
             setShowCredentials(prev => ({ ...prev, [databaseToReset]: true }));
         } catch (err) {
-            addNotification(`Failed to reset password for ${databaseToReset}`, 'danger');
+            addNotification(`failed to reset password for ${databaseToReset}`, 'danger');
         } finally {
             setDatabaseToReset(null);
         }
@@ -173,10 +177,14 @@ const DatabasesContent: React.FC = () => {
 
             <CreateDatabaseModal
                 show={showCreateModal}
-                onClose={() => setShowCreateModal(false)}
+                onClose={() => {
+                    setShowCreateModal(false);
+                    setNewDatabaseName('');
+                }}
                 databaseName={newDatabaseName}
                 onDatabaseNameChange={setNewDatabaseName}
                 onCreate={handleCreate}
+                validation={nameValidation}
             />
 
             <DeleteDatabaseModal

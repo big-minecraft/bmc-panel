@@ -1,8 +1,25 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
+import type { DatabaseNameValidation } from '../hooks/useDatabaseName';
 
-export const CreateDatabaseModal = ({ show, onClose, databaseName, onDatabaseNameChange, onCreate }) => {
+interface CreateDatabaseModalProps {
+    show: boolean;
+    onClose: () => void;
+    databaseName: string;
+    onDatabaseNameChange: (name: string) => void;
+    onCreate: () => void;
+    validation?: DatabaseNameValidation;
+}
+
+export const CreateDatabaseModal: React.FC<CreateDatabaseModalProps> = ({
+                                                                            show,
+                                                                            onClose,
+                                                                            databaseName,
+                                                                            onDatabaseNameChange,
+                                                                            onCreate,
+                                                                            validation
+                                                                        }) => {
     if (!show) return null;
 
     return (
@@ -37,13 +54,28 @@ export const CreateDatabaseModal = ({ show, onClose, databaseName, onDatabaseNam
                                     </motion.button>
                                 </div>
 
-                                <input
-                                    type="text"
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
-                                    placeholder="Enter database name"
-                                    value={databaseName}
-                                    onChange={(e) => onDatabaseNameChange(e.target.value)}
-                                />
+                                <div className="space-y-2">
+                                    <input
+                                        type="text"
+                                        maxLength={64}
+                                        className={`w-full px-3 py-2 border rounded-lg text-sm transition-shadow ${
+                                            validation?.error
+                                                ? 'border-red-300 focus:ring-red-500'
+                                                : 'border-gray-200 focus:ring-blue-500'
+                                        } focus:ring-2 focus:border-transparent`}
+                                        placeholder="Enter database name"
+                                        value={databaseName}
+                                        onChange={(e) => onDatabaseNameChange(e.target.value)}
+                                    />
+                                    {validation?.error && (
+                                        <p className="text-sm text-red-600">
+                                            {validation.error}
+                                        </p>
+                                    )}
+                                    <p className="text-sm text-gray-500">
+                                        Enter a name for your database.
+                                    </p>
+                                </div>
 
                                 <div className="mt-6 flex justify-end gap-3">
                                     <motion.button
@@ -57,8 +89,13 @@ export const CreateDatabaseModal = ({ show, onClose, databaseName, onDatabaseNam
                                     <motion.button
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
-                                        className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600"
+                                        className={`px-4 py-2 text-sm font-medium text-white rounded-lg ${
+                                            validation?.error || !databaseName.trim()
+                                                ? 'bg-blue-300 cursor-not-allowed'
+                                                : 'bg-blue-500 hover:bg-blue-600'
+                                        }`}
                                         onClick={onCreate}
+                                        disabled={!!validation?.error || !databaseName.trim()}
                                     >
                                         Create
                                     </motion.button>
