@@ -1,15 +1,13 @@
 {
-    "name": "node_react_startup_structure_server",
+    "name": "bmc-panel-server",
     "version": "1.0.0",
-    "description": "The server for the Node React Startup Structure",
+    "description": "panel for the big minecraft project",
     "main": "src/app.ts",
     "type": "commonjs",
     "scripts": {
         "start": "node src/app.ts",
         "dev": "nodemon src/app.ts"
     },
-    "author": "Anthony Rivas",
-    "license": "MIT",
     "devDependencies": {
         "nodemon": "^3.1.9"
     },

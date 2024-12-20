@@ -1,7 +1,7 @@
 {
-  "name": "node_react_startup_structure_client",
+  "name": "bmc-panel-client",
   "version": "1.0.0",
-  "description": "The client for the Node React Startup Structure - created with create-react-app",
+  "description": "panel for the big minecraft project",
   "private": true,
   "proxy": "http://localhost:3001",
   "dependencies": {
