@@ -11,7 +11,7 @@ export const DatabasesProvider = ({ children }) => {
     const fetchDatabases = useCallback(async () => {
         try {
             setIsLoading(true);
-            const response = await axiosInstance.get('/api/databases/mongo');
+            const response = await axiosInstance.get('/api/databases/sql');
             console.log(response.data);
             setDatabases(response.data);
             setError(null);
@@ -24,18 +24,18 @@ export const DatabasesProvider = ({ children }) => {
     }, []);
 
     const createDatabase = useCallback(async (name) => {
-        const response = await axiosInstance.post('/api/databases/mongo', { name });
+        const response = await axiosInstance.post('/api/databases/sql', { name });
         await fetchDatabases();
         return response.data;
     }, [fetchDatabases]);
 
     const deleteDatabase = useCallback(async (name) => {
-        await axiosInstance.delete(`/api/databases/mongo/${name}`);
+        await axiosInstance.delete(`/api/databases/sql/${name}`);
         await fetchDatabases();
     }, [fetchDatabases]);
 
     const resetPassword = useCallback(async (name) => {
-        const response = await axiosInstance.patch(`/api/databases/mongo/${name}`);
+        const response = await axiosInstance.patch(`/api/databases/sql/${name}`);
         await fetchDatabases();
         return response.data;
     }, [fetchDatabases]);
