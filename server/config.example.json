@@ -15,6 +15,13 @@
     "password": "admin",
     "database": "bmc"
   },
+  "mongodb": {
+    "host": "mongodb-service",
+    "port": 27017,
+    "username": "admin",
+    "password": "admin",
+    "database": "admin"
+  },
   "sftp": {
     "host": "sftp-service",
     "port": 22,

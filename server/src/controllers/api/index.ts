@@ -51,12 +51,13 @@ import {
     restartProxy,
     getProxyConfig
 } from '../proxy';
-import {createDatabase, deleteDatabase, listDatabases, resetDatabasePassword} from '../databaseService';
+import {createSqlDatabase, deleteSqlDatabase, listSqlDatabases, resetSqlDatabasePassword} from '../mariadbService';
 import kubernetesClient from '../k8s';
 import {
     getPodCPUUsageForGraph,
     getPodMemoryUsageForGraph
 } from '../prometheus';
+import mongoService from "../mongodbService";
 
 const api = {
     getInstances: async (req, res) => {
@@ -599,9 +600,9 @@ const api = {
         }
     },
 
-    getDatabases: async (req, res) => {
+    getSqlDatabases: async (req, res) => {
         try {
-            const databases = await listDatabases();
+            const databases = await listSqlDatabases();
 
             const sanitizedDatabases = databases.map(db => ({
                 ...db,
@@ -610,41 +611,89 @@ const api = {
 
             res.json(sanitizedDatabases);
         } catch (error) {
-            console.error('Failed to list databases:', error);
-            res.status(500).json({error: 'Failed to fetch databases'});
+            console.error('Failed to list SQL databases:', error);
+            res.status(500).json({error: 'Failed to fetch SQL databases'});
         }
     },
 
-    createDatabase: async (req, res) => {
+    createSqlDatabase: async (req, res) => {
         const {name} = req.body;
         try {
-            await createDatabase(name);
-            res.json({message: 'Database created successfully'});
+            await createSqlDatabase(name);
+            res.json({message: 'SQL Database created successfully'});
         } catch (error) {
-            console.error('Failed to create database:', error);
-            res.status(500).json({error: 'Failed to create database'});
+            console.error('Failed to create SQL database:', error);
+            res.status(500).json({error: 'Failed to create SQL database'});
         }
     },
 
-    deleteDatabase: async (req, res) => {
+    deleteSqlDatabase: async (req, res) => {
         const {name} = req.params;
         try {
-            await deleteDatabase(name);
-            res.json({message: 'Database deleted successfully'});
+            await deleteSqlDatabase(name);
+            res.json({message: 'SQL Database deleted successfully'});
         } catch (error) {
-            res.status(500).json({error: 'Failed to delete database'});
+            res.status(500).json({error: 'Failed to delete SQL database'});
         }
     },
 
-    resetDatabasePassword: async (req, res) => {
+    resetSqlDatabasePassword: async (req, res) => {
         const {name} = req.params;
         try {
-            const {username, password} = await resetDatabasePassword(name);
-            res.json({message: 'Database password reset successfully', username, password});
+            const {username, password} = await resetSqlDatabasePassword(name);
+            res.json({message: 'SQL Database password reset successfully', username, password});
         } catch (error) {
-            res.status(500).json({error: 'Failed to reset database password'});
+            res.status(500).json({error: 'Failed to reset SQL database password'});
         }
     },
+
+    getMongoDatabases: async (req, res) => {
+        try {
+            const databases = await mongoService.listMongoDatabases();
+
+            const sanitizedDatabases = databases.map(db => ({
+                ...db,
+                tables: parseInt(db.collections.toString())
+            }));
+
+            res.json(sanitizedDatabases);
+        } catch (error) {
+            console.error('Failed to list Mongo databases:', error);
+            res.status(500).json({error: 'Failed to fetch Mongo databases'});
+        }
+    },
+
+    createMongoDatabase: async (req, res) => {
+        const {name} = req.body;
+        try {
+            await mongoService.createMongoDatabase(name);
+            res.json({message: 'Mongo Database created successfully'});
+        } catch (error) {
+            console.error('Failed to create Mongo database:', error);
+            res.status(500).json({error: 'Failed to create Mongo database'});
+        }
+    },
+
+    deleteMongoDatabase: async (req, res) => {
+        const {name} = req.params;
+        try {
+            await mongoService.deleteMongoDatabase(name);
+            res.json({message: 'Mongo Database deleted successfully'});
+        } catch (error) {
+            res.status(500).json({error: 'Failed to delete Mongo database'});
+        }
+    },
+
+    resetMongoDatabasePassword: async (req, res) => {
+        const {name} = req.params;
+        try {
+            const {username, password} = await mongoService.resetMongoDatabasePassword(name);
+            res.json({message: 'Mongo Database password reset successfully', username, password});
+        } catch (error) {
+            res.status(500).json({error: 'Failed to reset Mongo database password'});
+        }
+    },
+
 
     getNodes: async (req, res) => {
         try {

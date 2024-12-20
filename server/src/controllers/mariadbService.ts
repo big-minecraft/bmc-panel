@@ -1,8 +1,9 @@
 import {pool} from './database';
 import config from '../config';
+import { PoolConnection } from 'mariadb';
 
-async function createDatabase(name) {
-    let conn;
+async function createSqlDatabase(name: string) {
+    let conn: PoolConnection;
     let databaseCreated = false;
     let userCreated = false;
     let credentialsInserted = false;
@@ -95,7 +96,7 @@ async function createDatabase(name) {
     }
 }
 
-async function listDatabases() {
+async function listSqlDatabases() {
     let conn;
     try {
         conn = await pool.getConnection();
@@ -137,7 +138,7 @@ async function listDatabases() {
     }
 }
 
-async function deleteDatabase(name) {
+async function deleteSqlDatabase(name) {
     let conn;
     try {
         if (!isValidDatabaseName(name)) {
@@ -161,7 +162,7 @@ async function deleteDatabase(name) {
     }
 }
 
-async function resetDatabasePassword(name) {
+async function resetSqlDatabasePassword(name) {
     let conn;
     try {
         if (!isValidDatabaseName(name)) {
@@ -212,8 +213,8 @@ function isValidDatabaseName(name) {
 }
 
 export {
-    createDatabase,
-    listDatabases,
-    deleteDatabase,
-    resetDatabasePassword
+    createSqlDatabase,
+    listSqlDatabases,
+    deleteSqlDatabase,
+    resetSqlDatabasePassword
 }
