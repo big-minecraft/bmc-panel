@@ -15,7 +15,7 @@ async function databaseInit() {
         await createTables();
         await checkAndCreateInitialInviteCode();
     } catch (error) {
-        console.error('Failed to initialize database:', error);
+        console.error('failed to initialize database:', error);
     }
 }
 
@@ -33,13 +33,21 @@ async function createTables() {
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
                 )
             `);
+        await conn.query(`
+                CREATE TABLE IF NOT EXISTS k8s_dash (
+                    token TEXT NOT NULL,
+                    expires_at TIMESTAMP NOT NULL,
+                    PRIMARY KEY (token)
+                )
+            `);
     } catch (error) {
-        console.error('Failed to create tables:', error);
+        console.error('failed to create tables:', error);
         throw error;
     } finally {
         if (conn) await conn.end();
     }
 }
+
 
 async function userExists(username) {
     let conn;

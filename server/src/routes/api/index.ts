@@ -67,6 +67,11 @@ router.route('/users/:id/password')
 router.route('/users/:id')
     .delete(verifyAdminToken, controller.deleteUser);
 
+router.route('/admin/k8sdashtoken')
+    .get(verifyAdminToken, controller.getK8sDashboardToken)
+    .put(verifyAdminToken, controller.createK8sDashboardToken)
+    .delete(verifyAdminToken, controller.deleteK8sDashboardToken);
+
 router.route('/sftp/files')
     .get(verifyToken, controller.getSFTPFiles);
 

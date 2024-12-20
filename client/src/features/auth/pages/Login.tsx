@@ -17,7 +17,7 @@ const Login = () => {
 
     useEffect(() => {
         if (checkAuthToken()) {
-            const from = location.state?.from || '/';
+            const from = location.state?.from?.pathname || '/';
             navigate(from, { replace: true });
         }
     }, [navigate, location]);
@@ -52,7 +52,20 @@ const Login = () => {
                                 <Alert message={error} />
                             </motion.div>
                         )}
-                        <LoginForm {...loginProps} />
+                        <LoginForm
+                            username={loginProps.username}
+                            setUsername={loginProps.setUsername}
+                            password={loginProps.password}
+                            setPassword={loginProps.setPassword}
+                            token={loginProps.token}
+                            setToken={loginProps.setToken}
+                            authStep={loginProps.authStep}
+                            setAuthStep={loginProps.setAuthStep}
+                            loading={loginProps.loading}
+                            setShowForgotModal={loginProps.setShowForgotModal}
+                            handleLogin={loginProps.handleLogin}
+                            handleVerifyToken={loginProps.handleVerifyToken}
+                        />
                     </div>
                 </AuthLayout>
 

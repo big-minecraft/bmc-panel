@@ -36,7 +36,7 @@ const EmptyState = ({ onCreateClick }) => (
     </motion.div>
 );
 
-const DatabasesContent = () => {
+const DatabasesContent: React.FC = () => {
     const {
         databases,
         isLoading,
@@ -45,14 +45,14 @@ const DatabasesContent = () => {
         createDatabase,
         deleteDatabase,
         resetPassword
-    } = useDatabases();
+    } = useDatabases()
 
-    const { notifications, addNotification, removeNotification } = useNotifications();
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [newDatabaseName, setNewDatabaseName] = useState('');
-    const [databaseToDelete, setDatabaseToDelete] = useState(null);
-    const [databaseToReset, setDatabaseToReset] = useState(null);
-    const [showCredentials, setShowCredentials] = useState({});
+    const { notifications, addNotification, removeNotification } = useNotifications()
+    const [showCreateModal, setShowCreateModal] = useState(false)
+    const [newDatabaseName, setNewDatabaseName] = useState('')
+    const [databaseToDelete, setDatabaseToDelete] = useState<string | null>(null)
+    const [databaseToReset, setDatabaseToReset] = useState<string | null>(null)
+    const [showCredentials, setShowCredentials] = useState<Record<string, boolean>>({})
 
     useEffect(() => {
         fetchDatabases();

@@ -58,6 +58,7 @@ import {
     getPodMemoryUsageForGraph
 } from '../prometheus';
 import mongoService from "../mongodbService";
+import {createK8sDashboardToken, deleteK8sDashboardToken, getK8sDashboardToken} from "../k8sdash";
 
 const api = {
     getInstances: async (req, res) => {
@@ -339,6 +340,33 @@ const api = {
         }
 
         res.json({message: 'Logged out successfully'});
+    },
+
+    async getK8sDashboardToken(req, res) {
+        try {
+            const token = await getK8sDashboardToken();
+            res.json({token});
+        } catch (error) {
+            res.status(500).json({error: 'Failed to get k8s dashboard token'});
+        }
+    },
+
+    async createK8sDashboardToken(req, res) {
+        try {
+            const token = await createK8sDashboardToken();
+            res.json({token});
+        } catch (error) {
+            res.status(500).json({error: 'Failed to create k8s dashboard token'});
+        }
+    },
+
+    async deleteK8sDashboardToken(req, res) {
+        try {
+            await deleteK8sDashboardToken();
+            res.json({message: 'Token deleted successfully'});
+        } catch (error) {
+            res.status(500).json({error: 'Failed to delete k8s dashboard token'});
+        }
     },
 
     getSFTPFiles: async (req, res) => {

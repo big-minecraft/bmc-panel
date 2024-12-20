@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import UsersTab from "../components/users/UserTab";
 import InviteCodesTab from "../components/invite-codes/InviteCodesTab";
-import { Users, Ticket } from 'lucide-react';
+import {Users, Ticket, Key} from 'lucide-react';
+import K8sDashboardTab from "../components/k8sdash/K8sDashboardTab";
 
 export const ADMIN_TABS = [
     {
         id: 'users',
-        label: 'Users',
+        label: 'User Management',
         component: UsersTab,
         icon: Users
     },
@@ -16,6 +17,12 @@ export const ADMIN_TABS = [
         label: 'Invite Codes',
         component: InviteCodesTab,
         icon: Ticket
+    },
+    {
+        id: 'k8sdash',
+        label: 'Kubernetes Dashboard',
+        component: K8sDashboardTab,
+        icon: Key
     }
 ];
 
