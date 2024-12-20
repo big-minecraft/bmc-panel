@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
 import axiosInstance from '../../../utils/auth';
-import { useSFTPState, useSFTPDispatch } from '../context/SFTPContext.js';
+import { useSFTPState, useSFTPDispatch } from '../context/SFTPContext';
 import { useModalControls } from './useModalControls';
-import {useFileNavigation} from "./useFileNavigation.js";
+import {useFileNavigation} from "./useFileNavigation";
 
 export function useFileOperations() {
     const state = useSFTPState();

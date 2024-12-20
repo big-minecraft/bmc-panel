@@ -8,11 +8,11 @@
 
     "resolveJsonModule": true,
     "esModuleInterop": true,
-    "allowJs": true,
+    "jsx": "react-jsx",
 
-    "strict": true,
-    "strictPropertyInitialization": false,
-    "jsx": "react-jsx"
+    "allowJs": true,
+    "strict": false,
+    "strictPropertyInitialization": false
   },
   "include": [
     "src"

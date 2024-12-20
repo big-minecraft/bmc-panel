@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useLogin } from '../hooks/useLogin.js';
-import { useAuthContext } from '../context/AuthContext.js';
-import { Alert } from '../components/Alert.js';
-import LoginForm from '../components/LoginForm.js';
-import { ForgotPasswordModal } from '../components/ForgotPasswordModal.js';
+import { useLogin } from '../hooks/useLogin';
+import { useAuthContext } from '../context/AuthContext';
+import { Alert } from '../components/Alert';
+import LoginForm from '../components/LoginForm';
+import { ForgotPasswordModal } from '../components/ForgotPasswordModal';
 import { checkAuthToken } from '../../../utils/auth';
-import AuthLayout from '../components/AuthLayout.js';
+import AuthLayout from '../components/AuthLayout';
 
 const Login = () => {
     const navigate = useNavigate();

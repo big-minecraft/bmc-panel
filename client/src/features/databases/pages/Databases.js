@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Database, Loader2 } from 'lucide-react';
-import { DatabasesProvider, useDatabases } from '../context/DatabasesContext.js';
-import { useNotifications } from '../hooks/useNotifications.js';
-import { DatabaseCard } from '../components/DatabaseCard.js';
-import { Notifications } from '../components/Notifications.js';
-import { CreateDatabaseModal } from '../modals/CreateDatabaseModal.js';
-import { DeleteDatabaseModal } from '../modals/DeleteDatabaseModal.js';
-import { ResetPasswordModal } from '../modals/ResetPasswordModal.js';
+import { DatabasesProvider, useDatabases } from '../context/DatabasesContext';
+import { useNotifications } from '../hooks/useNotifications';
+import { DatabaseCard } from '../components/DatabaseCard';
+import { Notifications } from '../components/Notifications';
+import { CreateDatabaseModal } from '../modals/CreateDatabaseModal';
+import { DeleteDatabaseModal } from '../modals/DeleteDatabaseModal';
+import { ResetPasswordModal } from '../modals/ResetPasswordModal';
 
 const EmptyState = ({ onCreateClick }) => (
     <motion.div
