@@ -23,6 +23,15 @@ const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(({
         info: 'bg-blue-100 text-blue-800',
     };
 
+    const dotVariants: BadgeVariantStyles = {
+        default: 'bg-gray-500',
+        primary: 'bg-indigo-500',
+        success: 'bg-green-500',
+        warning: 'bg-yellow-500',
+        danger: 'bg-red-500',
+        info: 'bg-blue-500',
+    };
+
     const sizes: BadgeSizeStyles = {
         sm: 'text-xs px-2 py-0.5',
         md: 'text-sm px-2.5 py-0.5',
@@ -37,20 +46,17 @@ const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(({
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.2 }}
             className={`
-        inline-flex items-center justify-center
-        font-medium rounded-full
-        whitespace-nowrap
-        ${variants[variant]}
-        ${sizes[size]}
-        ${className}
-      `}
+                inline-flex items-center justify-center
+                font-medium rounded-full
+                whitespace-nowrap
+                ${variants[variant]}
+                ${sizes[size]}
+                ${className}
+            `}
             {...props}
         >
             {dot && (
-                <span className={`
-          w-1.5 h-1.5 rounded-full mr-1.5
-          ${variant === 'default' ? 'bg-gray-500' : `bg-${variant}-500`}
-        `} />
+                <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${dotVariants[variant]}`} />
             )}
             {Icon && <Icon className="w-3.5 h-3.5 mr-1" />}
             {children}
