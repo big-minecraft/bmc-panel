@@ -1,11 +1,14 @@
 import React, { useState, forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { KeySquare, Trash2, ChevronRight, Database, Copy, Check, Terminal, Link2 } from 'lucide-react';
+import {DatabaseCardProps} from "../types/types";
 
-export const DatabaseCard = forwardRef(({ database, onShowCredentials, showCredentials, onDelete, onReset }, ref) => {
-    const { name, size, tables, credentials } = database;
-    const [copyStatus, setCopyStatus] = useState({});
-    const [activeTab, setActiveTab] = useState('credentials');
+
+export const DatabaseCard = forwardRef<HTMLDivElement, DatabaseCardProps>(
+    ({ database, onShowCredentials, showCredentials, onDelete, onReset }, ref) => {
+        const { name, size, tables, credentials } = database
+        const [copyStatus, setCopyStatus] = useState<Record<string, boolean>>({})
+        const [activeTab, setActiveTab] = useState<'credentials' | 'connection'>('credentials')
 
     const handleCopy = async (text, field) => {
         try {

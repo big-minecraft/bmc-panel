@@ -44,7 +44,7 @@ export function useFileOperations() {
         }
     }, [state.currentDirectory, dispatch]);
 
-    const uploadFiles = useCallback(async (files) => {
+    const uploadFiles = useCallback(async (files: FileList | File[]) => {
         if (!files?.length) return;
 
         dispatch({

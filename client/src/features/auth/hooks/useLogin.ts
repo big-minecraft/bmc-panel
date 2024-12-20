@@ -76,6 +76,7 @@ export const useLogin = () => {
         showForgotModal,
         setShowForgotModal,
         authStep,
+        setAuthStep,
         loading,
         handleLogin,
         handleVerifyToken
