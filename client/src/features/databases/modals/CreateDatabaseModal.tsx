@@ -10,16 +10,17 @@ interface CreateDatabaseModalProps {
     onDatabaseNameChange: (name: string) => void;
     onCreate: () => void;
     validation?: DatabaseNameValidation;
+    databaseType: 'sql' | 'mongo';
 }
 
 export const CreateDatabaseModal: React.FC<CreateDatabaseModalProps> = ({
-                                                                            show,
-                                                                            onClose,
-                                                                            databaseName,
-                                                                            onDatabaseNameChange,
-                                                                            onCreate,
-                                                                            validation
-                                                                        }) => {
+    show,
+    onClose,
+    databaseName,
+    onDatabaseNameChange,
+    onCreate,
+    validation
+}) => {
     if (!show) return null;
 
     return (

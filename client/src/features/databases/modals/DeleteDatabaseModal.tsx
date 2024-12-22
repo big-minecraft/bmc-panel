@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, AlertTriangle } from 'lucide-react';
 
-export const DeleteDatabaseModal = ({ databaseName, onClose, onConfirm }) => {
+export const DeleteDatabaseModal = ({ databaseName, databaseType, onClose, onConfirm }) => {
     if (!databaseName) return null;
 
     return (

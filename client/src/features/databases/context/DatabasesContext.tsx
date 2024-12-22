@@ -1,19 +1,36 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import axiosInstance from "../../../utils/auth";
+import type { Database } from '../types/types';
 
-const DatabasesContext = createContext(null);
+interface DatabasesContextValue {
+    sqlDatabases: Database[];
+    mongoDatabases: Database[];
+    isLoading: boolean;
+    error: string | null;
+    fetchDatabases: () => Promise<void>;
+    createDatabase: (name: string, type: 'sql' | 'mongo') => Promise<Database>;
+    deleteDatabase: (name: string, type: 'sql' | 'mongo') => Promise<void>;
+    resetPassword: (name: string, type: 'sql' | 'mongo') => Promise<Database>;
+}
 
-export const DatabasesProvider = ({ children }) => {
-    const [databases, setDatabases] = useState([]);
+const DatabasesContext = createContext<DatabasesContextValue | null>(null);
+
+export const DatabasesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [sqlDatabases, setSqlDatabases] = useState<Database[]>([]);
+    const [mongoDatabases, setMongoDatabases] = useState<Database[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
 
     const fetchDatabases = useCallback(async () => {
         try {
             setIsLoading(true);
-            const response = await axiosInstance.get('/api/databases/sql');
-            console.log(response.data);
-            setDatabases(response.data);
+            const [sqlResponse, mongoResponse] = await Promise.all([
+                axiosInstance.get('/api/databases/sql'),
+                axiosInstance.get('/api/databases/mongo')
+            ]);
+
+            setSqlDatabases(sqlResponse.data);
+            setMongoDatabases(mongoResponse.data);
             setError(null);
         } catch (err) {
             setError('Failed to load databases');
@@ -23,25 +40,26 @@ export const DatabasesProvider = ({ children }) => {
         }
     }, []);
 
-    const createDatabase = useCallback(async (name) => {
-        const response = await axiosInstance.post('/api/databases/sql', { name });
+    const createDatabase = useCallback(async (name: string, type: 'sql' | 'mongo') => {
+        const response = await axiosInstance.post(`/api/databases/${type}`, { name });
         await fetchDatabases();
         return response.data;
     }, [fetchDatabases]);
 
-    const deleteDatabase = useCallback(async (name) => {
-        await axiosInstance.delete(`/api/databases/sql/${name}`);
+    const deleteDatabase = useCallback(async (name: string, type: 'sql' | 'mongo') => {
+        await axiosInstance.delete(`/api/databases/${type}/${name}`);
         await fetchDatabases();
     }, [fetchDatabases]);
 
-    const resetPassword = useCallback(async (name) => {
-        const response = await axiosInstance.patch(`/api/databases/sql/${name}`);
+    const resetPassword = useCallback(async (name: string, type: 'sql' | 'mongo') => {
+        const response = await axiosInstance.patch(`/api/databases/${type}/${name}`);
         await fetchDatabases();
         return response.data;
     }, [fetchDatabases]);
 
     const value = {
-        databases,
+        sqlDatabases,
+        mongoDatabases,
         isLoading,
         error,
         fetchDatabases,

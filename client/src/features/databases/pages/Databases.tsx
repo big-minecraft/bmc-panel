@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Database, Loader2 } from 'lucide-react';
+import { Plus, Database as DatabaseIcon, Loader2 } from 'lucide-react';
 import { DatabasesProvider, useDatabases } from '../context/DatabasesContext';
 import { useNotifications } from '../hooks/useNotifications';
 import { useDatabaseName } from '../hooks/useDatabaseName';
@@ -9,8 +9,14 @@ import { Notifications } from '../components/Notifications';
 import { CreateDatabaseModal } from '../modals/CreateDatabaseModal';
 import { DeleteDatabaseModal } from '../modals/DeleteDatabaseModal';
 import { ResetPasswordModal } from '../modals/ResetPasswordModal';
+import {DatabaseSection} from "../components/DatabaseSection";
 
-const EmptyState = ({ onCreateClick }) => (
+interface EmptyStateProps {
+    type: 'sql' | 'mongo';
+    onCreateClick: () => void;
+}
+
+const EmptyState: React.FC<EmptyStateProps> = ({ type, onCreateClick }) => (
     <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -18,11 +24,11 @@ const EmptyState = ({ onCreateClick }) => (
     >
         <div className="flex flex-col items-center text-center">
             <div className="p-3 bg-blue-50 rounded-full mb-4">
-                <Database className="w-8 h-8 text-blue-500" />
+                <DatabaseIcon className="w-8 h-8 text-blue-500" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No databases yet</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No {type.toUpperCase()} databases yet</h3>
             <p className="text-sm text-gray-500 max-w-sm mb-6">
-                Get started by creating your first database. You can manage multiple databases and their credentials from here.
+                Get started by creating your first {type.toUpperCase()} database. You can manage multiple databases and their credentials from here.
             </p>
             <motion.button
                 whileHover={{ scale: 1.02 }}
@@ -31,7 +37,7 @@ const EmptyState = ({ onCreateClick }) => (
                 onClick={onCreateClick}
             >
                 <Plus className="w-4 h-4" />
-                <span className="font-medium">Create Database</span>
+                <span className="font-medium">Create {type.toUpperCase()} Database</span>
             </motion.button>
         </div>
     </motion.div>
@@ -39,67 +45,78 @@ const EmptyState = ({ onCreateClick }) => (
 
 const DatabasesContent: React.FC = () => {
     const {
-        databases,
+        sqlDatabases,
+        mongoDatabases,
         isLoading,
         error,
         fetchDatabases,
         createDatabase,
         deleteDatabase,
         resetPassword
-    } = useDatabases()
+    } = useDatabases();
 
-    const { notifications, addNotification, removeNotification } = useNotifications()
-    const [showCreateModal, setShowCreateModal] = useState(false)
-    const { name: newDatabaseName, setName: setNewDatabaseName, validation: nameValidation } = useDatabaseName('')
-    const [databaseToDelete, setDatabaseToDelete] = useState<string | null>(null)
-    const [databaseToReset, setDatabaseToReset] = useState<string | null>(null)
-    const [showCredentials, setShowCredentials] = useState<Record<string, boolean>>({})
+    const { notifications, addNotification, removeNotification } = useNotifications();
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [selectedDatabaseType, setSelectedDatabaseType] = useState<'sql' | 'mongo'>('sql');
+    const { name: newDatabaseName, setName: setNewDatabaseName, validation: nameValidation } = useDatabaseName('');
+    const [databaseToDelete, setDatabaseToDelete] = useState<{ name: string; type: 'sql' | 'mongo' } | null>(null);
+    const [databaseToReset, setDatabaseToReset] = useState<{ name: string; type: 'sql' | 'mongo' } | null>(null);
+    const [showCredentials, setShowCredentials] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         fetchDatabases();
     }, [fetchDatabases]);
 
+    const handleShowCreateModal = (type: 'sql' | 'mongo') => {
+        setSelectedDatabaseType(type);
+        setShowCreateModal(true);
+    };
+
     const handleCreate = async () => {
         if (!nameValidation.isValid || !newDatabaseName.trim()) {
-            addNotification('Invalid database name', 'danger')
+            addNotification('Invalid database name', 'danger');
             return;
         }
 
         try {
-            const response = await createDatabase(newDatabaseName);
+            const response = await createDatabase(newDatabaseName, selectedDatabaseType);
             setShowCreateModal(false);
             setNewDatabaseName('');
-            addNotification(`successfully created database ${newDatabaseName}`, 'success');
+            addNotification(`Successfully created ${selectedDatabaseType.toUpperCase()} database ${newDatabaseName}`, 'success');
             setShowCredentials(prev => ({ ...prev, [response.name]: true }));
         } catch (err) {
-            addNotification(`failed to create database ${newDatabaseName}`, 'danger');
+            addNotification(`Failed to create ${selectedDatabaseType.toUpperCase()} database ${newDatabaseName}`, 'danger');
         }
     };
 
     const handleDelete = async () => {
+        if (!databaseToDelete) return;
+
         try {
-            await deleteDatabase(databaseToDelete);
-            addNotification(`successfully deleted database ${databaseToDelete}`, 'success');
+            await deleteDatabase(databaseToDelete.name, databaseToDelete.type);
+            addNotification(`Successfully deleted ${databaseToDelete.type.toUpperCase()} database ${databaseToDelete.name}`, 'success');
         } catch (err) {
-            addNotification(`failed to delete database ${databaseToDelete}`, 'danger');
+            addNotification(`Failed to delete ${databaseToDelete.type.toUpperCase()} database ${databaseToDelete.name}`, 'danger');
         } finally {
             setDatabaseToDelete(null);
         }
     };
 
     const handleResetPassword = async () => {
+        if (!databaseToReset) return;
+
         try {
-            await resetPassword(databaseToReset);
-            addNotification(`successfully reset password for ${databaseToReset}`, 'success');
-            setShowCredentials(prev => ({ ...prev, [databaseToReset]: true }));
+            await resetPassword(databaseToReset.name, databaseToReset.type);
+            addNotification(`Successfully reset password for ${databaseToReset.type.toUpperCase()} database ${databaseToReset.name}`, 'success');
+            setShowCredentials(prev => ({ ...prev, [databaseToReset.name]: true }));
         } catch (err) {
-            addNotification(`failed to reset password for ${databaseToReset}`, 'danger');
+            addNotification(`Failed to reset password for ${databaseToReset.type.toUpperCase()} database ${databaseToReset.name}`, 'danger');
         } finally {
             setDatabaseToReset(null);
         }
     };
 
-    const toggleCredentials = (databaseName) => {
+    const toggleCredentials = (databaseName: string) => {
         setShowCredentials(prev => ({ ...prev, [databaseName]: !prev[databaseName] }));
     };
 
@@ -140,39 +157,32 @@ const DatabasesContent: React.FC = () => {
             />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex justify-between items-center mb-8">
-                    <div>
-                        <h1 className="text-2xl font-semibold text-gray-900">Databases</h1>
-                        <p className="text-sm text-gray-500 mt-1">Manage your database instances and credentials</p>
-                    </div>
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                        onClick={() => setShowCreateModal(true)}
-                    >
-                        <Plus className="w-4 h-4" />
-                        <span className="font-medium">Create Database</span>
-                    </motion.button>
+                <div className="mb-8">
+                    <h1 className="text-2xl font-semibold text-gray-900">Databases</h1>
+                    <p className="text-sm text-gray-500 mt-1">Manage your database instances and credentials</p>
                 </div>
 
-                <motion.div layout className="space-y-4">
-                    <AnimatePresence mode="popLayout">
-                        {databases.map(database => (
-                            <DatabaseCard
-                                key={database.name}
-                                database={database}
-                                showCredentials={showCredentials[database.name]}
-                                onShowCredentials={toggleCredentials}
-                                onDelete={setDatabaseToDelete}
-                                onReset={setDatabaseToReset}
-                            />
-                        ))}
-                        {databases.length === 0 && (
-                            <EmptyState onCreateClick={() => setShowCreateModal(true)} />
-                        )}
-                    </AnimatePresence>
-                </motion.div>
+                <DatabaseSection
+                    title="SQL Databases"
+                    type="sql"
+                    databases={sqlDatabases}
+                    showCredentials={showCredentials}
+                    onCreateClick={handleShowCreateModal}
+                    onShowCredentials={toggleCredentials}
+                    onDelete={(name, type) => setDatabaseToDelete({ name, type })}
+                    onReset={(name, type) => setDatabaseToReset({ name, type })}
+                />
+
+                <DatabaseSection
+                    title="MongoDB Databases"
+                    type="mongo"
+                    databases={mongoDatabases}
+                    showCredentials={showCredentials}
+                    onCreateClick={handleShowCreateModal}
+                    onShowCredentials={toggleCredentials}
+                    onDelete={(name, type) => setDatabaseToDelete({ name, type })}
+                    onReset={(name, type) => setDatabaseToReset({ name, type })}
+                />
             </div>
 
             <CreateDatabaseModal
@@ -185,16 +195,19 @@ const DatabasesContent: React.FC = () => {
                 onDatabaseNameChange={setNewDatabaseName}
                 onCreate={handleCreate}
                 validation={nameValidation}
+                databaseType={selectedDatabaseType}
             />
 
             <DeleteDatabaseModal
-                databaseName={databaseToDelete}
+                databaseName={databaseToDelete?.name}
+                databaseType={databaseToDelete?.type}
                 onClose={() => setDatabaseToDelete(null)}
                 onConfirm={handleDelete}
             />
 
             <ResetPasswordModal
-                databaseName={databaseToReset}
+                databaseName={databaseToReset?.name}
+                databaseType={databaseToReset?.type}
                 onClose={() => setDatabaseToReset(null)}
                 onConfirm={handleResetPassword}
             />
@@ -202,7 +215,7 @@ const DatabasesContent: React.FC = () => {
     );
 };
 
-const Databases = () => (
+const Databases: React.FC = () => (
     <DatabasesProvider>
         <DatabasesContent />
     </DatabasesProvider>

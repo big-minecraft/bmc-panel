@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, KeySquare } from 'lucide-react';
 
-export const ResetPasswordModal = ({ databaseName, onClose, onConfirm }) => {
+export const ResetPasswordModal = ({ databaseName, databaseType, onClose, onConfirm }) => {
     if (!databaseName) return null;
 
     return (
