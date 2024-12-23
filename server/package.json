@@ -5,17 +5,17 @@
     "main": "src/app.ts",
     "type": "commonjs",
     "scripts": {
-        "start": "node src/app.ts",
+        "start": "ts-node src/app.ts",
         "dev": "nodemon src/app.ts"
     },
     "devDependencies": {
         "nodemon": "^3.1.9"
     },
     "dependencies": {
+        "7zip-min": "^1.4.5",
         "@kubernetes/client-node": "^0.22.1",
         "@types/node": "^22.10.2",
         "@types/ssh2-sftp-client": "^9.0.4",
-        "7zip-min": "^1.4.5",
         "axios": "^1.7.9",
         "cookie-parser": "^1.4.7",
         "cors": "^2.8.5",
