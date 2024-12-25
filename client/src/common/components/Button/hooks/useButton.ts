@@ -9,13 +9,16 @@ export const useButton = ({
     variant = 'primary',
     size = 'md'
 }: UseButtonProps) => {
+    const {theme} = useTheme();
+    const colors = theme.colors;
+
     const getVariantClasses = useCallback((): string => {
         const variants: ButtonVariantClasses = {
-            primary: 'bg-primary text-white hover:bg-primary-hover focus:ring-primary',
-            secondary: 'bg-background-offset text-secondary hover:bg-secondary-hover focus:ring-secondary',
-            outline: 'border-2 border-primary text-primary hover:bg-primary-light focus:ring-primary',
-            ghost: 'text-secondary hover:bg-background-offset focus:ring-secondary',
-            danger: 'bg-error text-white hover:bg-error-dark focus:ring-error',
+            primary: `bg-[var(--negative-accent-bg)] text-[var(--negative-accent-text)] hover:bg-[var(--negative-accent-bg-hover)] focus:ring-[var(--undetermined)]`,
+            secondary: 'bg-gray-100 text-gray-600 hover:bg-gray-200 focus:ring-gray-400',
+            outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50 focus:ring-blue-500',
+            ghost: 'text-gray-600 hover:bg-gray-100 focus:ring-gray-400',
+            danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
         };
         return variants[variant];
     }, [variant]);

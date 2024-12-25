@@ -1,9 +1,10 @@
 import React, {createContext, useContext, useMemo, useState, useCallback, useEffect} from 'react';
-import {ThemeConfig, ThemeMode} from './types';
+import {ThemeColors, ThemeConfig, ThemeMode} from './types';
 import {themes} from './colors';
 
 type ThemeContextType = {
-    theme: ThemeConfig;
+    colors: ThemeColors;
+    theme: Omit<ThemeConfig,'color'>;
     mode: ThemeMode;
     toggleTheme: () => void;
     setThemeMode: (mode: ThemeMode) => void;
@@ -32,22 +33,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     if (themeOverride) theme = themeOverride;
 
     useEffect(() => {
-        const root = document.documentElement;
-        const colors = theme.colors;
-
-        Object.entries(colors).forEach(([key, value]) => {
-            root.style.setProperty(`--color-${key}`, value);
-        });
-    }, [theme]);
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(mode);
+    }, [mode]);
 
     const value = useMemo(() => ({
+        colors: theme.colors,
         theme,
         mode,
         toggleTheme,
         setThemeMode: setMode
     }), [theme, mode, toggleTheme]);
-
-    console.log('value:', value)
 
     return (
         <ThemeContext.Provider value={value}>

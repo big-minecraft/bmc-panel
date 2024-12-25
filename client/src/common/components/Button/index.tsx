@@ -28,7 +28,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     });
 
     const {theme} = useTheme();
-    console.log('theme in button:', theme)
 
     return (
         <motion.button
