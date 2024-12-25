@@ -1,14 +1,14 @@
 import JSZip from 'jszip';
 import tar from 'tar';
 import SevenZip from '7zip-min';
-import { promisify } from 'util';
+import {promisify} from 'util';
 import fs from 'fs/promises';
 import path from 'path';
 import os from 'os';
 import zlib from 'zlib';
 import * as unrar from 'node-unrar-js';
-import { uploadSFTPFile } from './sftp';
-import { downloadSFTPFile } from './sftp';
+import {uploadSFTPFile} from './sftp';
+import {downloadSFTPFile} from './sftp';
 
 // Type definitions
 type FileContent = Buffer | string;
@@ -26,7 +26,7 @@ const createTempDir = async (): Promise<string> => {
 
 const cleanupTempDir = async (tempPath: string): Promise<void> => {
     try {
-        await fs.rm(tempPath, { recursive: true, force: true });
+        await fs.rm(tempPath, {recursive: true, force: true});
     } catch (error) {
         console.error('Error cleaning up temp directory:', error);
     }
@@ -60,7 +60,7 @@ const handleZip = async (fileBuffer: Buffer, originalPath: string): Promise<void
 const handleTar = async (tempFilePath: string, originalPath: string): Promise<void> => {
     const targetDir = getDirectory(originalPath);
     const tempExtractPath = path.join(path.dirname(tempFilePath), 'extracted');
-    await fs.mkdir(tempExtractPath, { recursive: true });
+    await fs.mkdir(tempExtractPath, {recursive: true});
 
     await tar.x({
         file: tempFilePath,
@@ -68,7 +68,7 @@ const handleTar = async (tempFilePath: string, originalPath: string): Promise<vo
     });
 
     const processDirectory = async (dir: string, baseDir: string): Promise<void> => {
-        const entries = await fs.readdir(dir, { withFileTypes: true });
+        const entries = await fs.readdir(dir, {withFileTypes: true});
 
         for (const entry of entries) {
             const sourcePath = path.join(dir, entry.name);
@@ -109,7 +109,7 @@ const handleGzip = async (tempFilePath: string, originalPath: string): Promise<v
 const handleRar = async (tempFilePath: string, originalPath: string): Promise<void> => {
     const targetDir = getDirectory(originalPath);
     const tempExtractPath = path.join(path.dirname(tempFilePath), 'extracted');
-    await fs.mkdir(tempExtractPath, { recursive: true });
+    await fs.mkdir(tempExtractPath, {recursive: true});
 
     const rarBuffer = await fs.readFile(tempFilePath);
     const extractor = await unrar.createExtractorFromData({
@@ -130,7 +130,7 @@ const handleRar = async (tempFilePath: string, originalPath: string): Promise<vo
 const handleSevenZip = async (tempFilePath: string, originalPath: string): Promise<void> => {
     const targetDir = getDirectory(originalPath);
     const tempExtractPath = path.join(path.dirname(tempFilePath), 'extracted');
-    await fs.mkdir(tempExtractPath, { recursive: true });
+    await fs.mkdir(tempExtractPath, {recursive: true});
 
     await new Promise<void>((resolve, reject) => {
         SevenZip.unpack(tempFilePath, tempExtractPath, (err: Error | null) => {
@@ -140,7 +140,7 @@ const handleSevenZip = async (tempFilePath: string, originalPath: string): Promi
     });
 
     const processDirectory = async (dir: string, baseDir: string): Promise<void> => {
-        const entries = await fs.readdir(dir, { withFileTypes: true });
+        const entries = await fs.readdir(dir, {withFileTypes: true});
 
         for (const entry of entries) {
             const sourcePath = path.join(dir, entry.name);
@@ -171,20 +171,15 @@ async function unarchiveFile(filePath: string): Promise<void> {
 
         if (filePath.endsWith('.zip')) {
             await handleZip(fileBuffer, filePath);
-        }
-        else if (filePath.endsWith('.tar')) {
+        } else if (filePath.endsWith('.tar')) {
             await handleTar(tempFilePath, filePath);
-        }
-        else if (filePath.endsWith('.tar.gz') || filePath.endsWith('.gz')) {
+        } else if (filePath.endsWith('.tar.gz') || filePath.endsWith('.gz')) {
             await handleGzip(tempFilePath, filePath);
-        }
-        else if (filePath.endsWith('.rar')) {
+        } else if (filePath.endsWith('.rar')) {
             await handleRar(tempFilePath, filePath);
-        }
-        else if (filePath.endsWith('.7z')) {
+        } else if (filePath.endsWith('.7z')) {
             await handleSevenZip(tempFilePath, filePath);
-        }
-        else {
+        } else {
             throw new Error('Unsupported archive format');
         }
     } catch (error) {

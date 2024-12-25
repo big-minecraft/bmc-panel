@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer } from 'react';
+import React, {createContext, useContext, useReducer} from 'react';
 
 const SFTPContext = createContext(null);
 const SFTPDispatchContext = createContext(null);
@@ -22,30 +22,30 @@ const initialState = {
         error: null
     },
     modals: {
-        delete: { isOpen: false, files: [] },
-        move: { isOpen: false },
-        rename: { isOpen: false, file: null },
-        editor: { isOpen: false, file: null, content: '' }
+        delete: {isOpen: false, files: []},
+        move: {isOpen: false},
+        rename: {isOpen: false, file: null},
+        editor: {isOpen: false, file: null, content: ''}
     }
 };
 
 function sftpReducer(state, action) {
     switch (action.type) {
         case 'SET_FILES':
-            return { ...state, files: action.payload };
+            return {...state, files: action.payload};
         case 'SET_SELECTED_FILES':
-            return { ...state, selectedFiles: action.payload };
+            return {...state, selectedFiles: action.payload};
         case 'SET_CURRENT_DIRECTORY':
-            return { ...state, currentDirectory: action.payload };
+            return {...state, currentDirectory: action.payload};
         case 'SET_LOADING':
             return {
                 ...state,
-                loading: { ...state.loading, [action.payload.key]: action.payload.value }
+                loading: {...state.loading, [action.payload.key]: action.payload.value}
             };
         case 'SET_UPLOAD_STATE':
             return {
                 ...state,
-                uploadState: { ...state.uploadState, ...action.payload }
+                uploadState: {...state.uploadState, ...action.payload}
             };
         case 'SET_MODAL_STATE':
             return {
@@ -60,7 +60,7 @@ function sftpReducer(state, action) {
     }
 }
 
-export function SFTPProvider({ children }) {
+export function SFTPProvider({children}) {
     const [state, dispatch] = useReducer(sftpReducer, initialState);
 
     return (

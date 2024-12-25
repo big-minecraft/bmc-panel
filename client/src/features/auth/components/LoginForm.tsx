@@ -1,40 +1,40 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { LoadingButton } from './LoadingButton';
-import { Lock, User, ArrowRight } from 'lucide-react';
+import React, {useState} from 'react';
+import {motion, AnimatePresence} from 'framer-motion';
+import {LoadingButton} from './LoadingButton';
+import {Lock, User, ArrowRight} from 'lucide-react';
 
 const LoginForm = ({
-                       username,
-                       setUsername,
-                       password,
-                       setPassword,
-                       token,
-                       setToken,
-                       authStep,
-                       setAuthStep,
-                       loading,
-                       setShowForgotModal,
-                       handleLogin,
-                       handleVerifyToken
-                   }) => {
+    username,
+    setUsername,
+    password,
+    setPassword,
+    token,
+    setToken,
+    authStep,
+    setAuthStep,
+    loading,
+    setShowForgotModal,
+    handleLogin,
+    handleVerifyToken
+}) => {
     const [focusedInput, setFocusedInput] = useState(null);
 
     if (authStep === 1) {
         return (
             <motion.form
                 onSubmit={handleLogin}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
+                initial={{opacity: 0}}
+                animate={{opacity: 1}}
+                transition={{duration: 0.3}}
             >
                 <div className="space-y-6">
                     <motion.div
                         className="relative"
-                        animate={{ scale: focusedInput === 'username' ? 0.98 : 1 }}
-                        transition={{ duration: 0.1 }}
+                        animate={{scale: focusedInput === 'username' ? 0.98 : 1}}
+                        transition={{duration: 0.1}}
                     >
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <User className="h-5 w-5 text-gray-400" />
+                            <User className="h-5 w-5 text-gray-400"/>
                         </div>
                         <input
                             type="text"
@@ -53,11 +53,11 @@ const LoginForm = ({
 
                     <motion.div
                         className="relative"
-                        animate={{ scale: focusedInput === 'password' ? 0.98 : 1 }}
-                        transition={{ duration: 0.1 }}
+                        animate={{scale: focusedInput === 'password' ? 0.98 : 1}}
+                        transition={{duration: 0.1}}
                     >
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Lock className="h-5 w-5 text-gray-400" />
+                            <Lock className="h-5 w-5 text-gray-400"/>
                         </div>
                         <input
                             type="password"
@@ -83,15 +83,15 @@ const LoginForm = ({
 
                         <motion.a
                             href="/register"
-                            whileHover={{ scale: 1.01 }}
-                            whileTap={{ scale: 0.99 }}
+                            whileHover={{scale: 1.01}}
+                            whileTap={{scale: 0.99}}
                             className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-gray-700
                        bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100
                        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500
                        transition-colors duration-200"
                         >
                             Create Account
-                            <ArrowRight className="ml-2 h-4 w-4" />
+                            <ArrowRight className="ml-2 h-4 w-4"/>
                         </motion.a>
                     </div>
 
@@ -112,25 +112,25 @@ const LoginForm = ({
         return (
             <motion.form
                 onSubmit={handleVerifyToken}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
+                initial={{opacity: 0}}
+                animate={{opacity: 1}}
+                transition={{duration: 0.3}}
                 className="space-y-6"
             >
                 <motion.p
                     className="text-center text-sm text-gray-600"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
+                    initial={{opacity: 0, y: -20}}
+                    animate={{opacity: 1, y: 0}}
+                    transition={{delay: 0.2}}
                 >
                     Enter the code from your authenticator app
                 </motion.p>
 
                 <motion.div
                     className="flex justify-center"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.3 }}
+                    initial={{opacity: 0, scale: 0.95}}
+                    animate={{opacity: 1, scale: 1}}
+                    transition={{delay: 0.3}}
                 >
                     <input
                         type="text"
@@ -163,8 +163,8 @@ const LoginForm = ({
                             setAuthStep(1);
                             setToken('');
                         }}
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
+                        whileHover={{scale: 1.01}}
+                        whileTap={{scale: 0.99}}
                         className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium
                      text-gray-700 bg-gray-50 border border-gray-300 rounded-lg
                      hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2

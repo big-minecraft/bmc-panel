@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type {Meta, StoryObj} from '@storybook/react';
 import CardGroup from '../CardGroup';
 import Card from '../index';
 
@@ -18,7 +18,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof CardGroup>;
 
-const ExampleCard = ({ title }: { title: string }) => (
+const ExampleCard = ({title}: { title: string }) => (
     <Card header={title}>
         <p>Card content for {title}</p>
     </Card>
@@ -26,10 +26,10 @@ const ExampleCard = ({ title }: { title: string }) => (
 
 const defaultCards = (
     <>
-        <ExampleCard title="Card 1" />
-        <ExampleCard title="Card 2" />
-        <ExampleCard title="Card 3" />
-        <ExampleCard title="Card 4" />
+        <ExampleCard title="Card 1"/>
+        <ExampleCard title="Card 2"/>
+        <ExampleCard title="Card 3"/>
+        <ExampleCard title="Card 4"/>
     </>
 );
 
@@ -64,14 +64,14 @@ export const NonEqualHeight: Story = {
         equalHeight: false,
         children: (
             <>
-                <ExampleCard title="Short Card" />
+                <ExampleCard title="Short Card"/>
                 <Card header="Tall Card">
                     <p>This card has more content</p>
                     <p>Making it taller than others</p>
                     <p>To demonstrate non-equal heights</p>
                 </Card>
-                <ExampleCard title="Short Card" />
-                <ExampleCard title="Short Card" />
+                <ExampleCard title="Short Card"/>
+                <ExampleCard title="Short Card"/>
             </>
         )
     }

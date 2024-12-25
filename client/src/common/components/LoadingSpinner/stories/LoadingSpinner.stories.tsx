@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { LoadingSpinner } from '../index';
+import type {Meta, StoryObj} from '@storybook/react';
+import {LoadingSpinner} from '../index';
 
 const meta = {
     title: 'Components/Loading/Spinner',
@@ -22,9 +22,9 @@ export const Basic: Story = {
 export const Sizes: Story = {
     render: () => (
         <div className="flex items-end gap-4">
-            <LoadingSpinner size="sm" text="Small" />
-            <LoadingSpinner size="md" text="Medium" />
-            <LoadingSpinner size="lg" text="Large" />
+            <LoadingSpinner size="sm" text="Small"/>
+            <LoadingSpinner size="md" text="Medium"/>
+            <LoadingSpinner size="lg" text="Large"/>
         </div>
     )
 };

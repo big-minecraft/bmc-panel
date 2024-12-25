@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, {useState, useEffect} from 'react';
+import {motion} from 'framer-motion';
 import axiosInstance from "../../../../utils/auth";
 import InviteCodeList from './InviteCodeList';
 import CreateInviteModal from './CreateInviteModal';
 import RevokeInviteModal from './RevokeInviteModal';
 import LoadingSpinner from '../../../../common/zold/LoadingSpinner';
-import { Plus, Search } from 'lucide-react';
+import {Plus, Search} from 'lucide-react';
 
 const InviteCodesTab = () => {
     const [inviteCodes, setInviteCodes] = useState([]);
@@ -51,7 +51,7 @@ const InviteCodesTab = () => {
 
     const handleCreate = async (message) => {
         try {
-            await axiosInstance.post('/api/invite-codes', { message });
+            await axiosInstance.post('/api/invite-codes', {message});
             setShowCreateModal(false);
             await fetchInviteCodes();
         } catch (err) {
@@ -69,13 +69,13 @@ const InviteCodesTab = () => {
         }
     };
 
-    if (isLoading) return <LoadingSpinner />;
+    if (isLoading) return <LoadingSpinner/>;
 
     return (
         <div className="p-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                 <div className="relative flex-1 w-full">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"/>
                     <input
                         type="text"
                         placeholder="Search invite codes..."
@@ -85,12 +85,12 @@ const InviteCodesTab = () => {
                     />
                 </div>
                 <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={{scale: 1.02}}
+                    whileTap={{scale: 0.98}}
                     onClick={() => setShowCreateModal(true)}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                 >
-                    <Plus size={18} />
+                    <Plus size={18}/>
                     Create Code
                 </motion.button>
             </div>

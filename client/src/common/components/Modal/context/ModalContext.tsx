@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useReducer, useCallback } from 'react';
-import { ModalContextValue } from '../types';
+import React, {createContext, useContext, useReducer, useCallback} from 'react';
+import {ModalContextValue} from '../types';
 
 type ModalState = {
     openModals: string[];
@@ -47,25 +47,25 @@ const modalReducer = (state: ModalState, action: ModalAction): ModalState => {
     }
 };
 
-export const ModalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ModalProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
     const [state, dispatch] = useReducer(modalReducer, {
         openModals: []
     });
 
     const registerModal = useCallback((id: string) => {
-        dispatch({ type: 'REGISTER_MODAL', payload: id });
+        dispatch({type: 'REGISTER_MODAL', payload: id});
     }, []);
 
     const unregisterModal = useCallback((id: string) => {
-        dispatch({ type: 'UNREGISTER_MODAL', payload: id });
+        dispatch({type: 'UNREGISTER_MODAL', payload: id});
     }, []);
 
     const closeModal = useCallback((id: string) => {
-        dispatch({ type: 'CLOSE_MODAL', payload: id });
+        dispatch({type: 'CLOSE_MODAL', payload: id});
     }, []);
 
     const closeAllModals = useCallback(() => {
-        dispatch({ type: 'CLOSE_ALL_MODALS' });
+        dispatch({type: 'CLOSE_ALL_MODALS'});
     }, []);
 
     const value: ModalContextValue = {

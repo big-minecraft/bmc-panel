@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { LoadingSkeleton } from '../index';
+import type {Meta, StoryObj} from '@storybook/react';
+import {LoadingSkeleton} from '../index';
 
 const meta = {
     title: 'Components/Loading/Skeleton',

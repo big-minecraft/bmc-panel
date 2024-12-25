@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { RefreshCwIcon } from 'lucide-react';
+import type {Meta, StoryObj} from '@storybook/react';
+import {RefreshCwIcon} from 'lucide-react';
 
 import Button from '../index';
 import {createThemeDecorator} from "../../../../../.storybook/withTheme";

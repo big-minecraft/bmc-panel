@@ -1,8 +1,8 @@
-import { useCallback } from 'react';
-import { useSFTPState, useSFTPDispatch } from '../context/SFTPContext';
+import {useCallback} from 'react';
+import {useSFTPState, useSFTPDispatch} from '../context/SFTPContext';
 
 export function useFileSelection() {
-    const { selectedFiles, files } = useSFTPState();
+    const {selectedFiles, files} = useSFTPState();
     const dispatch = useSFTPDispatch();
 
     const handleSelectFile = useCallback((file) => {
@@ -22,7 +22,7 @@ export function useFileSelection() {
     }, [files, dispatch]);
 
     const clearSelection = useCallback(() => {
-        dispatch({ type: 'SET_SELECTED_FILES', payload: [] });
+        dispatch({type: 'SET_SELECTED_FILES', payload: []});
     }, [dispatch]);
 
     return {

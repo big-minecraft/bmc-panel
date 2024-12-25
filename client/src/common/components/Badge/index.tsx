@@ -1,17 +1,17 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { BadgeProps, BadgeVariantStyles, BadgeSizeStyles } from './types';
-import { useTheme } from '../../context/theme/ThemeContext';
+import {motion} from 'framer-motion';
+import {BadgeProps, BadgeVariantStyles, BadgeSizeStyles} from './types';
+import {useTheme} from '../../context/theme/ThemeContext';
 
 const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(({
-                                                                 children,
-                                                                 variant = 'default',
-                                                                 size = 'md',
-                                                                 dot = false,
-                                                                 icon: Icon,
-                                                                 className = '',
-                                                                 ...props
-                                                             }, ref) => {
+    children,
+    variant = 'default',
+    size = 'md',
+    dot = false,
+    icon: Icon,
+    className = '',
+    ...props
+}, ref) => {
     const theme = useTheme();
 
     const variants: BadgeVariantStyles = {
@@ -41,10 +41,10 @@ const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(({
     return (
         <motion.span
             ref={ref}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.2 }}
+            initial={{opacity: 0, scale: 0.9}}
+            animate={{opacity: 1, scale: 1}}
+            exit={{opacity: 0, scale: 0.9}}
+            transition={{duration: 0.2}}
             className={`
                 inline-flex items-center justify-center
                 font-medium rounded-full
@@ -56,9 +56,9 @@ const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(({
             {...props}
         >
             {dot && (
-                <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${dotVariants[variant]}`} />
+                <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${dotVariants[variant]}`}/>
             )}
-            {Icon && <Icon className="w-3.5 h-3.5 mr-1" />}
+            {Icon && <Icon className="w-3.5 h-3.5 mr-1"/>}
             {children}
         </motion.span>
     );

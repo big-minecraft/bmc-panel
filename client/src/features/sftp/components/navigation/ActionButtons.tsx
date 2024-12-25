@@ -5,8 +5,8 @@ import UploadButton from '../actions/UploadButton';
 const ActionButtons = () => {
     return (
         <div className="flex items-center gap-3 ml-4">
-            <CreateNewButton />
-            <UploadButton />
+            <CreateNewButton/>
+            <UploadButton/>
         </div>
     );
 };

@@ -1,12 +1,12 @@
 import React from 'react';
-import { Trash2, Loader2, FolderIcon, FileIcon } from 'lucide-react';
-import { useFileOperations } from '../../hooks/useFileOperations';
-import { useSFTPState, useSFTPDispatch } from '../../context/SFTPContext';
+import {Trash2, Loader2, FolderIcon, FileIcon} from 'lucide-react';
+import {useFileOperations} from '../../hooks/useFileOperations';
+import {useSFTPState, useSFTPDispatch} from '../../context/SFTPContext';
 
-const DeleteModal = ({ isOpen, files }) => {
-    const { loading } = useSFTPState();
+const DeleteModal = ({isOpen, files}) => {
+    const {loading} = useSFTPState();
     const dispatch = useSFTPDispatch();
-    const { handleDelete } = useFileOperations();
+    const {handleDelete} = useFileOperations();
 
     if (!isOpen) return null;
 
@@ -18,7 +18,7 @@ const DeleteModal = ({ isOpen, files }) => {
             type: 'SET_MODAL_STATE',
             payload: {
                 modal: 'delete',
-                state: { isOpen: false, files: [] }
+                state: {isOpen: false, files: []}
             }
         });
     };
@@ -33,23 +33,24 @@ const DeleteModal = ({ isOpen, files }) => {
             <div className="bg-white rounded-lg w-full max-w-md mx-4">
                 <div className="p-6">
                     <div className="flex items-center mb-4">
-                        <Trash2 size={20} className="text-red-500 mr-2" />
+                        <Trash2 size={20} className="text-red-500 mr-2"/>
                         <h3 className="text-lg font-semibold text-gray-900">
                             Delete {itemCount} {itemCount === 1 ? 'item' : 'items'}
                         </h3>
                     </div>
 
                     <div className="space-y-4">
-                        <p className="text-gray-600">Are you sure you want to delete the following {itemCount === 1 ? 'item' : 'items'}?</p>
+                        <p className="text-gray-600">Are you sure you want to delete the
+                            following {itemCount === 1 ? 'item' : 'items'}?</p>
 
                         <div className="bg-gray-50 rounded-lg p-3">
                             <ul className="space-y-2">
                                 {files.slice(0, 5).map((file) => (
                                     <li key={file.path} className="flex items-center text-sm text-gray-600">
                                         {file.type === 'd' ? (
-                                            <FolderIcon size={16} className="text-yellow-500 mr-2" />
+                                            <FolderIcon size={16} className="text-yellow-500 mr-2"/>
                                         ) : (
-                                            <FileIcon size={16} className="text-gray-400 mr-2" />
+                                            <FileIcon size={16} className="text-gray-400 mr-2"/>
                                         )}
                                         <span className="font-mono truncate">{file.name}</span>
                                     </li>
@@ -89,7 +90,7 @@ const DeleteModal = ({ isOpen, files }) => {
                     >
                         {loading.deleting ? (
                             <>
-                                <Loader2 size={16} className="animate-spin mr-2" />
+                                <Loader2 size={16} className="animate-spin mr-2"/>
                                 Deleting...
                             </>
                         ) : (

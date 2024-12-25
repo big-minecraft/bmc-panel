@@ -1,7 +1,7 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react';
-import { ToastMessageProps, ToastContainerProps, ToastType, ToastConfig } from './types';
+import {motion, AnimatePresence} from 'framer-motion';
+import {CheckCircle, XCircle, AlertTriangle, Info, X} from 'lucide-react';
+import {ToastMessageProps, ToastContainerProps, ToastType, ToastConfig} from './types';
 
 const toastConfig: Record<ToastType, ToastConfig> = {
     success: {
@@ -26,16 +26,16 @@ const toastConfig: Record<ToastType, ToastConfig> = {
     }
 };
 
-const ToastMessage: React.FC<ToastMessageProps> = ({ toast, onDismiss }) => {
+const ToastMessage: React.FC<ToastMessageProps> = ({toast, onDismiss}) => {
     const config = toastConfig[toast.type];
     const Icon = config.icon;
 
     return (
         <motion.div
             layout
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{opacity: 0, y: -20, scale: 0.95}}
+            animate={{opacity: 1, y: 0, scale: 1}}
+            exit={{opacity: 0, y: 20, scale: 0.95}}
             className={`
         pointer-events-auto w-full max-w-sm rounded-lg border
         shadow-lg ring-1 ring-black ring-opacity-5
@@ -44,7 +44,7 @@ const ToastMessage: React.FC<ToastMessageProps> = ({ toast, onDismiss }) => {
         >
             <div className="p-4">
                 <div className="flex items-start">
-                    <Icon className={`h-5 w-5 ${config.iconClass} mt-0.5`} />
+                    <Icon className={`h-5 w-5 ${config.iconClass} mt-0.5`}/>
                     <div className="ml-3 w-0 flex-1">
                         {toast.title && (
                             <p className="text-sm font-medium">
@@ -64,7 +64,7 @@ const ToastMessage: React.FC<ToastMessageProps> = ({ toast, onDismiss }) => {
               ${config.iconClass.replace('text', 'focus:ring')}
             `}
                     >
-                        <X className="h-5 w-5" />
+                        <X className="h-5 w-5"/>
                     </button>
                 </div>
             </div>
@@ -72,7 +72,7 @@ const ToastMessage: React.FC<ToastMessageProps> = ({ toast, onDismiss }) => {
     );
 };
 
-const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismiss }) => {
+const ToastContainer: React.FC<ToastContainerProps> = ({toasts, onDismiss}) => {
     return (
         <div className="fixed inset-0 z-50 pointer-events-none flex flex-col items-end gap-2 p-4 sm:p-6">
             <AnimatePresence mode="popLayout">

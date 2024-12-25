@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { Agent } from 'https';
+import {Agent} from 'https';
 import * as fs from 'fs';
 import * as path from 'path';
 import kubernetesClient from '../controllers/k8s';

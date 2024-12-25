@@ -1,20 +1,20 @@
-import { useCallback } from 'react';
+import {useCallback} from 'react';
 import axiosInstance from '../../../utils/auth';
-import { useSFTPState, useSFTPDispatch } from '../context/SFTPContext';
-import { useModalControls } from './useModalControls';
+import {useSFTPState, useSFTPDispatch} from '../context/SFTPContext';
+import {useModalControls} from './useModalControls';
 import {useFileNavigation} from "./useFileNavigation";
 
 export function useFileOperations() {
     const state = useSFTPState();
     const dispatch = useSFTPDispatch();
-    const { openEditorModal } = useModalControls();
-    const { handleDirectoryChange } = useFileNavigation();
+    const {openEditorModal} = useModalControls();
+    const {handleDirectoryChange} = useFileNavigation();
 
     const fetchFiles = useCallback(async () => {
-        dispatch({ type: 'SET_LOADING', payload: { key: 'files', value: true } });
+        dispatch({type: 'SET_LOADING', payload: {key: 'files', value: true}});
         try {
             const response = await axiosInstance.get('/api/sftp/files', {
-                params: { path: state.currentDirectory }
+                params: {path: state.currentDirectory}
             });
 
             const processedFiles = response.data
@@ -35,12 +35,12 @@ export function useFileOperations() {
                     return a.name.localeCompare(b.name);
                 });
 
-            dispatch({ type: 'SET_FILES', payload: processedFiles });
-            dispatch({ type: 'SET_SELECTED_FILES', payload: [] });
+            dispatch({type: 'SET_FILES', payload: processedFiles});
+            dispatch({type: 'SET_SELECTED_FILES', payload: []});
         } catch (error) {
             console.error('error fetching files:', error);
         } finally {
-            dispatch({ type: 'SET_LOADING', payload: { key: 'files', value: false } });
+            dispatch({type: 'SET_LOADING', payload: {key: 'files', value: false}});
         }
     }, [state.currentDirectory, dispatch]);
 
@@ -49,7 +49,7 @@ export function useFileOperations() {
 
         dispatch({
             type: 'SET_UPLOAD_STATE',
-            payload: { uploading: true, progress: 0, error: null }
+            payload: {uploading: true, progress: 0, error: null}
         });
 
         const formData = new FormData();
@@ -58,12 +58,12 @@ export function useFileOperations() {
 
         try {
             await axiosInstance.post('/api/sftp/upload', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
+                headers: {'Content-Type': 'multipart/form-data'},
                 onUploadProgress: (event) => {
                     const progress = Math.round((event.loaded * 100) / event.total);
                     dispatch({
                         type: 'SET_UPLOAD_STATE',
-                        payload: { progress }
+                        payload: {progress}
                     });
                 },
             });
@@ -73,25 +73,25 @@ export function useFileOperations() {
             const errorMessage = error.response?.data?.message || 'Failed to upload files. Please try again.';
             dispatch({
                 type: 'SET_UPLOAD_STATE',
-                payload: { error: errorMessage }
+                payload: {error: errorMessage}
             });
         } finally {
             dispatch({
                 type: 'SET_UPLOAD_STATE',
-                payload: { uploading: false, progress: 0 }
+                payload: {uploading: false, progress: 0}
             });
         }
     }, [state.currentDirectory, dispatch, fetchFiles]);
 
     const handleDelete = useCallback(async (files) => {
         const filesToDelete = Array.isArray(files) ? files : [files];
-        dispatch({ type: 'SET_LOADING', payload: { key: 'deleting', value: true } });
+        dispatch({type: 'SET_LOADING', payload: {key: 'deleting', value: true}});
 
         try {
             for (const file of filesToDelete) {
                 const endpoint = file.type === 'd' ? 'directory' : 'file';
                 await axiosInstance.delete(`/api/sftp/${endpoint}`, {
-                    params: { path: file.path }
+                    params: {path: file.path}
                 });
             }
             await fetchFiles();
@@ -99,12 +99,12 @@ export function useFileOperations() {
             console.error('error deleting files:', error);
             throw new Error(error.response?.data?.message || 'Failed to delete files');
         } finally {
-            dispatch({ type: 'SET_LOADING', payload: { key: 'deleting', value: false } });
+            dispatch({type: 'SET_LOADING', payload: {key: 'deleting', value: false}});
         }
     }, [dispatch, fetchFiles]);
 
     const handleMove = useCallback(async (relativePath) => {
-        dispatch({ type: 'SET_LOADING', payload: { key: 'moving', value: true } });
+        dispatch({type: 'SET_LOADING', payload: {key: 'moving', value: true}});
         try {
             const targetPath = `${state.currentDirectory}/${relativePath}`.replace(/\/+/g, '/');
 
@@ -120,14 +120,14 @@ export function useFileOperations() {
             console.error('error moving files:', error);
             throw new Error(error.response?.data?.message || 'Failed to move files');
         } finally {
-            dispatch({ type: 'SET_LOADING', payload: { key: 'moving', value: false } });
+            dispatch({type: 'SET_LOADING', payload: {key: 'moving', value: false}});
         }
     }, [state.currentDirectory, state.selectedFiles, dispatch, fetchFiles]);
 
     const handleRename = useCallback(async (file, newName) => {
         if (!newName || !file) return;
 
-        dispatch({ type: 'SET_LOADING', payload: { key: 'renaming', value: true } });
+        dispatch({type: 'SET_LOADING', payload: {key: 'renaming', value: true}});
 
         try {
             const parentDir = file.path.substring(0, file.path.lastIndexOf('/'));
@@ -144,7 +144,7 @@ export function useFileOperations() {
                 type: 'SET_SELECTED_FILES',
                 payload: state.selectedFiles.map(selectedFile =>
                     selectedFile.path === file.path
-                        ? { ...selectedFile, path: newPath, name: newName }
+                        ? {...selectedFile, path: newPath, name: newName}
                         : selectedFile
                 )
             });
@@ -154,16 +154,16 @@ export function useFileOperations() {
             console.error('Error renaming:', error);
             throw new Error(error.response?.data?.message || 'Failed to rename. Please try again.');
         } finally {
-            dispatch({ type: 'SET_LOADING', payload: { key: 'renaming', value: false } });
+            dispatch({type: 'SET_LOADING', payload: {key: 'renaming', value: false}});
         }
     }, [dispatch, fetchFiles, state.selectedFiles]);
 
     const handleDownload = useCallback(async (file) => {
-        dispatch({ type: 'SET_LOADING', payload: { key: 'downloading', value: true } });
+        dispatch({type: 'SET_LOADING', payload: {key: 'downloading', value: true}});
         try {
             if (file.type === 'd') {
                 const response = await axiosInstance.post('/api/sftp/download-multiple', {
-                    files: [{ path: file.path, name: file.name }]
+                    files: [{path: file.path, name: file.name}]
                 }, {
                     responseType: 'blob'
                 });
@@ -178,7 +178,7 @@ export function useFileOperations() {
                 window.URL.revokeObjectURL(url);
             } else {
                 const response = await axiosInstance.get('/api/sftp/download', {
-                    params: { path: file.path },
+                    params: {path: file.path},
                     responseType: 'blob'
                 });
 
@@ -195,14 +195,14 @@ export function useFileOperations() {
             console.error('error downloading file:', error);
             throw new Error(error.response?.data?.message || 'Failed to download file');
         } finally {
-            dispatch({ type: 'SET_LOADING', payload: { key: 'downloading', value: false } });
+            dispatch({type: 'SET_LOADING', payload: {key: 'downloading', value: false}});
         }
     }, [dispatch]);
 
     const handleMassDownload = useCallback(async (filesToDownload = state.selectedFiles) => {
         if (!filesToDownload?.length) return;
 
-        dispatch({ type: 'SET_LOADING', payload: { key: 'downloading', value: true } });
+        dispatch({type: 'SET_LOADING', payload: {key: 'downloading', value: true}});
         try {
             const files = Array.isArray(filesToDownload) ? filesToDownload : [filesToDownload];
 
@@ -230,12 +230,12 @@ export function useFileOperations() {
         } catch (error) {
             console.error('error downloading files:', error);
         } finally {
-            dispatch({ type: 'SET_LOADING', payload: { key: 'downloading', value: false } });
+            dispatch({type: 'SET_LOADING', payload: {key: 'downloading', value: false}});
         }
     }, [state.selectedFiles, dispatch, handleDownload]);
 
     const handleSaveFile = useCallback(async (file, content) => {
-        dispatch({ type: 'SET_LOADING', payload: { key: 'saving', value: true } });
+        dispatch({type: 'SET_LOADING', payload: {key: 'saving', value: true}});
         try {
             await axiosInstance.post('/api/sftp/file', {
                 path: file.path,
@@ -246,7 +246,7 @@ export function useFileOperations() {
             console.error('error saving file:', error);
             throw new Error(error.response?.data?.message || 'Failed to save file');
         } finally {
-            dispatch({ type: 'SET_LOADING', payload: { key: 'saving', value: false } });
+            dispatch({type: 'SET_LOADING', payload: {key: 'saving', value: false}});
         }
     }, [dispatch, fetchFiles]);
 
@@ -256,7 +256,7 @@ export function useFileOperations() {
         } else if (file.type !== 'd' && !file.isArchived) {
             try {
                 const response = await axiosInstance.get('/api/sftp/file', {
-                    params: { path: file.path }
+                    params: {path: file.path}
                 });
 
                 let fileContent = '';
@@ -272,7 +272,7 @@ export function useFileOperations() {
                     type: 'SET_MODAL_STATE',
                     payload: {
                         modal: 'editor',
-                        state: { isOpen: true, file, content: fileContent }
+                        state: {isOpen: true, file, content: fileContent}
                     }
                 });
             } catch (error) {

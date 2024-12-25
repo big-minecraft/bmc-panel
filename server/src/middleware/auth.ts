@@ -6,10 +6,10 @@ import kubernetesClient from "../controllers/k8s";
 const verifyToken = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
 
-    if (!authHeader) return res.status(403).send({ message: 'No token provided.' });
+    if (!authHeader) return res.status(403).send({message: 'No token provided.'});
 
     const token = authHeader.split(' ')[1];
-    if (!token) return res.status(403).send({ message: 'Invalid token format.' });
+    if (!token) return res.status(403).send({message: 'Invalid token format.'});
 
     try {
         const decoded = jwt.verify(token, config["token-secret"]);
@@ -23,7 +23,7 @@ const verifyToken = async (req, res, next) => {
             const currentTime = Date.now() / 1000;
 
             if (decoded.iat < lastLogoutTimestamp && kubernetesClient.isRunningInCluster()) {
-                return res.status(401).send({ message: 'Token has expired.' });
+                return res.status(401).send({message: 'Token has expired.'});
             }
         }
 
@@ -32,7 +32,7 @@ const verifyToken = async (req, res, next) => {
     } catch (err) {
         console.error('Token verification error:', err.message);
         if (err.name === 'TokenExpiredError') {
-            return res.status(401).send({ message: 'Token has expired.' });
+            return res.status(401).send({message: 'Token has expired.'});
         }
         return res.status(401).send({
             message: 'Failed to authenticate token.',
@@ -44,10 +44,10 @@ const verifyToken = async (req, res, next) => {
 const verifyAdminToken = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
 
-    if (!authHeader) return res.status(403).send({ message: 'No token provided.' });
+    if (!authHeader) return res.status(403).send({message: 'No token provided.'});
 
     const token = authHeader.split(' ')[1];
-    if (!token) return res.status(403).send({ message: 'Invalid token format.' });
+    if (!token) return res.status(403).send({message: 'Invalid token format.'});
 
     try {
         const decoded = jwt.verify(token, config["token-secret"]);
@@ -60,18 +60,18 @@ const verifyAdminToken = async (req, res, next) => {
             const lastLogoutTimestamp = new Date(last_logout).getTime() / 1000;
 
             if (decoded.iat < lastLogoutTimestamp && kubernetesClient.isRunningInCluster()) {
-                return res.status(401).send({ message: 'Token has expired.' });
+                return res.status(401).send({message: 'Token has expired.'});
             }
         }
 
-        if (!dbUser.is_admin) return res.status(403).send({ message: 'Unauthorized.' });
+        if (!dbUser.is_admin) return res.status(403).send({message: 'Unauthorized.'});
 
         req.user = decoded;
         next();
     } catch (err) {
         console.error('Token verification error:', err.message);
         if (err.name === 'TokenExpiredError') {
-            return res.status(401).send({ message: 'Token has expired.' });
+            return res.status(401).send({message: 'Token has expired.'});
         }
         return res.status(401).send({
             message: 'Failed to authenticate token.',

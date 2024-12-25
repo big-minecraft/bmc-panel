@@ -1,6 +1,6 @@
-import { ReactNode } from 'react';
-import { LucideIcon } from 'lucide-react';
-import { HTMLMotionProps } from 'framer-motion';
+import {ReactNode} from 'react';
+import {LucideIcon} from 'lucide-react';
+import {HTMLMotionProps} from 'framer-motion';
 
 export type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info';
 export type BadgeSize = 'sm' | 'md' | 'lg';

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useDeploymentsContext } from '../context/DeploymentsContext';
+import {useState} from 'react';
+import {useDeploymentsContext} from '../context/DeploymentsContext';
 import axiosInstance from '../../../utils/auth';
 
 export const useProxy = () => {
@@ -28,7 +28,7 @@ export const useProxy = () => {
             await axiosInstance.patch('/api/proxy', {
                 enabled: !currentState
             });
-            setProxyConfig(prev => ({ ...prev, enabled: !currentState }));
+            setProxyConfig(prev => ({...prev, enabled: !currentState}));
             return true;
         } catch (err) {
             console.error('error toggling proxy:', err);

@@ -1,4 +1,4 @@
-import { BaseColors, ThemeConfig, ThemeColors } from './types';
+import {BaseColors, ThemeConfig, ThemeColors} from './types';
 
 export const baseColors: BaseColors = {
     indigo: {

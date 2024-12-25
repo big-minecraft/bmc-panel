@@ -1,13 +1,13 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import {motion, AnimatePresence} from 'framer-motion';
 import InviteCodeCard from './InviteCodeCard';
 
-const InviteCodeList = ({ inviteCodes, onRevokeClick }) => {
+const InviteCodeList = ({inviteCodes, onRevokeClick}) => {
     if (inviteCodes.length === 0) {
         return (
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{opacity: 0, y: 20}}
+                animate={{opacity: 1, y: 0}}
                 className="bg-white rounded-lg shadow-sm border border-gray-200"
             >
                 <div className="p-12 text-center">
@@ -19,18 +19,18 @@ const InviteCodeList = ({ inviteCodes, onRevokeClick }) => {
 
     return (
         <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{opacity: 0}}
+            animate={{opacity: 1}}
             className="space-y-4"
         >
             <AnimatePresence>
                 {inviteCodes.map((invite) => (
                     <motion.div
                         key={invite.code}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.2 }}
+                        initial={{opacity: 0, y: 20}}
+                        animate={{opacity: 1, y: 0}}
+                        exit={{opacity: 0, y: -20}}
+                        transition={{duration: 0.2}}
                     >
                         <InviteCodeCard
                             invite={invite}

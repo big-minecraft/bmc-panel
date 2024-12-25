@@ -1,12 +1,12 @@
-import { useState, useCallback } from 'react';
-import { useSFTPState, useSFTPDispatch } from '../context/SFTPContext';
-import { useFileOperations } from './useFileOperations';
+import {useState, useCallback} from 'react';
+import {useSFTPState, useSFTPDispatch} from '../context/SFTPContext';
+import {useFileOperations} from './useFileOperations';
 import axiosInstance from '../../../utils/auth';
 
 export function useCreateOperations() {
-    const { currentDirectory } = useSFTPState();
+    const {currentDirectory} = useSFTPState();
     const dispatch = useSFTPDispatch();
-    const { fetchFiles } = useFileOperations();
+    const {fetchFiles} = useFileOperations();
 
     const [newFileName, setNewFileName] = useState('');
     const [newDirName, setNewDirName] = useState('');
@@ -16,7 +16,7 @@ export function useCreateOperations() {
     const setLoading = useCallback((value) => {
         dispatch({
             type: 'SET_LOADING',
-            payload: { key: 'creating', value }
+            payload: {key: 'creating', value}
         });
     }, [dispatch]);
 

@@ -11,7 +11,7 @@ async function getPodCPUUsageForGraph(podName) {
         const step = 15; // Step size in seconds
 
         const response = await axios.get(PROMETHEUS_API_URL, {
-            params: { query, start: startTime, end: endTime, step },
+            params: {query, start: startTime, end: endTime, step},
         });
 
         const results = response?.data?.data?.result || [];
@@ -56,7 +56,7 @@ async function getPodMemoryUsageForGraph(podName) {
         const step = 15;
 
         const response = await axios.get(PROMETHEUS_API_URL, {
-            params: { query, start: startTime, end: endTime, step },
+            params: {query, start: startTime, end: endTime, step},
         });
 
         const results = response?.data?.data?.result || [];

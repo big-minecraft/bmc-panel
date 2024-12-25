@@ -1,5 +1,5 @@
-import { join } from 'path';
-import { existsSync, copyFileSync } from 'fs';
+import {join} from 'path';
+import {existsSync, copyFileSync} from 'fs';
 
 interface RedisConfig {
     host: string;

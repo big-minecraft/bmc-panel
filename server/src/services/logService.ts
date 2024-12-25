@@ -1,4 +1,4 @@
-import { WebSocket } from 'ws';
+import {WebSocket} from 'ws';
 import axios from 'axios';
 import * as fs from 'fs';
 import * as path from 'path';

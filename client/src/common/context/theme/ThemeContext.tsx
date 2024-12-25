@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useMemo, useState, useCallback, useEffect } from 'react';
-import { ThemeConfig, ThemeMode } from './types';
-import { themes } from './colors';
+import React, {createContext, useContext, useMemo, useState, useCallback, useEffect} from 'react';
+import {ThemeConfig, ThemeMode} from './types';
+import {themes} from './colors';
 
 type ThemeContextType = {
     theme: ThemeConfig;
@@ -18,10 +18,10 @@ type ThemeProviderProps = {
 };
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({
-                                                                initialMode = 'dark',
-                                                                children,
-                                                                themeOverride
-                                                            }) => {
+    initialMode = 'dark',
+    children,
+    themeOverride
+}) => {
     const [mode, setMode] = useState<ThemeMode>(initialMode);
 
     console.log('initialMode:', initialMode)

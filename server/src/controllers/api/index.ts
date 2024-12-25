@@ -1,6 +1,6 @@
 import multer from 'multer';
 import JSZip from 'jszip';
-import { getInstances, getProxies } from '../redis';
+import {getInstances, getProxies} from '../redis';
 import {
     getDeployments,
     getDeploymentContent,
@@ -28,7 +28,7 @@ import {
     getUser,
     getUserByID
 } from '../database';
-import { verifyInvite } from '../inviteCodes';
+import {verifyInvite} from '../inviteCodes';
 import {
     deleteSFTPDirectory,
     createSFTPDirectory,
@@ -43,7 +43,7 @@ import {
     listSFTPRecursive
 } from '../sftp';
 import config from '../../config';
-import { unarchiveFile } from '../unzip';
+import {unarchiveFile} from '../unzip';
 import {
     getProxyContent,
     updateProxyContent,
@@ -76,39 +76,39 @@ const api = {
             const deployments = await getDeployments();
             res.json(deployments);
         } catch (error) {
-            res.status(500).json({ error: 'Failed to fetch deployments' });
+            res.status(500).json({error: 'Failed to fetch deployments'});
         }
     },
 
     getDeploymentContent: async (req, res) => {
         try {
-            const { name } = req.params;
+            const {name} = req.params;
             const content = await getDeploymentContent(name);
-            res.json({ content });
+            res.json({content});
         } catch (error) {
-            res.status(500).json({ error: 'Failed to fetch deployment content' });
+            res.status(500).json({error: 'Failed to fetch deployment content'});
         }
     },
 
     updateDeploymentContent: async (req, res) => {
         try {
-            const { name } = req.params;
-            const { content } = req.body;
+            const {name} = req.params;
+            const {content} = req.body;
             await updateDeploymentContent(name, content);
-            res.json({ message: 'Deployment updated successfully' });
+            res.json({message: 'Deployment updated successfully'});
         } catch (error) {
-            res.status(500).json({ error: 'Failed to update deployment' });
+            res.status(500).json({error: 'Failed to update deployment'});
         }
     },
 
     toggleDeployment: async (req, res) => {
         try {
-            const { name } = req.params;
-            const { enabled } = req.body;
+            const {name} = req.params;
+            const {enabled} = req.body;
             await toggleDeployment(name, enabled);
-            res.json({ message: 'Deployment toggled successfully' });
+            res.json({message: 'Deployment toggled successfully'});
         } catch (error) {
-            res.status(500).json({ error: 'Failed to toggle deployment' });
+            res.status(500).json({error: 'Failed to toggle deployment'});
         }
     },
 
@@ -150,36 +150,36 @@ const api = {
             const proxy = await getProxyConfig();
             res.json(proxy);
         } catch (error) {
-            res.status(500).json({ error: 'Failed to fetch proxy' });
+            res.status(500).json({error: 'Failed to fetch proxy'});
         }
     },
 
     getProxyContent: async (req, res) => {
         try {
             const content = await getProxyContent();
-            res.json({ content });
+            res.json({content});
         } catch (error) {
-            res.status(500).json({ error: 'Failed to fetch proxy content' });
+            res.status(500).json({error: 'Failed to fetch proxy content'});
         }
     },
 
     updateProxyContent: async (req, res) => {
         try {
-            const { content } = req.body;
+            const {content} = req.body;
             await updateProxyContent(content);
-            res.json({ message: 'Proxy updated successfully' });
+            res.json({message: 'Proxy updated successfully'});
         } catch (error) {
-            res.status(500).json({ error: 'Failed to update proxy' });
+            res.status(500).json({error: 'Failed to update proxy'});
         }
     },
 
     toggleProxy: async (req, res) => {
         try {
-            const { enabled } = req.body;
+            const {enabled} = req.body;
             await toggleProxy(enabled);
-            res.json({ message: 'Proxy toggled successfully' });
+            res.json({message: 'Proxy toggled successfully'});
         } catch (error) {
-            res.status(500).json({ error: 'Failed to toggle proxy' });
+            res.status(500).json({error: 'Failed to toggle proxy'});
         }
     },
 
@@ -193,52 +193,52 @@ const api = {
     },
 
     register: async (req, res) => {
-        const { username, password, inviteToken } = req.body;
+        const {username, password, inviteToken} = req.body;
         try {
             const data_url = await register(username, password, inviteToken);
-            res.json({ message: 'User registered successfully', qrCode: data_url });
+            res.json({message: 'User registered successfully', qrCode: data_url});
         } catch (error) {
             if (error.message === 'User already exists') {
-                return res.status(400).json({ error: 'User already exists' });
+                return res.status(400).json({error: 'User already exists'});
             }
 
-            res.status(500).json({ error: 'Failed to register user' });
+            res.status(500).json({error: 'Failed to register user'});
         }
     },
 
     verify: async (req, res) => {
-        const { username, token, inviteToken } = req.body;
+        const {username, token, inviteToken} = req.body;
         try {
             const loginToken = await verify(username, token, inviteToken);
             let dbUser = await getUser(username);
             let isAdmin = dbUser.is_admin;
-            res.json({ loginToken, isAdmin });
+            res.json({loginToken, isAdmin});
         } catch (error) {
-            res.status(500).json({ error: 'Failed to verify token' });
+            res.status(500).json({error: 'Failed to verify token'});
         }
     },
 
     login: async (req, res) => {
-        const { username, password } = req.body;
+        const {username, password} = req.body;
         try {
             const sessionToken = await login(username, password);
-            res.json({ sessionToken });
+            res.json({sessionToken});
         } catch (error) {
-            res.status(500).json({ error: 'Failed to login' });
+            res.status(500).json({error: 'Failed to login'});
         }
     },
 
     verifyLogin: async (req, res) => {
-        const { username, token, sessionToken } = req.body;
+        const {username, token, sessionToken} = req.body;
         try {
             const loginToken = await verifyLogin(username, token, sessionToken);
             let dbUser = await getUser(username);
             let isAdmin = dbUser.is_admin;
 
-            res.json({ verified: true, token: loginToken, isAdmin: isAdmin });
+            res.json({verified: true, token: loginToken, isAdmin: isAdmin});
         } catch (error) {
             console.log(error)
-            res.status(500).json({ error: 'Failed to verify login' });
+            res.status(500).json({error: 'Failed to verify login'});
         }
     },
 
@@ -278,7 +278,7 @@ const api = {
         const {inviteCode} = req.body;
         try {
             let token = await verifyInvite(inviteCode);
-            res.json({ token });
+            res.json({token});
         } catch (error) {
             console.log(error);
             res.status(500).json({error: 'Invalid invite code'});
@@ -370,74 +370,74 @@ const api = {
     },
 
     getSFTPFiles: async (req, res) => {
-        const { path } = req.query;
+        const {path} = req.query;
 
         try {
             const files = await listSFTPFiles(path);
             res.json(files);
         } catch (error) {
-            res.status(500).json({ error: 'Failed to list files' });
+            res.status(500).json({error: 'Failed to list files'});
         }
     },
 
     getSFTPFileContent: async (req, res) => {
-        const { path } = req.query;
+        const {path} = req.query;
 
         try {
             const fileContent = await getSFTPFileContent(path);
-            res.json({ content: fileContent });
+            res.json({content: fileContent});
         } catch (error) {
-            res.status(500).json({ error: 'Failed to get file content' });
+            res.status(500).json({error: 'Failed to get file content'});
         }
     },
 
     createSFTPFile: async (req, res) => {
-        const { path, content } = req.body;
+        const {path, content} = req.body;
         try {
             await createSFTPFile(path, content);
-            res.json({ message: 'File created successfully' });
+            res.json({message: 'File created successfully'});
         } catch (error) {
-            res.status(500).json({ error: 'Failed to create file' });
+            res.status(500).json({error: 'Failed to create file'});
         }
     },
 
     updateSFTPFile: async (req, res) => {
-        const { path, content } = req.body;
+        const {path, content} = req.body;
         try {
             await updateSFTPFile(path, content);
-            res.json({ message: 'File updated successfully' });
+            res.json({message: 'File updated successfully'});
         } catch (error) {
-            res.status(500).json({ error: 'Failed to update file' });
+            res.status(500).json({error: 'Failed to update file'});
         }
     },
 
     deleteSFTPFile: async (req, res) => {
-        const { path } = req.query;
+        const {path} = req.query;
         try {
             await deleteSFTPFile(path);
-            res.json({ message: 'File deleted successfully' });
+            res.json({message: 'File deleted successfully'});
         } catch (error) {
-            res.status(500).json({ error: 'Failed to delete file' });
+            res.status(500).json({error: 'Failed to delete file'});
         }
     },
 
     createSFTPDirectory: async (req, res) => {
-        const { path } = req.body;
+        const {path} = req.body;
         try {
             await createSFTPDirectory(path);
-            res.json({ message: 'Directory created successfully' });
+            res.json({message: 'Directory created successfully'});
         } catch (error) {
-            res.status(500).json({ error: 'Failed to create directory' });
+            res.status(500).json({error: 'Failed to create directory'});
         }
     },
 
     deleteSFTPDirectory: async (req, res) => {
-        const { path } = req.query;
+        const {path} = req.query;
         try {
             await deleteSFTPDirectory(path);
-            res.json({ message: 'Directory deleted successfully' });
+            res.json({message: 'Directory deleted successfully'});
         } catch (error) {
-            res.status(500).json({ error: 'Failed to delete directory' });
+            res.status(500).json({error: 'Failed to delete directory'});
         }
     },
 
@@ -459,19 +459,19 @@ const api = {
             });
 
             if (!req.files?.length) {
-                return res.status(400).json({ error: 'No files provided' });
+                return res.status(400).json({error: 'No files provided'});
             }
 
             await uploadSFTPFile(req.files, req.body.path);
-            res.json({ message: 'Files uploaded successfully' });
+            res.json({message: 'Files uploaded successfully'});
         } catch (error) {
             console.error('Error in upload process:', error);
-            res.status(500).json({ error: 'Failed to upload files: ' + error.message });
+            res.status(500).json({error: 'Failed to upload files: ' + error.message});
         }
     },
 
     downloadSFTPFile: async (req, res) => {
-        const { path } = req.query;
+        const {path} = req.query;
 
         try {
             const fileBuffer = await downloadSFTPFile(path);
@@ -483,14 +483,14 @@ const api = {
             res.send(fileBuffer);
         } catch (error) {
             console.error('Error downloading file:', error);
-            res.status(500).json({ error: 'Failed to download file' });
+            res.status(500).json({error: 'Failed to download file'});
         }
     },
 
     downloadSFTPFiles: async (req, res) => {
-        const { files } = req.body;
+        const {files} = req.body;
 
-        if (!files?.length) return res.status(400).json({ error: 'No files specified for download' });
+        if (!files?.length) return res.status(400).json({error: 'No files specified for download'});
 
         const zip = new JSZip();
 
@@ -523,11 +523,11 @@ const api = {
             res.send(zipBuffer);
 
         } catch (error) {
-            res.status(500).json({ error: 'Failed to process files' });
+            res.status(500).json({error: 'Failed to process files'});
         }
     },
     archiveSFTPFile: async (req, res) => {
-        const { path } = req.body;
+        const {path} = req.body;
 
         try {
             const fileBuffer = await downloadSFTPFile(path);
@@ -551,14 +551,14 @@ const api = {
             });
         } catch (error) {
             console.error('Error archiving file:', error);
-            res.status(500).json({ error: 'Failed to archive file' });
+            res.status(500).json({error: 'Failed to archive file'});
         }
     },
 
     archiveSFTPFiles: async (req, res) => {
-        const { files } = req.body;
+        const {files} = req.body;
 
-        if (!files?.length) return res.status(400).json({ error: 'No files specified for archive' });
+        if (!files?.length) return res.status(400).json({error: 'No files specified for archive'});
 
         const zip = new JSZip();
         const currentDirectory = files[0].path.split('/').slice(0, -1).join('/');
@@ -602,29 +602,29 @@ const api = {
 
         } catch (error) {
             console.error('Error archiving files:', error);
-            res.status(500).json({ error: 'Failed to process files' });
+            res.status(500).json({error: 'Failed to process files'});
         }
     },
 
     unarchiveSFTPFile: async (req, res) => {
-        const { path } = req.body;
+        const {path} = req.body;
         try {
             await unarchiveFile(path);
 
-            res.json({ message: 'File unarchived successfully' });
+            res.json({message: 'File unarchived successfully'});
         } catch (error) {
             console.error('Error unarchiving file:', error);
-            res.status(500).json({ error: 'Failed to unarchive file' });
+            res.status(500).json({error: 'Failed to unarchive file'});
         }
     },
 
     moveSFTPFile: async (req, res) => {
-        const { sourcePath, targetPath } = req.body;
+        const {sourcePath, targetPath} = req.body;
         try {
             await moveFileOrFolder(sourcePath, targetPath);
-            res.json({ message: 'File(s) moved successfully' });
+            res.json({message: 'File(s) moved successfully'});
         } catch (error) {
-            res.status(500).json({ error: 'Failed to move file(s)' });
+            res.status(500).json({error: 'Failed to move file(s)'});
         }
     },
 
@@ -728,7 +728,7 @@ const api = {
             const nodes = await kubernetesClient.listNodeNames();
             res.json(nodes);
         } catch (error) {
-            res.status(500).json({ error: 'Failed to fetch nodes' });
+            res.status(500).json({error: 'Failed to fetch nodes'});
         }
     },
 
@@ -738,7 +738,7 @@ const api = {
             const data = await getPodCPUUsageForGraph(pod);
             res.json(data);
         } catch (error) {
-            res.status(500).json({ error: 'Failed to fetch CPU usage data' });
+            res.status(500).json({error: 'Failed to fetch CPU usage data'});
         }
     },
 
@@ -748,7 +748,7 @@ const api = {
             const data = await getPodMemoryUsageForGraph(pod);
             res.json(data);
         } catch (error) {
-            res.status(500).json({ error: 'Failed to fetch memory usage data' });
+            res.status(500).json({error: 'Failed to fetch memory usage data'});
         }
     }
 };

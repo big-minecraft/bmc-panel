@@ -1,6 +1,6 @@
-import type { Preview } from "@storybook/react";
-import { withThemeFromJSXProvider } from '@storybook/addon-themes';
-import { ThemeProvider } from '../src/common/context/theme/ThemeContext';
+import type {Preview} from "@storybook/react";
+import {withThemeFromJSXProvider} from '@storybook/addon-themes';
+import {ThemeProvider} from '../src/common/context/theme/ThemeContext';
 import '../src/index.css';
 import {themes} from "../src/common/context/theme/colors";
 
@@ -12,10 +12,10 @@ const preview: Preview = {
             disable: true
         },
         controls: {
-          matchers: {
-            color: /(background|color)$/i,
-            date: /Date$/,
-          },
+            matchers: {
+                color: /(background|color)$/i,
+                date: /Date$/,
+            },
         },
     },
     decorators: [
@@ -25,7 +25,7 @@ const preview: Preview = {
                 dark: themes.dark,
             },
             defaultTheme: 'dark',
-            Provider: ({ theme, children }) => (
+            Provider: ({theme, children}) => (
                 <ThemeProvider themeOverride={theme}>
                     {children}
                 </ThemeProvider>

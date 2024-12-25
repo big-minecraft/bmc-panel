@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useSFTPState, useSFTPDispatch } from '../../context/SFTPContext';
-import { useFileOperations } from '../../hooks/useFileOperations';
-import { Pencil, Loader2, X } from 'lucide-react';
+import React, {useState, useEffect} from 'react';
+import {useSFTPState, useSFTPDispatch} from '../../context/SFTPContext';
+import {useFileOperations} from '../../hooks/useFileOperations';
+import {Pencil, Loader2, X} from 'lucide-react';
 
-const RenameModal = ({ isOpen, file }) => {
-    const { loading } = useSFTPState();
+const RenameModal = ({isOpen, file}) => {
+    const {loading} = useSFTPState();
     const dispatch = useSFTPDispatch();
-    const { handleRename } = useFileOperations();
+    const {handleRename} = useFileOperations();
 
     const [newName, setNewName] = useState('');
     const [error, setError] = useState('');
@@ -23,7 +23,7 @@ const RenameModal = ({ isOpen, file }) => {
     const closeModal = () => {
         dispatch({
             type: 'SET_MODAL_STATE',
-            payload: { modal: 'rename', state: { isOpen: false, file: null } }
+            payload: {modal: 'rename', state: {isOpen: false, file: null}}
         });
     };
 
@@ -61,7 +61,7 @@ const RenameModal = ({ isOpen, file }) => {
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center">
-                            <Pencil size={20} className="text-blue-600 mr-2" />
+                            <Pencil size={20} className="text-blue-600 mr-2"/>
                             <h3 className="text-lg font-semibold text-gray-900">
                                 Rename {file.type === 'd' ? 'Directory' : 'File'}
                             </h3>
@@ -70,7 +70,7 @@ const RenameModal = ({ isOpen, file }) => {
                             onClick={closeModal}
                             className="text-gray-400 hover:text-gray-500"
                         >
-                            <X size={20} />
+                            <X size={20}/>
                         </button>
                     </div>
 
@@ -105,7 +105,8 @@ const RenameModal = ({ isOpen, file }) => {
                         <div className="bg-gray-50 rounded-lg p-3">
                             <p className="text-sm text-gray-600">
                                 Current path:
-                                <code className="block mt-1 text-sm font-mono bg-white p-2 rounded border border-gray-200">
+                                <code
+                                    className="block mt-1 text-sm font-mono bg-white p-2 rounded border border-gray-200">
                                     {file.path}
                                 </code>
                             </p>
@@ -127,7 +128,7 @@ const RenameModal = ({ isOpen, file }) => {
                             >
                                 {loading.renaming ? (
                                     <>
-                                        <Loader2 size={16} className="animate-spin mr-2" />
+                                        <Loader2 size={16} className="animate-spin mr-2"/>
                                         Renaming...
                                     </>
                                 ) : (

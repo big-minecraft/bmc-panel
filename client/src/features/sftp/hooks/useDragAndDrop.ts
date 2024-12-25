@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import {useState, useRef, useCallback, useEffect} from 'react';
 
 const useDragAndDrop = (onFilesDrop) => {
     const [dragActive, setDragActive] = useState(false);

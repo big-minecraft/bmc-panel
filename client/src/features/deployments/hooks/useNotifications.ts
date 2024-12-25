@@ -1,8 +1,8 @@
-import { useEffect } from 'react';
-import { useDeploymentsContext } from '../context/DeploymentsContext';
+import {useEffect} from 'react';
+import {useDeploymentsContext} from '../context/DeploymentsContext';
 
 export const useNotifications = () => {
-    const { notifications, setNotifications } = useDeploymentsContext();
+    const {notifications, setNotifications} = useDeploymentsContext();
 
     useEffect(() => {
         if (notifications.length > 0) {
@@ -15,7 +15,7 @@ export const useNotifications = () => {
 
     const addNotification = (message, type) => {
         const id = Date.now();
-        setNotifications(prev => [...prev, { id, message, type }]);
+        setNotifications(prev => [...prev, {id, message, type}]);
     };
 
     const removeNotification = (id) => {

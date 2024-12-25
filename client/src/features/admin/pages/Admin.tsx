@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, {useState} from 'react';
+import {motion, AnimatePresence} from 'framer-motion';
 import UsersTab from "../components/users/UserTab";
 import InviteCodesTab from "../components/invite-codes/InviteCodesTab";
 import {Users, Ticket, Key} from 'lucide-react';
@@ -73,13 +73,13 @@ const Admin = () => {
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={activeTab}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.2 }}
+                        initial={{opacity: 0, y: 20}}
+                        animate={{opacity: 1, y: 0}}
+                        exit={{opacity: 0, y: -20}}
+                        transition={{duration: 0.2}}
                         className="rounded-xl bg-white shadow"
                     >
-                        <ActiveComponent />
+                        <ActiveComponent/>
                     </motion.div>
                 </AnimatePresence>
             </main>

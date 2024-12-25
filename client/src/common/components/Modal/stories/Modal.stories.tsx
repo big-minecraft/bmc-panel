@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { useState } from 'react';
+import type {Meta, StoryObj} from '@storybook/react';
+import {useState} from 'react';
 import Modal from '../index';
-import { ModalProvider, useModalContext } from '../context/ModalContext';
+import {ModalProvider, useModalContext} from '../context/ModalContext';
 
 const meta = {
     title: 'Components/Modal',
@@ -19,7 +19,7 @@ const meta = {
                 height: '500px',
             }}>
                 <ModalProvider>
-                    <Story />
+                    <Story/>
                 </ModalProvider>
             </div>
         )
@@ -30,11 +30,11 @@ export default meta;
 type Story = StoryObj<typeof Modal>;
 
 const ModalDemo = ({
-                       children,
-                       buttonText = 'Open Modal',
-                       ...props
-                   }: { buttonText?: string } & React.ComponentProps<typeof Modal>) => {
-    const { registerModal, closeModal } = useModalContext();
+    children,
+    buttonText = 'Open Modal',
+    ...props
+}: { buttonText?: string } & React.ComponentProps<typeof Modal>) => {
+    const {registerModal, closeModal} = useModalContext();
 
     const handleOpen = () => {
         registerModal(props.id);

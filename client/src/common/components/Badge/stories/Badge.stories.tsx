@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { AlertCircle, Bell, CheckCircle, InfoIcon } from 'lucide-react';
+import type {Meta, StoryObj} from '@storybook/react';
+import {AlertCircle, Bell, CheckCircle, InfoIcon} from 'lucide-react';
 import Badge from '../index';
-import type { BadgeProps } from '../types';
+import type {BadgeProps} from '../types';
 
 const meta = {
     title: 'Components/Badge',
@@ -13,7 +13,7 @@ const meta = {
     decorators: [
         (Story) => (
             <div className="flex gap-4 flex-wrap p-4">
-                <Story />
+                <Story/>
             </div>
         )
     ]

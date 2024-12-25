@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import {handlePodConnection} from './podService';
 
 function setupWebSocket(server) {
-    const wss = new WebSocket.Server({ noServer: true });
+    const wss = new WebSocket.Server({noServer: true});
 
     server.on('upgrade', (request, socket, head) => {
         console.log('Upgrade request received:', request.url);

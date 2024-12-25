@@ -1,14 +1,14 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Users, Activity } from 'lucide-react';
+import {Link} from 'react-router-dom';
+import {Users, Activity} from 'lucide-react';
 
-const InstanceCard = ({ instance, linkPrefix = "/instance" }) => {
+const InstanceCard = ({instance, linkPrefix = "/instance"}) => {
     const playerCount = Object.keys(instance.players).length;
 
     return (
         <Link
             to={`${linkPrefix}/${instance.name}`}
-            state={{ instance }}
+            state={{instance}}
             className="block group"
         >
             <div className="bg-white rounded-xl p-6 border border-gray-200 transition-all duration-300
@@ -27,14 +27,14 @@ const InstanceCard = ({ instance, linkPrefix = "/instance" }) => {
                             )}
                         </div>
                         <div className="flex items-center space-x-1 bg-blue-50 text-blue-600 px-3 py-1 rounded-full">
-                            <Users size={14} />
+                            <Users size={14}/>
                             <span className="text-sm font-medium">{playerCount}</span>
                         </div>
                     </div>
 
                     <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2">
-                            <Activity size={14} className="text-green-500" />
+                            <Activity size={14} className="text-green-500"/>
                             <span className="text-sm text-gray-600">Active</span>
                         </div>
                         <div className="text-sm text-gray-400">

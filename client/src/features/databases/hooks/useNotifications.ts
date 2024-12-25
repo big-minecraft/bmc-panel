@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import {useState, useEffect, useCallback} from 'react';
 
 export const useNotifications = () => {
     const [notifications, setNotifications] = useState([]);
@@ -14,12 +14,12 @@ export const useNotifications = () => {
 
     const addNotification = useCallback((message, type) => {
         const id = Date.now();
-        setNotifications(prev => [...prev, { id, message, type }]);
+        setNotifications(prev => [...prev, {id, message, type}]);
     }, []);
 
     const removeNotification = useCallback((id) => {
         setNotifications(prev => prev.filter(n => n.id !== id));
     }, []);
 
-    return { notifications, addNotification, removeNotification };
+    return {notifications, addNotification, removeNotification};
 };

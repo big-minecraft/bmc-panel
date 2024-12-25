@@ -34,7 +34,7 @@ async function register(username, password, inviteToken) {
         name: `Big Minecraft (${username})`,
         issuer: 'Big Minecraft'
     });
-    users[username] = { password, secret: secret.base32 };
+    users[username] = {password, secret: secret.base32};
 
     return await new Promise((resolve, reject) => {
         qrcode.toDataURL(secret.otpauth_url, (err, data_url) => {
@@ -43,6 +43,7 @@ async function register(username, password, inviteToken) {
         });
     });
 }
+
 async function verify(username, token, inviteToken) {
     const user = users[username];
 
@@ -78,7 +79,7 @@ async function login(username, password) {
     if (password !== storedPassword) throw new Error('Invalid password');
 
     const token = Math.random().toString(36).substr(2);
-    tempTokens[username] = { secret: token };
+    tempTokens[username] = {secret: token};
     return tempTokens[username].secret;
 }
 
@@ -106,8 +107,8 @@ async function verifyLogin(username, token, sessionToken) {
 }
 
 async function generateToken(username) {
-    const payload = { username: username };
-    const options = { expiresIn: "7d" };
+    const payload = {username: username};
+    const options = {expiresIn: "7d"};
 
     return jwt.sign(payload, config["token-secret"], options);
 }

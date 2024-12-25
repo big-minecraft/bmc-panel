@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useCallback, useReducer, ReactNode } from 'react';
-import { FormContextValue, FormFields, FormErrors } from './types';
+import React, {createContext, useContext, useCallback, useReducer, ReactNode} from 'react';
+import {FormContextValue, FormFields, FormErrors} from './types';
 
 type FormState = {
     fields: FormFields;
@@ -29,7 +29,7 @@ const formReducer = (state: FormState, action: FormAction): FormState => {
                 }
             };
         case 'UNREGISTER_FIELD': {
-            const { [action.payload]: _, ...remainingFields } = state.fields;
+            const {[action.payload]: _, ...remainingFields} = state.fields;
             return {
                 ...state,
                 fields: remainingFields
@@ -68,10 +68,10 @@ type FormProviderProps = {
 };
 
 export const FormProvider: React.FC<FormProviderProps> = ({
-                                                              children,
-                                                              onSubmit,
-                                                              initialValues = {}
-                                                          }) => {
+    children,
+    onSubmit,
+    initialValues = {}
+}) => {
     const [state, dispatch] = useReducer(formReducer, {
         fields: {},
         errors: {}
@@ -80,7 +80,7 @@ export const FormProvider: React.FC<FormProviderProps> = ({
     const registerField = useCallback((name: string, value: unknown = '', error: string = '') => {
         dispatch({
             type: 'REGISTER_FIELD',
-            payload: { name, value, error }
+            payload: {name, value, error}
         });
     }, []);
 
@@ -94,7 +94,7 @@ export const FormProvider: React.FC<FormProviderProps> = ({
     const setFieldValue = useCallback((name: string, value: unknown, error: string = '') => {
         dispatch({
             type: 'SET_FIELD_VALUE',
-            payload: { name, value, error }
+            payload: {name, value, error}
         });
     }, []);
 

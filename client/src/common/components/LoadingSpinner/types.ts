@@ -1,4 +1,4 @@
-import type { HTMLMotionProps } from 'framer-motion';
+import type {HTMLMotionProps} from 'framer-motion';
 
 export type SpinnerSize = 'sm' | 'md' | 'lg';
 
@@ -12,8 +12,11 @@ interface BaseLoadingSkeletonProps {
     avatar?: boolean;
 }
 
-export interface LoadingSpinnerProps extends HTMLMotionProps<"div">, BaseLoadingSpinnerProps {}
-export interface LoadingSkeletonProps extends HTMLMotionProps<"div">, BaseLoadingSkeletonProps {}
+export interface LoadingSpinnerProps extends HTMLMotionProps<"div">, BaseLoadingSpinnerProps {
+}
+
+export interface LoadingSkeletonProps extends HTMLMotionProps<"div">, BaseLoadingSkeletonProps {
+}
 
 export type SpinnerSizeClasses = {
     [key in SpinnerSize]: string;

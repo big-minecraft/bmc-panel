@@ -1,8 +1,8 @@
 import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { checkAuthToken } from '../utils/auth';
+import {Navigate, useLocation} from 'react-router-dom';
+import {checkAuthToken} from '../utils/auth';
 
-const PrivateRoute = ({ children }) => {
+const PrivateRoute = ({children}) => {
     const location = useLocation();
     const isLoggedIn = checkAuthToken();
 
@@ -12,7 +12,7 @@ const PrivateRoute = ({ children }) => {
         <Navigate
             replace={true}
             to="/login"
-            state={{ from: `${location.pathname}${location.search}` }}
+            state={{from: `${location.pathname}${location.search}`}}
         />
     );
 };

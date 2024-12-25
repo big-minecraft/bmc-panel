@@ -1,6 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
+import {motion} from 'framer-motion';
+import {Loader2} from 'lucide-react';
 
 interface LoadingSpinnerProps {
     size?: 'sm' | 'md' | 'lg';
@@ -9,10 +9,10 @@ interface LoadingSpinnerProps {
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
-                                                           size = 'md',
-                                                           text = 'Loading',
-                                                           fullScreen = false,
-                                                       }) => {
+    size = 'md',
+    text = 'Loading',
+    fullScreen = false,
+}) => {
     const sizes: Record<'sm' | 'md' | 'lg', string> = {
         sm: 'w-4 h-4',
         md: 'w-8 h-8',
@@ -23,9 +23,9 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     const wrapperProps = fullScreen
         ? {
             className: "fixed inset-0 bg-white bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-50",
-            initial: { opacity: 0 },
-            animate: { opacity: 1 },
-            exit: { opacity: 0 },
+            initial: {opacity: 0},
+            animate: {opacity: 1},
+            exit: {opacity: 0},
         }
         : {
             className: "flex flex-col items-center justify-center min-h-[200px]",
@@ -34,17 +34,17 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     return (
         <Wrapper {...wrapperProps}>
             <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.2 }}
+                initial={{opacity: 0, scale: 0.8}}
+                animate={{opacity: 1, scale: 1}}
+                transition={{duration: 0.2}}
                 className="flex flex-col items-center"
             >
-                <Loader2 className={`${sizes[size]} text-indigo-600 animate-spin`} />
+                <Loader2 className={`${sizes[size]} text-indigo-600 animate-spin`}/>
                 {text && (
                     <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.1 }}
+                        initial={{opacity: 0}}
+                        animate={{opacity: 1}}
+                        transition={{delay: 0.1}}
                         className="mt-4 text-sm text-gray-500 font-medium"
                     >
                         {text}
@@ -62,10 +62,10 @@ interface LoadingSkeletonProps {
 }
 
 const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
-                                                             rows = 3,
-                                                             avatar = true,
-                                                             className = '',
-                                                         }) => (
+    rows = 3,
+    avatar = true,
+    className = '',
+}) => (
     <div className={`space-y-4 ${className}`}>
         {[...Array(rows)].map((_, i) => (
             <div key={i} className="bg-white rounded-lg border border-gray-100 shadow-sm p-6">
@@ -73,20 +73,20 @@ const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
                     {avatar && (
                         <motion.div
                             className="h-10 w-10 rounded-full bg-gray-200"
-                            animate={{ opacity: [0.5, 1, 0.5] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
+                            animate={{opacity: [0.5, 1, 0.5]}}
+                            transition={{duration: 1.5, repeat: Infinity}}
                         />
                     )}
                     <div className="space-y-2 flex-1">
                         <motion.div
                             className="h-4 w-1/4 bg-gray-200 rounded"
-                            animate={{ opacity: [0.5, 1, 0.5] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
+                            animate={{opacity: [0.5, 1, 0.5]}}
+                            transition={{duration: 1.5, repeat: Infinity}}
                         />
                         <motion.div
                             className="h-3 w-1/3 bg-gray-200 rounded"
-                            animate={{ opacity: [0.5, 1, 0.5] }}
-                            transition={{ duration: 1.5, repeat: Infinity }}
+                            animate={{opacity: [0.5, 1, 0.5]}}
+                            transition={{duration: 1.5, repeat: Infinity}}
                         />
                     </div>
                 </div>
@@ -99,10 +99,10 @@ interface ErrorAlertProps {
     message: string;
 }
 
-export const ErrorAlert: React.FC<ErrorAlertProps> = ({ message }) => (
+export const ErrorAlert: React.FC<ErrorAlertProps> = ({message}) => (
     <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{opacity: 0, y: -10}}
+        animate={{opacity: 1, y: 0}}
         className="rounded-lg bg-red-50 p-4 mt-4"
     >
         <div className="flex">
@@ -121,5 +121,5 @@ export const ErrorAlert: React.FC<ErrorAlertProps> = ({ message }) => (
     </motion.div>
 );
 
-export { LoadingSpinner, LoadingSkeleton };
+export {LoadingSpinner, LoadingSkeleton};
 export default LoadingSpinner;

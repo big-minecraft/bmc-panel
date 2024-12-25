@@ -1,12 +1,12 @@
 import React from 'react';
-import { useSFTPState } from '../../context/SFTPContext';
-import { useFileSelection } from '../../hooks/useFileSelection';
+import {useSFTPState} from '../../context/SFTPContext';
+import {useFileSelection} from '../../hooks/useFileSelection';
 import FileRow from './FileRow';
-import { Loader2 } from 'lucide-react';
+import {Loader2} from 'lucide-react';
 
 const FilesList = () => {
-    const { files, loading } = useSFTPState();
-    const { selectedFiles, handleSelectFile, handleSelectAllFiles } = useFileSelection();
+    const {files, loading} = useSFTPState();
+    const {selectedFiles, handleSelectFile, handleSelectAllFiles} = useFileSelection();
 
     const allFilesSelected = files.length > 0 &&
         files.every(file => selectedFiles.some(selected => selected.path === file.path));
@@ -15,7 +15,7 @@ const FilesList = () => {
         return (
             <div className="bg-white rounded-lg shadow-sm p-8">
                 <div className="flex justify-center items-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                    <Loader2 className="w-8 h-8 animate-spin text-primary"/>
                 </div>
             </div>
         );

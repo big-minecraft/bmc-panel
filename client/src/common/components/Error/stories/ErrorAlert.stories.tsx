@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type {Meta, StoryObj} from '@storybook/react';
 import MessageAlert from '../index';
 
 const meta = {
@@ -56,10 +56,10 @@ export const LongMessage: Story = {
 export const AllTypes: Story = {
     render: () => (
         <div className="w-[400px] space-y-4">
-            <MessageAlert type="success" message="Operation completed successfully" />
-            <MessageAlert type="error" message="Unable to save changes" />
-            <MessageAlert type="info" message="New updates are available" />
-            <MessageAlert type="warning" message="Your session will expire soon" />
+            <MessageAlert type="success" message="Operation completed successfully"/>
+            <MessageAlert type="error" message="Unable to save changes"/>
+            <MessageAlert type="info" message="New updates are available"/>
+            <MessageAlert type="warning" message="Your session will expire soon"/>
         </div>
     )
 };

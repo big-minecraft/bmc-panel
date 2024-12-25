@@ -2,7 +2,7 @@ import React from 'react';
 import CPUChart from './CPUChart';
 import MemoryChart from './MemoryChart';
 
-const MetricsSection = ({ podName }) => {
+const MetricsSection = ({podName}) => {
     return (
         <div className="space-y-8">
             <div className="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -10,7 +10,7 @@ const MetricsSection = ({ podName }) => {
                     <h3 className="text-xl font-semibold text-gray-900">CPU Usage</h3>
                 </div>
                 <div className="p-6">
-                    <CPUChart podName={podName} />
+                    <CPUChart podName={podName}/>
                 </div>
             </div>
 
@@ -19,7 +19,7 @@ const MetricsSection = ({ podName }) => {
                     <h3 className="text-xl font-semibold text-gray-900">Memory Usage</h3>
                 </div>
                 <div className="p-6">
-                    <MemoryChart podName={podName} />
+                    <MemoryChart podName={podName}/>
                 </div>
             </div>
         </div>

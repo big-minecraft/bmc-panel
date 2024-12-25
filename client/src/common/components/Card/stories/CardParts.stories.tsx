@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { CardHeader, CardBody, CardFooter } from '../CardParts';
+import type {Meta, StoryObj} from '@storybook/react';
+import {CardHeader, CardBody, CardFooter} from '../CardParts';
 
 const meta = {
     title: 'Components/Card/Parts',
@@ -55,7 +55,7 @@ export const BodyNoPadding: StoryObj<typeof CardBody> = {
     render: () => (
         <div className="w-96 border">
             <CardBody padding={false}>
-                <img src="/api/placeholder/384/200" alt="placeholder" className="w-full" />
+                <img src="/api/placeholder/384/200" alt="placeholder" className="w-full"/>
             </CardBody>
         </div>
     )

@@ -1,14 +1,14 @@
-import { useCallback } from 'react';
-import { UseButtonProps, ButtonVariantClasses, ButtonSizeClasses } from '../types';
-import { useTheme } from '../../../context/theme/ThemeContext';
+import {useCallback} from 'react';
+import {UseButtonProps, ButtonVariantClasses, ButtonSizeClasses} from '../types';
+import {useTheme} from '../../../context/theme/ThemeContext';
 
 export const useButton = ({
-                              disabled = false,
-                              loading = false,
-                              fullWidth = false,
-                              variant = 'primary',
-                              size = 'md'
-                          }: UseButtonProps) => {
+    disabled = false,
+    loading = false,
+    fullWidth = false,
+    variant = 'primary',
+    size = 'md'
+}: UseButtonProps) => {
     const getVariantClasses = useCallback((): string => {
         const variants: ButtonVariantClasses = {
             primary: 'bg-primary text-white hover:bg-primary-hover focus:ring-primary',

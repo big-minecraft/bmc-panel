@@ -1,13 +1,13 @@
-import { useState, useCallback } from 'react';
-import { UseCardProps, UseCardReturn } from '../types';
+import {useState, useCallback} from 'react';
+import {UseCardProps, UseCardReturn} from '../types';
 
 export const useCard = ({
-                            collapsible = false,
-                            defaultCollapsed = false,
-                            onCollapse,
-                            onExpand,
-                            loading = false
-                        }: UseCardProps): UseCardReturn => {
+    collapsible = false,
+    defaultCollapsed = false,
+    onCollapse,
+    onExpand,
+    loading = false
+}: UseCardProps): UseCardReturn => {
     const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
     const toggleCollapse = useCallback(() => {

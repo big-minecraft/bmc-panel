@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import React, {useState} from 'react';
+import {ChevronDown, ChevronRight} from 'lucide-react';
 import InstanceCard from './InstanceCard';
 
-const DeploymentCard = ({ title, instances, icon: Icon }) => {
+const DeploymentCard = ({title, instances, icon: Icon}) => {
     const [isExpanded, setIsExpanded] = useState(true);
 
     return (
@@ -13,15 +13,15 @@ const DeploymentCard = ({ title, instances, icon: Icon }) => {
                     className="w-full flex items-center space-x-3 hover:opacity-75 transition-opacity"
                 >
                     <div className="p-2 bg-blue-50 rounded-lg">
-                        <Icon size={20} className="text-blue-600" />
+                        <Icon size={20} className="text-blue-600"/>
                     </div>
                     <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
                     <div className="bg-gray-100 px-2 py-1 rounded text-sm text-gray-600">
                         {instances.length}
                     </div>
                     {isExpanded ?
-                        <ChevronDown size={20} className="text-gray-400 ml-auto" /> :
-                        <ChevronRight size={20} className="text-gray-400 ml-auto" />
+                        <ChevronDown size={20} className="text-gray-400 ml-auto"/> :
+                        <ChevronRight size={20} className="text-gray-400 ml-auto"/>
                     }
                 </button>
             </div>
@@ -30,7 +30,7 @@ const DeploymentCard = ({ title, instances, icon: Icon }) => {
                     {instances.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {instances.map((instance, index) => (
-                                <InstanceCard key={index} instance={instance} />
+                                <InstanceCard key={index} instance={instance}/>
                             ))}
                         </div>
                     ) : (

@@ -1,9 +1,9 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { isAdmin } from '../../../utils/auth';
+import {Link, useLocation} from 'react-router-dom';
+import {motion} from 'framer-motion';
+import {isAdmin} from '../../../utils/auth';
 
-const NavLink = ({ to, children, requireAdmin = false }) => {
+const NavLink = ({to, children, requireAdmin = false}) => {
     const location = useLocation();
     const userIsAdmin = isAdmin();
 
@@ -21,7 +21,7 @@ const NavLink = ({ to, children, requireAdmin = false }) => {
     const isActive = isActivePath(to);
 
     return (
-        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+        <motion.div whileHover={{scale: 1.02}} whileTap={{scale: 0.98}}>
             <Link
                 to={to}
                 className={`relative no-underline px-4 py-2 text-sm font-medium rounded-lg
@@ -36,7 +36,7 @@ const NavLink = ({ to, children, requireAdmin = false }) => {
                     <motion.div
                         layoutId="navbar-indicator"
                         className="absolute -bottom-[1px] left-0 right-0 h-0.5 bg-blue-500 rounded-full"
-                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                        transition={{type: "spring", bounce: 0.2, duration: 0.6}}
                     />
                 )}
             </Link>

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, {useState, useEffect} from 'react';
+import {motion} from 'framer-motion';
 import axiosInstance from "../../../../utils/auth";
 import CreateTokenModal from './CreateTokenModal';
 import LoadingSpinner from '../../../../common/zold/LoadingSpinner';
-import { ExternalLink, Copy, Eye, EyeOff, Plus, Trash2, Check } from 'lucide-react';
+import {ExternalLink, Copy, Eye, EyeOff, Plus, Trash2, Check} from 'lucide-react';
 
 const K8sDashboardTab = () => {
     const [token, setToken] = useState<string | null>(null);
@@ -64,7 +64,7 @@ const K8sDashboardTab = () => {
         }
     };
 
-    if (isLoading) return <LoadingSpinner />;
+    if (isLoading) return <LoadingSpinner/>;
 
     return (
         <div className="p-6 space-y-6">
@@ -77,12 +77,12 @@ const K8sDashboardTab = () => {
             {token ? (
                 <div className="space-y-6">
                     <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        whileHover={{scale: 1.02}}
+                        whileTap={{scale: 0.98}}
                         onClick={handleDashboardAccess}
                         className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-lg font-medium"
                     >
-                        <ExternalLink size={20} />
+                        <ExternalLink size={20}/>
                         Copy Token & Open Dashboard
                     </motion.button>
 
@@ -91,20 +91,20 @@ const K8sDashboardTab = () => {
                             <h3 className="text-lg font-medium text-gray-900">Dashboard Token</h3>
                             <div className="flex items-center gap-2">
                                 <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                    whileHover={{scale: 1.05}}
+                                    whileTap={{scale: 0.95}}
                                     onClick={() => setShowToken(!showToken)}
                                     className="p-2 text-gray-500 hover:text-gray-700 rounded-lg transition-colors"
                                 >
-                                    {showToken ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    {showToken ? <EyeOff size={18}/> : <Eye size={18}/>}
                                 </motion.button>
                                 <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                    whileHover={{scale: 1.05}}
+                                    whileTap={{scale: 0.95}}
                                     onClick={handleDelete}
                                     className="p-2 text-gray-500 hover:text-red-600 rounded-lg transition-colors"
                                 >
-                                    <Trash2 size={18} />
+                                    <Trash2 size={18}/>
                                 </motion.button>
                             </div>
                         </div>
@@ -116,30 +116,30 @@ const K8sDashboardTab = () => {
                                 className="w-full font-mono text-sm bg-gray-50 px-3 py-2 rounded border border-gray-200"
                             />
                             <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
+                                whileHover={{scale: 1.05}}
+                                whileTap={{scale: 0.95}}
                                 onClick={handleCopyToken}
                                 className="p-2 text-gray-500 hover:text-gray-700 rounded-lg transition-colors"
                             >
-                                {showCopied ? <Check size={18} /> : <Copy size={18} />}
+                                {showCopied ? <Check size={18}/> : <Copy size={18}/>}
                             </motion.button>
                         </div>
                     </div>
                 </div>
             ) : (
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{opacity: 0, y: 20}}
+                    animate={{opacity: 1, y: 0}}
                     className="bg-white rounded-lg border border-gray-200 p-6 text-center"
                 >
                     <h3 className="text-lg font-medium text-gray-900 mb-4">No Dashboard Token Available</h3>
                     <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        whileHover={{scale: 1.02}}
+                        whileTap={{scale: 0.98}}
                         onClick={() => setShowCreateModal(true)}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                     >
-                        <Plus size={18} />
+                        <Plus size={18}/>
                         Create Token
                     </motion.button>
                 </motion.div>

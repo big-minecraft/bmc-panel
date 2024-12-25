@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import axiosInstance, { setAuthToken } from '../../../utils/auth';
-import { useAuthContext } from '../context/AuthContext';
+import {useState} from 'react';
+import axiosInstance, {setAuthToken} from '../../../utils/auth';
+import {useAuthContext} from '../context/AuthContext';
 
 export const useRegistration = () => {
     const [inviteCode, setInviteCode] = useState('');

@@ -1,19 +1,19 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { X } from 'lucide-react';
-import { ModalContentProps } from './types';
+import {motion} from 'framer-motion';
+import {X} from 'lucide-react';
+import {ModalContentProps} from './types';
 
 const ModalContent = React.forwardRef<HTMLDivElement, ModalContentProps>(({
-                                                                              title,
-                                                                              children,
-                                                                              footer,
-                                                                              onClose,
-                                                                              showClose = true,
-                                                                              size = 'md',
-                                                                              className = '',
-                                                                              isTopModal,
-                                                                              ...props
-                                                                          }, ref) => {
+    title,
+    children,
+    footer,
+    onClose,
+    showClose = true,
+    size = 'md',
+    className = '',
+    isTopModal,
+    ...props
+}, ref) => {
     const sizes = {
         sm: 'max-w-md',
         md: 'max-w-lg',
@@ -25,9 +25,9 @@ const ModalContent = React.forwardRef<HTMLDivElement, ModalContentProps>(({
     return (
         <motion.div
             ref={ref}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            initial={{opacity: 0, scale: 0.95}}
+            animate={{opacity: 1, scale: 1}}
+            exit={{opacity: 0, scale: 0.95}}
             transition={{
                 type: "spring",
                 duration: 0.3,
@@ -38,7 +38,7 @@ const ModalContent = React.forwardRef<HTMLDivElement, ModalContentProps>(({
         bg-white shadow-xl rounded-xl
         ${className}
       `}
-            style={{ zIndex: isTopModal ? 51 : 50 }}
+            style={{zIndex: isTopModal ? 51 : 50}}
             {...props}
         >
             {(title || showClose) && (
@@ -53,7 +53,7 @@ const ModalContent = React.forwardRef<HTMLDivElement, ModalContentProps>(({
                             onClick={onClose}
                             className="p-1 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
                         >
-                            <X size={20} />
+                            <X size={20}/>
                         </button>
                     )}
                 </div>

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { File, FolderPlus, Loader2, X } from 'lucide-react';
-import { useCreateOperations } from '../../hooks/useCreateOperations';
+import React, {useState} from 'react';
+import {File, FolderPlus, Loader2, X} from 'lucide-react';
+import {useCreateOperations} from '../../hooks/useCreateOperations';
 
-const CreateModal = ({ isOpen, onClose }) => {
+const CreateModal = ({isOpen, onClose}) => {
     const [tab, setTab] = useState('file');
     const {
         newFileName,
@@ -38,7 +38,7 @@ const CreateModal = ({ isOpen, onClose }) => {
                             Create New
                         </h3>
                         <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-                            <X size={20} />
+                            <X size={20}/>
                         </button>
                     </div>
 
@@ -51,7 +51,7 @@ const CreateModal = ({ isOpen, onClose }) => {
                                     : 'text-gray-500 hover:bg-gray-50'
                             }`}
                         >
-                            <File size={16} className="inline-block mr-2" />
+                            <File size={16} className="inline-block mr-2"/>
                             File
                         </button>
                         <button
@@ -62,7 +62,7 @@ const CreateModal = ({ isOpen, onClose }) => {
                                     : 'text-gray-500 hover:bg-gray-50'
                             }`}
                         >
-                            <FolderPlus size={16} className="inline-block mr-2" />
+                            <FolderPlus size={16} className="inline-block mr-2"/>
                             Directory
                         </button>
                     </div>
@@ -104,7 +104,7 @@ const CreateModal = ({ isOpen, onClose }) => {
                             >
                                 {loading ? (
                                     <>
-                                        <Loader2 size={16} className="animate-spin mr-2" />
+                                        <Loader2 size={16} className="animate-spin mr-2"/>
                                         Creating...
                                     </>
                                 ) : (

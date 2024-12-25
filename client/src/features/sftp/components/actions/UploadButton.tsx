@@ -1,12 +1,12 @@
-import React, { useRef } from 'react';
-import { Upload, Loader2 } from 'lucide-react';
-import { useSFTPState } from '../../context/SFTPContext';
-import { useFileOperations } from '../../hooks/useFileOperations';
+import React, {useRef} from 'react';
+import {Upload, Loader2} from 'lucide-react';
+import {useSFTPState} from '../../context/SFTPContext';
+import {useFileOperations} from '../../hooks/useFileOperations';
 
 const UploadButton = () => {
     const fileInputRef = useRef(null);
-    const { uploadState: { uploading, progress } } = useSFTPState();
-    const { uploadFiles } = useFileOperations();
+    const {uploadState: {uploading, progress}} = useSFTPState();
+    const {uploadFiles} = useFileOperations();
 
     const handleFileChange = (e) => {
         if (e.target.files?.length > 0) {
@@ -32,12 +32,12 @@ const UploadButton = () => {
             >
                 {uploading ? (
                     <>
-                        <Loader2 size={20} className="animate-spin mr-2" />
+                        <Loader2 size={20} className="animate-spin mr-2"/>
                         <span className="text-sm font-medium">{progress}%</span>
                     </>
                 ) : (
                     <>
-                        <Upload size={20} className="mr-2" />
+                        <Upload size={20} className="mr-2"/>
                         <span className="text-sm font-medium">Upload Files</span>
                     </>
                 )}
@@ -46,7 +46,7 @@ const UploadButton = () => {
                 <div className="absolute -bottom-1 left-2 right-2 h-1 bg-blue-200 rounded-full overflow-hidden">
                     <div
                         className="h-full bg-white transition-all duration-300"
-                        style={{ width: `${progress}%` }}
+                        style={{width: `${progress}%`}}
                     />
                 </div>
             )}

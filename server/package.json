@@ -1,44 +1,44 @@
 {
-    "name": "bmc-panel-server",
-    "version": "1.0.0",
-    "description": "panel for the big minecraft project",
-    "main": "src/app.ts",
-    "type": "commonjs",
-    "scripts": {
-        "start": "ts-node src/app.ts",
-        "dev": "nodemon src/app.ts"
-    },
-    "devDependencies": {
-        "nodemon": "^3.1.9"
-    },
-    "dependencies": {
-        "7zip-min": "^1.4.5",
-        "@kubernetes/client-node": "^0.22.1",
-        "@types/node": "^22.10.2",
-        "@types/ssh2-sftp-client": "^9.0.4",
-        "axios": "^1.7.9",
-        "cookie-parser": "^1.4.7",
-        "cors": "^2.8.5",
-        "crypto": "^1.0.1",
-        "express": "^4.17.1",
-        "generic-pool": "^3.9.0",
-        "ioredis": "^5.4.1",
-        "js-yaml": "^4.1.0",
-        "jsonwebtoken": "^9.0.2",
-        "jszip": "^3.10.1",
-        "mariadb": "^3.4.0",
-        "mongodb": "^6.12.0",
-        "multer": "^1.4.5-lts.1",
-        "node-ssh": "^13.2.0",
-        "node-unrar-js": "^2.0.2",
-        "path": "^0.12.7",
-        "qrcode": "^1.5.4",
-        "react-router-dom": "^6.27.0",
-        "speakeasy": "^2.0.0",
-        "ssh2-sftp-client": "^11.0.0",
-        "tar": "^7.4.3",
-        "ts-node": "^10.9.2",
-        "typescript": "^5.7.2",
-        "ws": "^8.18.0"
-    }
+  "name": "bmc-panel-server",
+  "version": "1.0.0",
+  "description": "panel for the big minecraft project",
+  "main": "src/app.ts",
+  "type": "commonjs",
+  "scripts": {
+    "start": "ts-node src/app.ts",
+    "dev": "nodemon src/app.ts"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  },
+  "dependencies": {
+    "7zip-min": "^1.4.5",
+    "@kubernetes/client-node": "^0.22.1",
+    "@types/node": "^22.10.2",
+    "@types/ssh2-sftp-client": "^9.0.4",
+    "axios": "^1.7.9",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "express": "^4.17.1",
+    "generic-pool": "^3.9.0",
+    "ioredis": "^5.4.1",
+    "js-yaml": "^4.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "jszip": "^3.10.1",
+    "mariadb": "^3.4.0",
+    "mongodb": "^6.12.0",
+    "multer": "^1.4.5-lts.1",
+    "node-ssh": "^13.2.0",
+    "node-unrar-js": "^2.0.2",
+    "path": "^0.12.7",
+    "qrcode": "^1.5.4",
+    "react-router-dom": "^6.27.0",
+    "speakeasy": "^2.0.0",
+    "ssh2-sftp-client": "^11.0.0",
+    "tar": "^7.4.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2",
+    "ws": "^8.18.0"
+  }
 }

@@ -1,23 +1,23 @@
 import React from 'react';
-import { useModal } from './hooks/useModal';
+import {useModal} from './hooks/useModal';
 import ModalBackdrop from './ModalBackdrop';
 import ModalContent from './ModalContent';
-import { ModalProps } from './types';
+import {ModalProps} from './types';
 
 const Modal = React.forwardRef<HTMLDivElement, ModalProps>(({
-                                                                id,
-                                                                title,
-                                                                children,
-                                                                footer,
-                                                                onClose,
-                                                                onConfirm,
-                                                                showClose = true,
-                                                                size = 'md',
-                                                                preventBackdropClose = false,
-                                                                closeOnEsc = true,
-                                                                className = '',
-                                                                ...props
-                                                            }, ref) => {
+    id,
+    title,
+    children,
+    footer,
+    onClose,
+    onConfirm,
+    showClose = true,
+    size = 'md',
+    preventBackdropClose = false,
+    closeOnEsc = true,
+    className = '',
+    ...props
+}, ref) => {
     const {
         isOpen,
         isTopModal,

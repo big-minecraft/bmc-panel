@@ -1,6 +1,6 @@
-import { pool } from './database';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import {pool} from './database';
+import {exec} from 'child_process';
+import {promisify} from 'util';
 
 const execAsync = promisify(exec);
 
@@ -41,7 +41,7 @@ export async function createK8sDashboardToken() {
             throw new Error('valid token already exists');
         }
 
-        const { stdout, stderr } = await execAsync('kubectl create token admin-user --duration=8760h');
+        const {stdout, stderr} = await execAsync('kubectl create token admin-user --duration=8760h');
         if (stderr) {
             throw new Error(`kubectl error: ${stderr}`);
         }
