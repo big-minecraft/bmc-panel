@@ -5,10 +5,6 @@ import Input from '../index';
 const meta = {
     title: 'Components/Input',
     component: Input,
-    parameters: {
-        layout: 'centered',
-    },
-    tags: ['autodocs'],
     argTypes: {
         type: {
             control: 'select',

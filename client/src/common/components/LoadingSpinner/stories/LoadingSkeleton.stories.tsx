@@ -5,9 +5,8 @@ const meta = {
     title: 'Components/Loading/Skeleton',
     component: LoadingSkeleton,
     parameters: {
-        layout: 'centered',
-    },
-    tags: ['autodocs'],
+        docsHeight: '500px'
+    }
 } satisfies Meta<typeof LoadingSkeleton>;
 
 export default meta;
@@ -22,13 +21,6 @@ export const Basic: Story = {
 export const NoAvatar: Story = {
     args: {
         avatar: false,
-        className: 'w-[400px]'
-    }
-};
-
-export const CustomRows: Story = {
-    args: {
-        rows: 5,
         className: 'w-[400px]'
     }
 };

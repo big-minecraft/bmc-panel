@@ -1,16 +1,16 @@
-import type {Decorator} from '@storybook/react';
+import type { Decorator } from '@storybook/react'
 
 interface ThemeDecoratorOptions {
-    docsHeight?: string;
-    viewportHeight?: string;
+    defaultDocsHeight: string
 }
 
-export const createThemeDecorator = ({
-    docsHeight = '168px',
-    viewportHeight = '100vh',
-}: ThemeDecoratorOptions = {}): Decorator => {
+export const withTheme = ({
+    defaultDocsHeight
+}: ThemeDecoratorOptions): Decorator => {
     return (Story, context) => {
-        const isInDocs = context.viewMode === 'docs';
+        const isInDocs = context.viewMode === 'docs'
+        const docsHeight = context.parameters.docsHeight || defaultDocsHeight
+        const customStyles = context.parameters.styles || {}
 
         return (
             <div
@@ -18,12 +18,13 @@ export const createThemeDecorator = ({
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    height: isInDocs ? docsHeight : viewportHeight,
+                    height: isInDocs ? docsHeight : '100vh',
                     backgroundColor: 'var(--color-background)',
+                    ...customStyles
                 }}
             >
-                <Story/>
+                <Story />
             </div>
-        );
-    };
-};
+        )
+    }
+}

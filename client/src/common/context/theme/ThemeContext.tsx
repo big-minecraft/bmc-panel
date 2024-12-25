@@ -24,9 +24,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 }) => {
     const [mode, setMode] = useState<ThemeMode>(initialMode);
 
-    console.log('initialMode:', initialMode)
-    console.log('mode:', mode)
-
     const toggleTheme = useCallback(() => {
         setMode(current => current === 'light' ? 'dark' : 'light');
     }, []);

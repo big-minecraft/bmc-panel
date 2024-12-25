@@ -7,21 +7,12 @@ const meta = {
     title: 'Components/Select',
     component: Select,
     parameters: {
-        layout: 'centered',
-    },
-    tags: ['autodocs'],
-    decorators: [
-        (Story) => (
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'flex-start',
-                height: '300px',
-            }}>
-                <Story/>
-            </div>
-        )
-    ]
+        docsHeight: '300px',
+        styles: {
+            alignItems: 'flex-start',
+            padding: '2rem'
+        }
+    }
 } satisfies Meta<typeof Select>;
 
 export default meta;

@@ -3,6 +3,7 @@ import {withThemeFromJSXProvider} from '@storybook/addon-themes';
 import {ThemeProvider} from '../src/common/context/theme/ThemeContext';
 import '../src/index.css';
 import {themes} from "../src/common/context/theme/colors";
+import {withTheme} from "./withTheme";
 
 const preview: Preview = {
     tags: ['autodocs'],
@@ -31,6 +32,9 @@ const preview: Preview = {
                 </ThemeProvider>
             ),
         }),
+        withTheme({
+            defaultDocsHeight: '168px'
+        })
     ],
 };
 

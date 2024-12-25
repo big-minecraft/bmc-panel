@@ -6,22 +6,11 @@ import {ModalProvider, useModalContext} from '../context/ModalContext';
 const meta = {
     title: 'Components/Modal',
     component: Modal,
-    parameters: {
-        layout: 'fullscreen',
-    },
-    tags: ['autodocs'],
     decorators: [
         (Story) => (
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '500px',
-            }}>
-                <ModalProvider>
-                    <Story/>
-                </ModalProvider>
-            </div>
+            <ModalProvider>
+                <Story/>
+            </ModalProvider>
         )
     ]
 } satisfies Meta<typeof Modal>;

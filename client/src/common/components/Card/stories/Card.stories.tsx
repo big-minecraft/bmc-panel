@@ -1,14 +1,15 @@
-import type {Meta, StoryObj} from '@storybook/react';
-import {Bell} from 'lucide-react';
+import type { Meta, StoryObj } from '@storybook/react';
+import { Bell } from 'lucide-react';
+
 import Card from '../index';
 
 const meta = {
     title: 'Components/Card',
     component: Card,
     parameters: {
-        layout: 'centered',
-    },
-    tags: ['autodocs'],
+        docsHeight: '250px',
+        className: ''
+    }
 } satisfies Meta<typeof Card>;
 
 export default meta;
@@ -82,6 +83,9 @@ export const WithCustomHeader: Story = {
 };
 
 export const WithComposition: Story = {
+    parameters: {
+        docsHeight: '400px'
+    },
     render: () => (
         <Card className="w-96">
             <Card.Header actions={<button className="text-blue-500">View All</button>}>

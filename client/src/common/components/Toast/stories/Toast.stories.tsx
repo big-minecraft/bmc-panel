@@ -7,9 +7,8 @@ const meta = {
     title: 'Components/Toast',
     component: ToastContainer,
     parameters: {
-        layout: 'padded',
+        docsHeight: '300px',
     },
-    tags: ['autodocs'],
     decorators: [
         (Story) => (
             <ToastProvider>
@@ -104,12 +103,4 @@ const ToastDemo = ({
 
 export const AllTypes: Story = {
     render: () => <ToastDemo showButtons={true}/>,
-    parameters: {
-        layout: 'fullscreen',
-        docs: {
-            story: {
-                height: '500px'
-            }
-        }
-    }
 };

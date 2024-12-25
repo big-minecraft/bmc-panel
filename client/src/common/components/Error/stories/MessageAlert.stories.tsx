@@ -4,10 +4,6 @@ import MessageAlert from '../index';
 const meta = {
     title: 'Components/MessageAlert',
     component: MessageAlert,
-    parameters: {
-        layout: 'centered',
-    },
-    tags: ['autodocs'],
 } satisfies Meta<typeof MessageAlert>;
 
 export default meta;
@@ -54,6 +50,9 @@ export const LongMessage: Story = {
 };
 
 export const AllTypes: Story = {
+    parameters: {
+        docsHeight: '400px'
+    },
     render: () => (
         <div className="w-[400px] space-y-4">
             <MessageAlert type="success" message="Operation completed successfully"/>

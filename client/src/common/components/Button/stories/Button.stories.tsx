@@ -2,12 +2,10 @@ import type {Meta, StoryObj} from '@storybook/react';
 import {RefreshCwIcon} from 'lucide-react';
 
 import Button from '../index';
-import {createThemeDecorator} from "../../../../../.storybook/withTheme";
 
 const meta = {
     title: 'Components/Button',
     component: Button,
-    decorators: [createThemeDecorator()],
 } satisfies Meta<typeof Button>;
 
 export default meta;

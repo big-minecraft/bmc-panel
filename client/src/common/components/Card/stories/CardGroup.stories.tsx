@@ -1,14 +1,11 @@
-import type {Meta, StoryObj} from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/react';
+
 import CardGroup from '../CardGroup';
 import Card from '../index';
 
 const meta = {
     title: 'Components/Card/CardGroup',
     component: CardGroup,
-    parameters: {
-        layout: 'centered',
-    },
-    tags: ['autodocs'],
     args: {
         className: 'w-full max-w-6xl',
         children: null
@@ -18,7 +15,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof CardGroup>;
 
-const ExampleCard = ({title}: { title: string }) => (
+const ExampleCard = ({ title }: { title: string }) => (
     <Card header={title}>
         <p>Card content for {title}</p>
     </Card>
