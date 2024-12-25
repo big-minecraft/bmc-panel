@@ -12,6 +12,20 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+export const AllVariants1: Story = {
+    args: {} as BadgeProps,
+    render: () => (
+        <div className="flex gap-4 flex-wrap">
+            <Badge variant="default">Default</Badge>
+            <Badge variant="primary">Primary</Badge>
+            <Badge variant="success">Success</Badge>
+            <Badge variant="warning">Warning</Badge>
+            <Badge variant="danger">Danger</Badge>
+            <Badge variant="info">Info</Badge>
+        </div>
+    )
+};
+
 export const Default: Story = {
     args: {
         children: 'Default Badge',

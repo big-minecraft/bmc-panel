@@ -13,6 +13,11 @@ export interface BadgeProps extends Omit<HTMLMotionProps<"span">, "children"> {
     icon?: LucideIcon;
 }
 
+export interface UseBadgeProps {
+    variant?: BadgeVariant;
+    size?: BadgeSize;
+}
+
 export type BadgeVariantStyles = {
     [key in BadgeVariant]: string;
 };
