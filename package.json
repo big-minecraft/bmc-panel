@@ -13,6 +13,7 @@
         "build": "cd client && npm run build"
     },
     "devDependencies": {
+        "@storybook/addon-themes": "^8.4.7",
         "concurrently": "^4.1.2",
         "if-env": "^1.0.4"
     }

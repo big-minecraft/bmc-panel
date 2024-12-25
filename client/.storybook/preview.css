@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Ensure dark mode works in Storybook context */
+:root {
+    color-scheme: light dark;
+}
+
+/* Add any other global styles needed for your theme system */

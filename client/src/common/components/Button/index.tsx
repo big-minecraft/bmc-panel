@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { ButtonProps } from './types';
 import { useButton } from './hooks/useButton';
+import { useTheme } from '../../context/theme/ThemeContext';
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
                                                                      children,
@@ -26,11 +27,15 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
         size
     });
 
+    const { theme } = useTheme();
+    console.log('theme in button:', theme)
+
     return (
         <motion.button
             ref={ref}
             whileHover={!isDisabled ? { scale: 1.02 } : undefined}
             whileTap={!isDisabled ? { scale: 0.98 } : undefined}
+            transition={theme.animation.smooth}
             type={type}
             disabled={isDisabled}
             onClick={onClick}
