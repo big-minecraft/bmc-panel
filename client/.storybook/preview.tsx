@@ -5,6 +5,7 @@ import '../src/index.css';
 import {themes} from "../src/common/context/theme/colors";
 
 const preview: Preview = {
+    tags: ['autodocs'],
     parameters: {
         layout: 'fullscreen',
         backgrounds: {

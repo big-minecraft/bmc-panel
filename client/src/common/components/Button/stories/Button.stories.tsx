@@ -2,29 +2,12 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { RefreshCwIcon } from 'lucide-react';
 
 import Button from '../index';
-
-const withTheme = (Story, context) => {
-    const isInDocs = context.viewMode === 'docs';
-    return (
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    height: isInDocs ? '168px' : '100vh',
-                    backgroundColor: 'var(--color-background)',
-                }}
-            >
-                <Story />
-            </div>
-    );
-};
+import {createThemeDecorator} from "../../../../../.storybook/withTheme";
 
 const meta = {
     title: 'Components/Button',
     component: Button,
-    decorators: [withTheme],
-    tags: ['autodocs'],
+    decorators: [createThemeDecorator()],
 } satisfies Meta<typeof Button>;
 
 export default meta;
