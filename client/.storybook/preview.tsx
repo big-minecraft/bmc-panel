@@ -3,7 +3,7 @@ import {withThemeFromJSXProvider} from '@storybook/addon-themes';
 import {ThemeProvider} from '../src/common/context/theme/ThemeContext';
 import '../src/index.css';
 import {themes} from "../src/common/context/theme/colors";
-import {withTheme} from "./withTheme";
+import {withTheme} from "../src/storybook/withTheme";
 
 const preview: Preview = {
     tags: ['autodocs'],
@@ -27,7 +27,7 @@ const preview: Preview = {
             },
             defaultTheme: 'dark',
             Provider: ({theme, children}) => (
-                <ThemeProvider themeOverride={theme}>
+                <ThemeProvider modeOverride={theme.name}>
                     {children}
                 </ThemeProvider>
             ),

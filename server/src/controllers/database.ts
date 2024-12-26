@@ -35,7 +35,7 @@ async function createTables() {
             `);
         await conn.query(`
                 CREATE TABLE IF NOT EXISTS k8s_dash (
-                    token TEXT NOT NULL,
+                    token VARCHAR(255) NOT NULL,
                     expires_at TIMESTAMP NOT NULL,
                     PRIMARY KEY (token)
                 )
