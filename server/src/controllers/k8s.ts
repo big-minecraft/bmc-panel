@@ -54,28 +54,25 @@ class KubernetesClient {
                 console.log('Loading in-cluster configuration');
                 this.kc.loadFromCluster();
 
-                // Create a new cluster configuration instead of modifying existing one
-                const currentCluster = this.kc.getCurrentCluster();
-                if (currentCluster) {
-                    const newCluster: K8s.Cluster = {
-                        name: currentCluster.name,
-                        server: 'https://kubernetes.default.svc',
-                        skipTLSVerify: false,
-                        caData: currentCluster.caData,
-                        caFile: currentCluster.caFile
-                    };
-
-                    const currentContext = this.kc.getCurrentContext();
-                    if (currentContext) {
-                        this.kc.addCluster(newCluster);
-                        this.kc.setCurrentContext(currentContext);
-                    }
-                }
+                // When running in-cluster, we don't need to modify the cluster config
+                // as it's already properly set up by loadFromCluster()
             } else {
                 console.log('Loading local development configuration');
                 this.loadLocalConfig();
             }
 
+            // Create API clients after configuration is loaded
+            this.createApiClients();
+
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error('Unknown error occurred');
+            console.error('Error in loadConfiguration:', err);
+            throw new Error(`Failed to initialize Kubernetes client: ${err.message}`);
+        }
+    }
+
+    private createApiClients(): void {
+        try {
             this.coreV1Api = this.kc.makeApiClient(K8s.CoreV1Api);
             this.appsV1Api = this.kc.makeApiClient(K8s.AppsV1Api);
 
@@ -84,11 +81,9 @@ class KubernetesClient {
             }
 
             console.log('Kubernetes API clients created successfully');
-
         } catch (error) {
             const err = error instanceof Error ? error : new Error('Unknown error occurred');
-            console.error('Error in loadConfiguration:', err);
-            throw new Error(`Failed to initialize Kubernetes client: ${err.message}`);
+            throw new Error(`Failed to create API clients: ${err.message}`);
         }
     }
 
