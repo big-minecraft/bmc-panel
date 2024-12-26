@@ -1,11 +1,11 @@
 import config from '../config';
 import path from 'path';
-import { promises as fs } from 'fs';
+import {promises as fs} from 'fs';
 import yaml from 'js-yaml';
 import kubernetesClient from './k8s';
-import { sendProxyUpdate } from './redis';
-import { promisify } from 'util';
-import { exec as execCallback } from 'child_process';
+import {sendProxyUpdate} from './redis';
+import {promisify} from 'util';
+import {exec as execCallback} from 'child_process';
 
 const exec = promisify(execCallback);
 
@@ -144,7 +144,7 @@ async function runApplyScript(): Promise<void> {
     const scriptDir = path.join(config["bmc-path"], "scripts");
 
     try {
-        const { stdout, stderr } = await exec(`cd "${scriptDir}" && ls && ./apply-proxy.sh`);
+        const {stdout, stderr} = await exec(`cd "${scriptDir}" && ls && ./apply-proxy.sh`);
         if (stderr) {
             console.error(`Script stderr: ${stderr}`);
         }

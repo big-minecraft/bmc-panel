@@ -1,6 +1,6 @@
-import { ReactNode } from 'react';
-import { LucideIcon } from 'lucide-react';
-import { HTMLMotionProps } from 'framer-motion';
+import {ReactNode} from 'react';
+import {LucideIcon} from 'lucide-react';
+import {HTMLMotionProps} from 'framer-motion';
 
 export type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info';
 export type BadgeSize = 'sm' | 'md' | 'lg';
@@ -11,6 +11,11 @@ export interface BadgeProps extends Omit<HTMLMotionProps<"span">, "children"> {
     size?: BadgeSize;
     dot?: boolean;
     icon?: LucideIcon;
+}
+
+export interface UseBadgeProps {
+    variant?: BadgeVariant;
+    size?: BadgeSize;
 }
 
 export type BadgeVariantStyles = {

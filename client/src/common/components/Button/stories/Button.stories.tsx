@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type {Meta, StoryObj} from '@storybook/react';
 import {RefreshCwIcon} from 'lucide-react';
 
 import Button from '../index';
@@ -6,10 +6,6 @@ import Button from '../index';
 const meta = {
     title: 'Components/Button',
     component: Button,
-    parameters: {
-        layout: 'centered',
-    },
-    tags: ['autodocs'],
 } satisfies Meta<typeof Button>;
 
 export default meta;

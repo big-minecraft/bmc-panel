@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import axiosInstance from "../../../utils/auth";
 import {
     LineChart,
@@ -10,7 +10,7 @@ import {
     ResponsiveContainer
 } from 'recharts';
 
-const MemoryChart = ({ podName }) => {
+const MemoryChart = ({podName}) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -57,17 +57,17 @@ const MemoryChart = ({ podName }) => {
     return (
         <div className="w-full h-[300px] min-h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data} margin={{ top: 5, right: 30, left: 60, bottom: 40 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
+                <LineChart data={data} margin={{top: 5, right: 30, left: 60, bottom: 40}}>
+                    <CartesianGrid strokeDasharray="3 3"/>
                     <XAxis
                         dataKey="timestamp"
-                        label={{ value: 'Time', position: 'bottom', offset: 20 }}
+                        label={{value: 'Time', position: 'bottom', offset: 20}}
                     />
                     <YAxis
-                        label={{ value: 'Memory Usage (MB)', angle: -90, position: 'left', offset: 40 }}
+                        label={{value: 'Memory Usage (MB)', angle: -90, position: 'left', offset: 40}}
                         domain={['auto', 'auto']}
                     />
-                    <Tooltip formatter={(value) => [`${value} MB`, 'Memory Usage']} />
+                    <Tooltip formatter={(value) => [`${value} MB`, 'Memory Usage']}/>
                     <Line
                         type="monotone"
                         dataKey="value"

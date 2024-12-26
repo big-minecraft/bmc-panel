@@ -1,17 +1,17 @@
-import { useState, useCallback } from 'react';
-import { useFormContext } from '../../../context/form/FormContext';
-import { UseInputProps, UseInputReturn } from '../types';
+import {useState, useCallback} from 'react';
+import {useFormContext} from '../../../context/form/FormContext';
+import {UseInputProps, UseInputReturn} from '../types';
 
 export const useInput = ({
-                             name,
-                             value: propValue,
-                             onChange: propOnChange,
-                             validation = {},
-                             type = 'text'
-                         }: UseInputProps): UseInputReturn => {
+    name,
+    value: propValue,
+    onChange: propOnChange,
+    validation = {},
+    type = 'text'
+}: UseInputProps): UseInputReturn => {
     const [isFocused, setIsFocused] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
-    const { registerField, unregisterField, setFieldValue, getFieldError } = useFormContext();
+    const {registerField, unregisterField, setFieldValue, getFieldError} = useFormContext();
 
     const validateValue = useCallback((value: string): string => {
         if (validation.required && !value) {

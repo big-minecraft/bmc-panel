@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, {createContext, useContext, useState, useCallback} from 'react';
 import axiosInstance from "../../../utils/auth";
-import type { Database } from '../types/types';
+import type {Database} from '../types/types';
 
 interface DatabasesContextValue {
     sqlDatabases: Database[];
@@ -15,7 +15,7 @@ interface DatabasesContextValue {
 
 const DatabasesContext = createContext<DatabasesContextValue | null>(null);
 
-export const DatabasesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const DatabasesProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
     const [sqlDatabases, setSqlDatabases] = useState<Database[]>([]);
     const [mongoDatabases, setMongoDatabases] = useState<Database[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -41,7 +41,7 @@ export const DatabasesProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }, []);
 
     const createDatabase = useCallback(async (name: string, type: 'sql' | 'mongo') => {
-        const response = await axiosInstance.post(`/api/databases/${type}`, { name });
+        const response = await axiosInstance.post(`/api/databases/${type}`, {name});
         await fetchDatabases();
         return response.data;
     }, [fetchDatabases]);

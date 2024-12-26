@@ -5,11 +5,13 @@ import config from '../config';
 // Interfaces for the data structures
 interface Instance {
     uid: string;
+
     [key: string]: any; // Additional instance properties
 }
 
 interface Proxy {
     uid: string;
+
     [key: string]: any; // Additional proxy properties
 }
 

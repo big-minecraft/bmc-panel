@@ -1,15 +1,15 @@
-import { useCallback, useEffect, useRef } from 'react';
-import { useModalContext } from '../context/ModalContext';
-import { UseModalProps, UseModalReturn } from '../types';
+import {useCallback, useEffect, useRef} from 'react';
+import {useModalContext} from '../context/ModalContext';
+import {UseModalProps, UseModalReturn} from '../types';
 
 export const useModal = ({
-                             id,
-                             onClose,
-                             onConfirm,
-                             preventBackdropClose = false,
-                             closeOnEsc = true,
-                             trapFocus = true
-                         }: UseModalProps): UseModalReturn => {
+    id,
+    onClose,
+    onConfirm,
+    preventBackdropClose = false,
+    closeOnEsc = true,
+    trapFocus = true
+}: UseModalProps): UseModalReturn => {
     const {
         openModals,
         registerModal,

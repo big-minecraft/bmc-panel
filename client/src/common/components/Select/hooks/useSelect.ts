@@ -1,22 +1,22 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { useFormContext } from '../../../context/form/FormContext';
-import { UseSelectProps, UseSelectReturn, SelectOption } from '../types';
+import {useState, useRef, useEffect, useCallback} from 'react';
+import {useFormContext} from '../../../context/form/FormContext';
+import {UseSelectProps, UseSelectReturn, SelectOption} from '../types';
 
 export const useSelect = ({
-                              name,
-                              options = [],
-                              value,
-                              onChange,
-                              multiple = false,
-                              searchable = false,
-                              validation = {}
-                          }: UseSelectProps): UseSelectReturn => {
+    name,
+    options = [],
+    value,
+    onChange,
+    multiple = false,
+    searchable = false,
+    validation = {}
+}: UseSelectProps): UseSelectReturn => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const containerRef = useRef<HTMLDivElement>(null!);
     const listRef = useRef<HTMLDivElement>(null!);
-    const { registerField, unregisterField, setFieldValue, getFieldError } = useFormContext();
+    const {registerField, unregisterField, setFieldValue, getFieldError} = useFormContext();
 
     const filteredOptions = options.filter(option =>
         option.label.toLowerCase().includes(searchQuery.toLowerCase())

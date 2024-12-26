@@ -1,9 +1,9 @@
-import { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useSFTPState, useSFTPDispatch } from '../context/SFTPContext';
+import {useCallback} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {useSFTPState, useSFTPDispatch} from '../context/SFTPContext';
 
 export function useFileNavigation() {
-    const { currentDirectory } = useSFTPState();
+    const {currentDirectory} = useSFTPState();
     const dispatch = useSFTPDispatch();
     const navigate = useNavigate();
 
@@ -28,7 +28,7 @@ export function useFileNavigation() {
         const encodedPath = encodeURIComponent(urlPath).replace(/%2F/g, '/');
 
         navigate(`/files${encodedPath}`);
-        dispatch({ type: 'SET_CURRENT_DIRECTORY', payload: normalizedPath });
+        dispatch({type: 'SET_CURRENT_DIRECTORY', payload: normalizedPath});
     }, [dispatch, navigate]);
 
     return {

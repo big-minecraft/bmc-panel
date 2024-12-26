@@ -1,14 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react';
+
 import CardGroup from '../CardGroup';
 import Card from '../index';
 
 const meta = {
     title: 'Components/Card/CardGroup',
     component: CardGroup,
-    parameters: {
-        layout: 'centered',
-    },
-    tags: ['autodocs'],
     args: {
         className: 'w-full max-w-6xl',
         children: null
@@ -26,10 +23,10 @@ const ExampleCard = ({ title }: { title: string }) => (
 
 const defaultCards = (
     <>
-        <ExampleCard title="Card 1" />
-        <ExampleCard title="Card 2" />
-        <ExampleCard title="Card 3" />
-        <ExampleCard title="Card 4" />
+        <ExampleCard title="Card 1"/>
+        <ExampleCard title="Card 2"/>
+        <ExampleCard title="Card 3"/>
+        <ExampleCard title="Card 4"/>
     </>
 );
 
@@ -64,14 +61,14 @@ export const NonEqualHeight: Story = {
         equalHeight: false,
         children: (
             <>
-                <ExampleCard title="Short Card" />
+                <ExampleCard title="Short Card"/>
                 <Card header="Tall Card">
                     <p>This card has more content</p>
                     <p>Making it taller than others</p>
                     <p>To demonstrate non-equal heights</p>
                 </Card>
-                <ExampleCard title="Short Card" />
-                <ExampleCard title="Short Card" />
+                <ExampleCard title="Short Card"/>
+                <ExampleCard title="Short Card"/>
             </>
         )
     }

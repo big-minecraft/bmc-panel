@@ -1,19 +1,19 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { CardHeaderProps, CardBodyProps, CardFooterProps } from './types';
+import {motion} from 'framer-motion';
+import {CardHeaderProps, CardBodyProps, CardFooterProps} from './types';
 
 export const CardHeader = React.forwardRef<HTMLDivElement, CardHeaderProps>(({
-                                                                                 children,
-                                                                                 className = '',
-                                                                                 actions,
-                                                                                 divider = true,
-                                                                                 ...props
-                                                                             }, ref) => (
+    children,
+    className = '',
+    actions,
+    divider = true,
+    ...props
+}, ref) => (
     <motion.div
         ref={ref}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        initial={{opacity: 0}}
+        animate={{opacity: 1}}
+        exit={{opacity: 0}}
         className={`
       px-6 py-4
       ${divider ? 'border-b border-gray-100' : ''}
@@ -37,16 +37,16 @@ export const CardHeader = React.forwardRef<HTMLDivElement, CardHeaderProps>(({
 ));
 
 export const CardBody = React.forwardRef<HTMLDivElement, CardBodyProps>(({
-                                                                             children,
-                                                                             className = '',
-                                                                             padding = true,
-                                                                             ...props
-                                                                         }, ref) => (
+    children,
+    className = '',
+    padding = true,
+    ...props
+}, ref) => (
     <motion.div
         ref={ref}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        initial={{opacity: 0}}
+        animate={{opacity: 1}}
+        exit={{opacity: 0}}
         className={`
       ${padding ? 'p-6' : ''}
       ${className}
@@ -58,17 +58,17 @@ export const CardBody = React.forwardRef<HTMLDivElement, CardBodyProps>(({
 ));
 
 export const CardFooter = React.forwardRef<HTMLDivElement, CardFooterProps>(({
-                                                                                 children,
-                                                                                 className = '',
-                                                                                 divider = true,
-                                                                                 align = 'right',
-                                                                                 ...props
-                                                                             }, ref) => (
+    children,
+    className = '',
+    divider = true,
+    align = 'right',
+    ...props
+}, ref) => (
     <motion.div
         ref={ref}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        initial={{opacity: 0}}
+        animate={{opacity: 1}}
+        exit={{opacity: 0}}
         className={`
       px-6 py-4
       ${divider ? 'border-t border-gray-100 bg-gray-50' : ''}
@@ -76,7 +76,8 @@ export const CardFooter = React.forwardRef<HTMLDivElement, CardFooterProps>(({
     `}
         {...props}
     >
-        <div className={`flex ${align === 'right' ? 'justify-end' : align === 'center' ? 'justify-center' : 'justify-start'} gap-2`}>
+        <div
+            className={`flex ${align === 'right' ? 'justify-end' : align === 'center' ? 'justify-center' : 'justify-start'} gap-2`}>
             {children}
         </div>
     </motion.div>

@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
-import { useSFTPDispatch } from '../context/SFTPContext';
+import {useCallback} from 'react';
+import {useSFTPDispatch} from '../context/SFTPContext';
 
 export function useModalControls() {
     const dispatch = useSFTPDispatch();
@@ -10,7 +10,7 @@ export function useModalControls() {
             type: 'SET_MODAL_STATE',
             payload: {
                 modal: 'delete',
-                state: { isOpen: true, files: filesToDelete }
+                state: {isOpen: true, files: filesToDelete}
             }
         });
     }, [dispatch]);
@@ -20,7 +20,7 @@ export function useModalControls() {
             type: 'SET_MODAL_STATE',
             payload: {
                 modal: 'move',
-                state: { isOpen: true }
+                state: {isOpen: true}
             }
         });
     }, [dispatch]);
@@ -30,7 +30,7 @@ export function useModalControls() {
             type: 'SET_MODAL_STATE',
             payload: {
                 modal: 'rename',
-                state: { isOpen: true, file }
+                state: {isOpen: true, file}
             }
         });
     }, [dispatch]);
@@ -40,7 +40,7 @@ export function useModalControls() {
             type: 'SET_MODAL_STATE',
             payload: {
                 modal: 'editor',
-                state: { isOpen: true, file, content }
+                state: {isOpen: true, file, content}
             }
         });
     }, [dispatch]);
@@ -50,7 +50,7 @@ export function useModalControls() {
             type: 'SET_MODAL_STATE',
             payload: {
                 modal: modalName,
-                state: { isOpen: false }
+                state: {isOpen: false}
             }
         });
     }, [dispatch]);

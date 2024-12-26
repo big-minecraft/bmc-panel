@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useMemo, useState, useCallback } from 'react';
-import { ThemeConfig, ThemeMode } from './types';
-import { themes } from './colors';
+import React, {createContext, useContext, useMemo, useState, useCallback, useEffect} from 'react';
+import {ThemeColors, ThemeConfig, ThemeMode} from './types';
+import {themes} from './colors';
 
 type ThemeContextType = {
-    theme: ThemeConfig;
+    colors: ThemeColors;
+    theme: Omit<ThemeConfig,'color'>;
     mode: ThemeMode;
     toggleTheme: () => void;
     setThemeMode: (mode: ThemeMode) => void;
@@ -14,21 +15,30 @@ const ThemeContext = createContext<ThemeContextType | null>(null);
 type ThemeProviderProps = {
     initialMode?: ThemeMode;
     children: React.ReactNode;
+    themeOverride?: ThemeConfig;
 };
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({
-                                                                initialMode = 'light',
-                                                                children
-                                                            }) => {
+    initialMode = 'dark',
+    children,
+    themeOverride
+}) => {
     const [mode, setMode] = useState<ThemeMode>(initialMode);
 
     const toggleTheme = useCallback(() => {
         setMode(current => current === 'light' ? 'dark' : 'light');
     }, []);
 
-    const theme = useMemo(() => themes[mode], [mode]);
+    let theme = useMemo(() => themes[mode], [mode]);
+    if (themeOverride) theme = themeOverride;
+
+    useEffect(() => {
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(mode);
+    }, [mode]);
 
     const value = useMemo(() => ({
+        colors: theme.colors,
         theme,
         mode,
         toggleTheme,

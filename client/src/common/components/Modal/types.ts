@@ -1,5 +1,5 @@
-import React, { ReactNode } from 'react';
-import { HTMLMotionProps } from 'framer-motion';
+import React, {ReactNode} from 'react';
+import {HTMLMotionProps} from 'framer-motion';
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
 

@@ -62,7 +62,7 @@ async function createSFTPFile(path, content) {
         sftp = await sftpPool.acquire();
         const buffer = Buffer.from(content);
         await sftp.put(buffer, path);
-        return { success: true, message: 'File created successfully' };
+        return {success: true, message: 'File created successfully'};
     } catch (error) {
         console.error('Error creating SFTP file:', error);
         throw error;
@@ -81,7 +81,7 @@ async function updateSFTPFile(path, content) {
         }
         const buffer = Buffer.from(content);
         await sftp.put(buffer, path);
-        return { success: true, message: 'File updated successfully' };
+        return {success: true, message: 'File updated successfully'};
     } catch (error) {
         console.error('Error updating SFTP file:', error);
         throw error;
@@ -95,7 +95,7 @@ async function deleteSFTPFile(path) {
     try {
         sftp = await sftpPool.acquire();
         await sftp.delete(path);
-        return { success: true, message: 'File deleted successfully' };
+        return {success: true, message: 'File deleted successfully'};
     } catch (error) {
         console.error('Error deleting SFTP file:', error);
         throw error;
@@ -109,7 +109,7 @@ async function createSFTPDirectory(path) {
     try {
         sftp = await sftpPool.acquire();
         await sftp.mkdir(path, true);
-        return { success: true, message: 'Directory created successfully' };
+        return {success: true, message: 'Directory created successfully'};
     } catch (error) {
         console.error('Error creating SFTP directory:', error);
         throw error;
@@ -123,7 +123,7 @@ async function deleteSFTPDirectory(path) {
     try {
         sftp = await sftpPool.acquire();
         await sftp.rmdir(path, true);
-        return { success: true, message: 'Directory deleted successfully' };
+        return {success: true, message: 'Directory deleted successfully'};
     } catch (error) {
         console.error('Error deleting SFTP directory:', error);
         throw error;
@@ -137,7 +137,7 @@ async function uploadSFTPBuffer(buffer, path) {
     try {
         sftp = await sftpPool.acquire();
         await sftp.put(buffer, path);
-        return { success: true, message: 'File uploaded successfully' };
+        return {success: true, message: 'File uploaded successfully'};
     } catch (error) {
         console.error('Error uploading SFTP buffer:', error);
         throw error;
@@ -156,7 +156,7 @@ async function uploadSFTPFiles(files, basePath) {
         });
 
         await Promise.all(uploadPromises);
-        return { success: true, message: 'Files uploaded successfully' };
+        return {success: true, message: 'Files uploaded successfully'};
     } catch (error) {
         console.error('Error uploading SFTP files:', error);
         throw error;
@@ -207,7 +207,7 @@ async function uploadSFTPFile(buffer, path) {
             throw new Error('Invalid input: expected Buffer or Array of files');
         }
 
-        return { success: true, message: 'Upload successful' };
+        return {success: true, message: 'Upload successful'};
     } catch (error) {
         console.error('Error uploading SFTP file:', error);
         throw error;
@@ -246,7 +246,7 @@ async function moveFileOrFolder(sourcePath, destinationPath) {
     try {
         sftp = await sftpPool.acquire();
         await sftp.rename(sourcePath, destinationPath);
-        return { success: true, message: 'File or folder moved successfully' };
+        return {success: true, message: 'File or folder moved successfully'};
     } catch (error) {
         console.error('Error moving file or folder:', error);
         throw error;

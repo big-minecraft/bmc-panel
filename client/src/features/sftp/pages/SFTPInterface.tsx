@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { SFTPProvider } from '../context/SFTPContext';
-import { useFileOperations } from '../hooks/useFileOperations';
-import { useFileNavigation } from '../hooks/useFileNavigation';
+import React, {useEffect} from 'react';
+import {useLocation} from 'react-router-dom';
+import {SFTPProvider} from '../context/SFTPContext';
+import {useFileOperations} from '../hooks/useFileOperations';
+import {useFileNavigation} from '../hooks/useFileNavigation';
 import Toolbar from '../components/navigation/Toolbar';
 import FilesList from '../components/files/FilesList';
 import ModalsContainer from '../components/modals/ModalsContainer';
@@ -11,8 +11,8 @@ import ActionOverlay from "../components/actions/ActionOverlay";
 
 function SFTPContent() {
     const location = useLocation();
-    const { fetchFiles } = useFileOperations();
-    const { currentDirectory, handleDirectoryChange, getInitialDirectory } = useFileNavigation();
+    const {fetchFiles} = useFileOperations();
+    const {currentDirectory, handleDirectoryChange, getInitialDirectory} = useFileNavigation();
 
     useEffect(() => {
         const newDirectory = getInitialDirectory(location);
@@ -27,18 +27,18 @@ function SFTPContent() {
 
     return (
         <div className="container-fluid py-4">
-            <UploadOverlay />
-            <Toolbar />
-            <FilesList />
-            <ActionOverlay />
-            <ModalsContainer />
+            <UploadOverlay/>
+            <Toolbar/>
+            <FilesList/>
+            <ActionOverlay/>
+            <ModalsContainer/>
         </div>
     );
 }
 
 const SFTPInterface = () => (
     <SFTPProvider>
-        <SFTPContent />
+        <SFTPContent/>
     </SFTPProvider>
 );
 

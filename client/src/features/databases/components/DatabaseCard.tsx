@@ -1,18 +1,18 @@
-import React, { useState, forwardRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { KeySquare, Trash2, ChevronRight, Database, Copy, Check, Terminal, Link2 } from 'lucide-react';
-import { DatabaseCardProps } from "../types/types";
+import React, {useState, forwardRef} from 'react';
+import {motion, AnimatePresence} from 'framer-motion';
+import {KeySquare, Trash2, ChevronRight, Database, Copy, Check, Terminal, Link2} from 'lucide-react';
+import {DatabaseCardProps} from "../types/types";
 
 export const DatabaseCard = forwardRef<HTMLDivElement, DatabaseCardProps>(
-    ({ database, databaseType, onShowCredentials, showCredentials, onDelete, onReset }, ref) => {
-        const { name, size, tables, credentials } = database;
+    ({database, databaseType, onShowCredentials, showCredentials, onDelete, onReset}, ref) => {
+        const {name, size, tables, credentials} = database;
         const [copyStatus, setCopyStatus] = useState<Record<string, boolean>>({});
         const [activeTab, setActiveTab] = useState<'credentials' | 'connection'>('credentials');
 
         const handleCopy = async (text: string, field: string) => {
             try {
                 await navigator.clipboard.writeText(text);
-                setCopyStatus({ [field]: true });
+                setCopyStatus({[field]: true});
                 setTimeout(() => setCopyStatus({}), 2000);
             } catch (err) {
                 console.error('Failed to copy:', err);
@@ -20,7 +20,7 @@ export const DatabaseCard = forwardRef<HTMLDivElement, DatabaseCardProps>(
         };
 
         const generateConnectionString = () => {
-            const { username, password, host, port } = credentials;
+            const {username, password, host, port} = credentials;
             if (databaseType === 'mongo') {
                 return `mongodb://${username}:${password}@${host}:${port}/${name}`;
             }
@@ -28,7 +28,7 @@ export const DatabaseCard = forwardRef<HTMLDivElement, DatabaseCardProps>(
         };
 
         const generateConnectionCommand = () => {
-            const { username, host, port } = credentials;
+            const {username, host, port} = credentials;
             if (databaseType === 'mongo') {
                 return `mongosh --host ${host} --port ${port} -u ${username} ${name}`;
             }
@@ -47,15 +47,15 @@ export const DatabaseCard = forwardRef<HTMLDivElement, DatabaseCardProps>(
                     />
                     {canCopy && (
                         <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                            whileHover={{scale: 1.05}}
+                            whileTap={{scale: 0.95}}
                             className="absolute right-2 top-7 text-gray-400 hover:text-gray-600"
                             onClick={() => handleCopy(value, label)}
                         >
                             {copyStatus[label] ? (
-                                <Check className="w-4 h-4 text-green-500" />
+                                <Check className="w-4 h-4 text-green-500"/>
                             ) : (
-                                <Copy className="w-4 h-4" />
+                                <Copy className="w-4 h-4"/>
                             )}
                         </motion.button>
                     )}
@@ -67,9 +67,9 @@ export const DatabaseCard = forwardRef<HTMLDivElement, DatabaseCardProps>(
             <motion.div
                 ref={ref}
                 layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
+                initial={{opacity: 0, y: 20}}
+                animate={{opacity: 1, y: 0}}
+                exit={{opacity: 0, y: -20}}
                 className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
             >
                 <motion.div
@@ -79,7 +79,7 @@ export const DatabaseCard = forwardRef<HTMLDivElement, DatabaseCardProps>(
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-blue-50 rounded-lg">
-                                <Database className="w-5 h-5 text-blue-500" />
+                                <Database className="w-5 h-5 text-blue-500"/>
                             </div>
                             <div>
                                 <div className="flex items-center gap-2">
@@ -99,36 +99,36 @@ export const DatabaseCard = forwardRef<HTMLDivElement, DatabaseCardProps>(
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-1">
                                 <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                    whileHover={{scale: 1.05}}
+                                    whileTap={{scale: 0.95}}
                                     className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onReset(name, databaseType);
                                     }}
                                 >
-                                    <KeySquare className="w-5 h-5" />
+                                    <KeySquare className="w-5 h-5"/>
                                 </motion.button>
 
                                 <motion.button
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
+                                    whileHover={{scale: 1.05}}
+                                    whileTap={{scale: 0.95}}
                                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onDelete(name, databaseType);
                                     }}
                                 >
-                                    <Trash2 className="w-5 h-5" />
+                                    <Trash2 className="w-5 h-5"/>
                                 </motion.button>
                             </div>
 
                             <motion.div
-                                animate={{ rotate: showCredentials ? 90 : 0 }}
-                                transition={{ duration: 0.2 }}
+                                animate={{rotate: showCredentials ? 90 : 0}}
+                                transition={{duration: 0.2}}
                                 className="text-gray-400"
                             >
-                                <ChevronRight className="w-5 h-5" />
+                                <ChevronRight className="w-5 h-5"/>
                             </motion.div>
                         </div>
                     </div>
@@ -137,17 +137,17 @@ export const DatabaseCard = forwardRef<HTMLDivElement, DatabaseCardProps>(
                 <AnimatePresence>
                     {showCredentials && (
                         <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
+                            initial={{height: 0, opacity: 0}}
+                            animate={{height: "auto", opacity: 1}}
+                            exit={{height: 0, opacity: 0}}
+                            transition={{duration: 0.2}}
                             className="overflow-hidden"
                         >
                             <div className="p-6">
                                 <div className="flex gap-4 mb-6">
                                     <motion.button
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
+                                        whileHover={{scale: 1.02}}
+                                        whileTap={{scale: 0.98}}
                                         className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                                             activeTab === 'credentials'
                                                 ? 'bg-blue-50 text-blue-600'
@@ -158,8 +158,8 @@ export const DatabaseCard = forwardRef<HTMLDivElement, DatabaseCardProps>(
                                         Credentials
                                     </motion.button>
                                     <motion.button
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
+                                        whileHover={{scale: 1.02}}
+                                        whileTap={{scale: 0.98}}
                                         className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                                             activeTab === 'connection'
                                                 ? 'bg-blue-50 text-blue-600'
@@ -175,9 +175,9 @@ export const DatabaseCard = forwardRef<HTMLDivElement, DatabaseCardProps>(
                                     {activeTab === 'credentials' ? (
                                         <motion.div
                                             key="credentials"
-                                            initial={{ opacity: 0, x: -20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: 20 }}
+                                            initial={{opacity: 0, x: -20}}
+                                            animate={{opacity: 1, x: 0}}
+                                            exit={{opacity: 0, x: 20}}
                                             className="grid grid-cols-1 md:grid-cols-2 gap-4"
                                         >
                                             {Object.entries(credentials).map(([key, value]) =>
@@ -187,19 +187,20 @@ export const DatabaseCard = forwardRef<HTMLDivElement, DatabaseCardProps>(
                                     ) : (
                                         <motion.div
                                             key="connection"
-                                            initial={{ opacity: 0, x: -20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: 20 }}
+                                            initial={{opacity: 0, x: -20}}
+                                            animate={{opacity: 1, x: 0}}
+                                            exit={{opacity: 0, x: 20}}
                                             className="space-y-4"
                                         >
                                             <div className="flex items-center gap-2 mb-2">
-                                                <Link2 className="w-4 h-4 text-gray-400" />
-                                                <span className="text-sm font-medium text-gray-700">Connection String</span>
+                                                <Link2 className="w-4 h-4 text-gray-400"/>
+                                                <span
+                                                    className="text-sm font-medium text-gray-700">Connection String</span>
                                             </div>
                                             {renderField('Connection String', generateConnectionString(), true, `${name}-connection-string`)}
 
                                             <div className="flex items-center gap-2 mb-2 mt-6">
-                                                <Terminal className="w-4 h-4 text-gray-400" />
+                                                <Terminal className="w-4 h-4 text-gray-400"/>
                                                 <span className="text-sm font-medium text-gray-700">CLI Command</span>
                                             </div>
                                             {renderField('Command', generateConnectionCommand(), true, `${name}-cli-command`)}

@@ -1,12 +1,12 @@
 import config from '../config';
 import path from 'path';
-import { readdirSync, unlinkSync, promises as fs } from 'fs';
+import {readdirSync, unlinkSync, promises as fs} from 'fs';
 import yaml from 'js-yaml';
 import kubernetesClient from './k8s';
-import { createSFTPDirectory, deleteSFTPDirectory } from './sftp';
-import { promisify } from 'util';
-import { sendDeploymentUpdate, redisPool } from './redis';
-import { exec as execCallback } from 'child_process';
+import {createSFTPDirectory, deleteSFTPDirectory} from './sftp';
+import {promisify} from 'util';
+import {sendDeploymentUpdate, redisPool} from './redis';
+import {exec as execCallback} from 'child_process';
 
 const exec = promisify(execCallback);
 
@@ -66,7 +66,8 @@ async function findDeploymentFile(name: string): Promise<string> {
         try {
             await fs.readFile(filePath);
             return filePath;
-        } catch {}
+        } catch {
+        }
     }
 
     throw new Error('Deployment file not found');
@@ -326,7 +327,7 @@ async function runApplyScript(): Promise<void> {
     const scriptDir = path.join(config["bmc-path"], "scripts");
 
     try {
-        const { stdout, stderr } = await exec(`cd "${scriptDir}" && ls && ./apply-deployments.sh`);
+        const {stdout, stderr} = await exec(`cd "${scriptDir}" && ls && ./apply-deployments.sh`);
         if (stderr) {
             console.error(`Script stderr: ${stderr}`);
         }

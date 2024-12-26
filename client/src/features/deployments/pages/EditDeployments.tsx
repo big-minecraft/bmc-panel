@@ -1,13 +1,13 @@
-import React, { useEffect, useCallback, useState } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { useConfig } from '../hooks/useConfig';
+import React, {useEffect, useCallback, useState} from 'react';
+import {useParams, useNavigate, useLocation} from 'react-router-dom';
+import {useConfig} from '../hooks/useConfig';
 import ConfigEditor from '../components/editor/ConfigEditor';
 import ConfigHeader from '../components/editor/ConfigHeader';
-import { DeploymentsProvider } from '../context/DeploymentsContext';
-import { CloseIcon } from '../icons/DeploymentIcons';
+import {DeploymentsProvider} from '../context/DeploymentsContext';
+import {CloseIcon} from '../icons/DeploymentIcons';
 
 const ConfigEditContent = () => {
-    const { name } = useParams();
+    const {name} = useParams();
     const location = useLocation();
     const navigate = useNavigate();
     const isProxy = location.pathname.startsWith('/proxy');
@@ -73,25 +73,27 @@ const ConfigEditContent = () => {
                         />
 
                         {error && (
-                            <div className="mb-4 bg-red-50 text-red-600 px-4 py-3 rounded-lg flex justify-between items-center">
+                            <div
+                                className="mb-4 bg-red-50 text-red-600 px-4 py-3 rounded-lg flex justify-between items-center">
                                 <span>{error}</span>
                                 <button
                                     onClick={() => setError(null)}
                                     className="text-red-400 hover:text-red-500"
                                 >
-                                    <CloseIcon />
+                                    <CloseIcon/>
                                 </button>
                             </div>
                         )}
 
                         {savedSuccessfully && (
-                            <div className="mb-4 bg-green-50 text-green-600 px-4 py-3 rounded-lg flex justify-between items-center">
+                            <div
+                                className="mb-4 bg-green-50 text-green-600 px-4 py-3 rounded-lg flex justify-between items-center">
                                 <span>Changes saved successfully!</span>
                                 <button
                                     onClick={() => setSavedSuccessfully(false)}
                                     className="text-green-400 hover:text-green-500"
                                 >
-                                    <CloseIcon />
+                                    <CloseIcon/>
                                 </button>
                             </div>
                         )}
@@ -112,7 +114,7 @@ const ConfigEditContent = () => {
 const EditDeployments = () => {
     return (
         <DeploymentsProvider>
-            <ConfigEditContent />
+            <ConfigEditContent/>
         </DeploymentsProvider>
     );
 };

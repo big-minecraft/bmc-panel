@@ -1,13 +1,13 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import {motion, AnimatePresence} from 'framer-motion';
 import UserCard from './UserCard';
-import { UserX } from 'lucide-react';
+import {UserX} from 'lucide-react';
 
-const UsersList = ({ users, onToggleAdmin, onResetPassword, onDeleteUser }) => {
+const UsersList = ({users, onToggleAdmin, onResetPassword, onDeleteUser}) => {
     if (!users.length) {
         return (
             <div className="text-center py-12">
-                <UserX className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <UserX className="w-12 h-12 text-gray-400 mx-auto mb-4"/>
                 <h3 className="text-lg font-medium text-gray-900 mb-1">No Users Found</h3>
                 <p className="text-gray-500">No users match your current filters.</p>
             </div>
@@ -16,18 +16,18 @@ const UsersList = ({ users, onToggleAdmin, onResetPassword, onDeleteUser }) => {
 
     return (
         <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{opacity: 0}}
+            animate={{opacity: 1}}
             className="space-y-4"
         >
             <AnimatePresence>
                 {users.map((user) => (
                     <motion.div
                         key={user.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.2 }}
+                        initial={{opacity: 0, y: 20}}
+                        animate={{opacity: 1, y: 0}}
+                        exit={{opacity: 0, y: -20}}
+                        transition={{duration: 0.2}}
                     >
                         <UserCard
                             user={user}

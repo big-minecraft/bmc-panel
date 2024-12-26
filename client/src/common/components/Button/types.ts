@@ -1,6 +1,6 @@
-import { ReactNode } from 'react';
-import { LucideIcon } from 'lucide-react';
-import { HTMLMotionProps } from 'framer-motion';
+import {ReactNode} from 'react';
+import {LucideIcon} from 'lucide-react';
+import {HTMLMotionProps} from 'framer-motion';
 
 /** Visual style variants for the button */
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';

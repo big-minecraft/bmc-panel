@@ -1,6 +1,6 @@
 import {pool} from './database';
 import config from '../config';
-import { PoolConnection } from 'mariadb';
+import {PoolConnection} from 'mariadb';
 
 async function createSqlDatabase(name: string) {
     let conn: PoolConnection;

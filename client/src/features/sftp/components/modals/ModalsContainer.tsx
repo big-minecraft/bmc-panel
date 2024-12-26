@@ -3,10 +3,10 @@ import DeleteModal from './DeleteModal';
 import MoveModal from './MoveModal';
 import RenameModal from './RenameModal';
 import EditorModal from './EditorModal';
-import { useSFTPState } from '../../context/SFTPContext';
+import {useSFTPState} from '../../context/SFTPContext';
 
 const ModalsContainer = () => {
-    const { modals } = useSFTPState();
+    const {modals} = useSFTPState();
 
     return (
         <>

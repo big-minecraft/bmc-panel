@@ -155,7 +155,7 @@ async function getInviteCodes() {
     }
 }
 
-async function createInviteCode(message, code=Math.random().toString(36).substr(2)) {
+async function createInviteCode(message, code = Math.random().toString(36).substr(2)) {
     let conn;
     try {
         conn = await pool.getConnection();

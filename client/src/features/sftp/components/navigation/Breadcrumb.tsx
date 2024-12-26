@@ -1,11 +1,11 @@
 import React from 'react';
-import { Folder, ChevronRight } from 'lucide-react';
-import { useSFTPState } from '../../context/SFTPContext';
-import { useFileNavigation } from '../../hooks/useFileNavigation';
+import {Folder, ChevronRight} from 'lucide-react';
+import {useSFTPState} from '../../context/SFTPContext';
+import {useFileNavigation} from '../../hooks/useFileNavigation';
 
 const Breadcrumb = () => {
-    const { currentDirectory } = useSFTPState();
-    const { handleDirectoryChange } = useFileNavigation();
+    const {currentDirectory} = useSFTPState();
+    const {handleDirectoryChange} = useFileNavigation();
     const parts = currentDirectory.split('/').filter(Boolean);
 
     return (
@@ -16,18 +16,18 @@ const Breadcrumb = () => {
                         onClick={() => handleDirectoryChange('/nfsshare')}
                         className="flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
                     >
-                        <Folder size={16} className="mr-1" />
+                        <Folder size={16} className="mr-1"/>
                         Root
                     </button>
                 </li>
 
                 {parts.map((dir, index) => (
                     <React.Fragment key={index}>
-                        <ChevronRight size={16} className="text-gray-400" />
+                        <ChevronRight size={16} className="text-gray-400"/>
                         <li>
                             {index === parts.length - 1 ? (
                                 <span className="flex items-center text-sm text-gray-600">
-                                    <Folder size={16} className="mr-1 text-yellow-500" />
+                                    <Folder size={16} className="mr-1 text-yellow-500"/>
                                     {dir}
                                 </span>
                             ) : (
@@ -35,7 +35,7 @@ const Breadcrumb = () => {
                                     onClick={() => handleDirectoryChange('/' + parts.slice(0, index + 1).join('/'))}
                                     className="flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors"
                                 >
-                                    <Folder size={16} className="mr-1" />
+                                    <Folder size={16} className="mr-1"/>
                                     {dir}
                                 </button>
                             )}

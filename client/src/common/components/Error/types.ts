@@ -1,4 +1,4 @@
-import { LucideIcon } from 'lucide-react';
+import {LucideIcon} from 'lucide-react';
 
 export type MessageType = 'success' | 'error' | 'info' | 'warning';
 

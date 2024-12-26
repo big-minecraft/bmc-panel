@@ -1,7 +1,7 @@
-import { motion } from 'framer-motion';
+import {motion} from 'framer-motion';
 import React from 'react';
 
-export const LoadingButton = ({ loading, loadingText, text }) => (
+export const LoadingButton = ({loading, loadingText, text}) => (
     <button
         type="submit"
         disabled={loading}
@@ -14,8 +14,8 @@ export const LoadingButton = ({ loading, loadingText, text }) => (
     >
         {loading ? (
             <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={{opacity: 0}}
+                animate={{opacity: 1}}
                 className="flex items-center"
             >
                 <svg

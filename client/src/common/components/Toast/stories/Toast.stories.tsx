@@ -1,20 +1,20 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { useEffect } from 'react';
+import type {Meta, StoryObj} from '@storybook/react';
+import {useEffect} from 'react';
 import ToastContainer from '../index';
-import { ToastProvider, useToastContext } from '../context/ToastContext';
+import {ToastProvider, useToastContext} from '../context/ToastContext';
 
 const meta = {
     title: 'Components/Toast',
     component: ToastContainer,
     parameters: {
-        layout: 'padded',
+        docsHeight: '300px',
     },
-    tags: ['autodocs'],
     decorators: [
         (Story) => (
             <ToastProvider>
-                <ToastContainer toasts={[]} onDismiss={() => {}} />
-                <Story />
+                <ToastContainer toasts={[]} onDismiss={() => {
+                }}/>
+                <Story/>
             </ToastProvider>
         )
     ]
@@ -24,23 +24,23 @@ export default meta;
 type Story = StoryObj<typeof ToastContainer>;
 
 const ToastDemo = ({
-                       type = 'success',
-                       message = 'This is a toast message',
-                       title,
-                       autoTrigger = false,
-                       showButtons = false
-                   }: {
+    type = 'success',
+    message = 'This is a toast message',
+    title,
+    autoTrigger = false,
+    showButtons = false
+}: {
     type?: 'success' | 'error' | 'warning' | 'info';
     message?: string;
     title?: string;
     autoTrigger?: boolean;
     showButtons?: boolean;
 }) => {
-    const { success, error, warning, info, clearToasts } = useToastContext();
+    const {success, error, warning, info, clearToasts} = useToastContext();
 
     useEffect(() => {
         if (autoTrigger) {
-            switch(type) {
+            switch (type) {
                 case 'success':
                     success(message, title);
                     break;
@@ -103,12 +103,4 @@ const ToastDemo = ({
 
 export const AllTypes: Story = {
     render: () => <ToastDemo showButtons={true}/>,
-    parameters: {
-        layout: 'fullscreen',
-        docs: {
-            story: {
-                height: '500px'
-            }
-        }
-    }
 };

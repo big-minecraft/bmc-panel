@@ -1,14 +1,10 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { Search, Mail, Eye, EyeOff, Lock } from 'lucide-react';
+import type {Meta, StoryObj} from '@storybook/react';
+import {Search, Mail, Eye, EyeOff, Lock} from 'lucide-react';
 import Input from '../index';
 
 const meta = {
     title: 'Components/Input',
     component: Input,
-    parameters: {
-        layout: 'centered',
-    },
-    tags: ['autodocs'],
     argTypes: {
         type: {
             control: 'select',

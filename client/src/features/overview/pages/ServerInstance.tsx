@@ -1,12 +1,12 @@
-import { useParams, useNavigate } from "react-router-dom";
-import React, { useState } from "react";
-import { ArrowLeft, Activity, Server, Users, Play, RotateCw, Square, ChevronDown } from 'lucide-react';
+import {useParams, useNavigate} from "react-router-dom";
+import React, {useState} from "react";
+import {ArrowLeft, Activity, Server, Users, Play, RotateCw, Square, ChevronDown} from 'lucide-react';
 import Console from "../components/Console";
 import InstanceDetails from "../components/InstanceDetails";
 import MetricsSection from "../components/MetricsSection";
 
-function ServerInstance({ instances, proxies }) {
-    const { instanceName } = useParams();
+function ServerInstance({instances, proxies}) {
+    const {instanceName} = useParams();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('console');
     const [showStatusDropdown, setShowStatusDropdown] = useState(false);
@@ -15,10 +15,10 @@ function ServerInstance({ instances, proxies }) {
     const instance = [...instances, ...proxies].find(inst => inst.name === instanceName);
 
     const statusOptions = [
-        { label: 'Active', color: 'bg-green-500' },
-        { label: 'Starting', color: 'bg-yellow-500' },
-        { label: 'Stopping', color: 'bg-orange-500' },
-        { label: 'Stopped', color: 'bg-red-500' }
+        {label: 'Active', color: 'bg-green-500'},
+        {label: 'Starting', color: 'bg-yellow-500'},
+        {label: 'Stopping', color: 'bg-orange-500'},
+        {label: 'Stopped', color: 'bg-red-500'}
     ];
 
     const currentStatusColor = statusOptions.find(opt => opt.label === status)?.color || 'bg-gray-500';
@@ -31,7 +31,7 @@ function ServerInstance({ instances, proxies }) {
         );
     }
 
-    const TabButton = ({ id, icon: Icon, label }) => (
+    const TabButton = ({id, icon: Icon, label}) => (
         <button
             onClick={() => setActiveTab(id)}
             className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
@@ -40,12 +40,12 @@ function ServerInstance({ instances, proxies }) {
                     : 'text-gray-600 hover:bg-gray-50'
             }`}
         >
-            <Icon size={18} className="mr-2" />
+            <Icon size={18} className="mr-2"/>
             {label}
         </button>
     );
 
-    const ActionButton = ({ icon: Icon, label, variant = 'default' }) => {
+    const ActionButton = ({icon: Icon, label, variant = 'default'}) => {
         const variants = {
             default: 'text-gray-600 hover:bg-gray-50',
             start: 'text-green-600 hover:bg-green-50',
@@ -55,7 +55,7 @@ function ServerInstance({ instances, proxies }) {
 
         return (
             <button className={`flex items-center px-3 py-2 rounded-lg transition-colors ${variants[variant]}`}>
-                <Icon size={18} className="mr-2" />
+                <Icon size={18} className="mr-2"/>
                 {label}
             </button>
         );
@@ -70,7 +70,7 @@ function ServerInstance({ instances, proxies }) {
                         onClick={() => navigate('/')}
                         className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-white transition-colors"
                     >
-                        <ArrowLeft size={20} />
+                        <ArrowLeft size={20}/>
                     </button>
                     <h1 className="text-2xl font-bold text-gray-900 ml-4">{instanceName}</h1>
                 </div>
@@ -80,17 +80,18 @@ function ServerInstance({ instances, proxies }) {
                     <div className="bg-white p-4 rounded-lg shadow-sm">
                         <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center text-blue-600">
-                                <Server size={20} className="mr-2" />
+                                <Server size={20} className="mr-2"/>
                                 <h3 className="font-medium">Status</h3>
                                 <div className="relative ml-2">
                                     <button
                                         onClick={() => setShowStatusDropdown(!showStatusDropdown)}
                                         className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-50"
                                     >
-                                        <ChevronDown size={16} />
+                                        <ChevronDown size={16}/>
                                     </button>
                                     {showStatusDropdown && (
-                                        <div className="absolute top-full right-0 mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
+                                        <div
+                                            className="absolute top-full right-0 mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
                                             {statusOptions.map((option) => (
                                                 <button
                                                     key={option.label}
@@ -116,14 +117,14 @@ function ServerInstance({ instances, proxies }) {
                             </div>
                             <div className="flex items-center text-gray-600">
                                 <span className="font-medium mr-1.5">24</span>
-                                <Users size={16} />
+                                <Users size={16}/>
                             </div>
                         </div>
                     </div>
 
                     <div className="bg-white p-4 rounded-lg shadow-sm">
                         <div className="flex items-center text-purple-600 mb-2">
-                            <Activity size={20} className="mr-2" />
+                            <Activity size={20} className="mr-2"/>
                             <h3 className="font-medium">Uptime</h3>
                         </div>
                         <p className="text-2xl font-semibold text-gray-900">6d 20h 50m</p>
@@ -131,7 +132,7 @@ function ServerInstance({ instances, proxies }) {
 
                     <div className="bg-white p-4 rounded-lg shadow-sm">
                         <div className="flex items-center text-emerald-600 mb-2">
-                            <Activity size={20} className="mr-2" />
+                            <Activity size={20} className="mr-2"/>
                             <h3 className="font-medium">CPU Usage</h3>
                         </div>
                         <div className="flex items-baseline">
@@ -142,7 +143,7 @@ function ServerInstance({ instances, proxies }) {
 
                     <div className="bg-white p-4 rounded-lg shadow-sm">
                         <div className="flex items-center text-blue-600 mb-2">
-                            <Activity size={20} className="mr-2" />
+                            <Activity size={20} className="mr-2"/>
                             <h3 className="font-medium">Memory Usage</h3>
                         </div>
                         <div className="flex items-baseline">
@@ -156,23 +157,23 @@ function ServerInstance({ instances, proxies }) {
                 <div className="bg-white rounded-lg shadow-sm mb-6">
                     <div className="px-4 py-2 border-b border-gray-100 flex justify-between items-center">
                         <div className="flex space-x-4">
-                            <TabButton id="console" icon={Server} label="Console" />
-                            <TabButton id="metrics" icon={Activity} label="Metrics" />
-                            <TabButton id="details" icon={Users} label="Details" />
+                            <TabButton id="console" icon={Server} label="Console"/>
+                            <TabButton id="metrics" icon={Activity} label="Metrics"/>
+                            <TabButton id="details" icon={Users} label="Details"/>
                         </div>
                         <div className="flex space-x-2">
-                            <ActionButton icon={Play} label="Start" variant="start" />
-                            <ActionButton icon={RotateCw} label="Restart" variant="restart" />
-                            <ActionButton icon={Square} label="Stop" variant="stop" />
+                            <ActionButton icon={Play} label="Start" variant="start"/>
+                            <ActionButton icon={RotateCw} label="Restart" variant="restart"/>
+                            <ActionButton icon={Square} label="Stop" variant="stop"/>
                         </div>
                     </div>
                 </div>
 
                 {/* Content */}
                 <div className="bg-white rounded-lg shadow-sm p-6">
-                    {activeTab === 'console' && <Console podName={instance.podName} />}
-                    {activeTab === 'metrics' && <MetricsSection podName={instance.podName} />}
-                    {activeTab === 'details' && <InstanceDetails instance={instance} />}
+                    {activeTab === 'console' && <Console podName={instance.podName}/>}
+                    {activeTab === 'metrics' && <MetricsSection podName={instance.podName}/>}
+                    {activeTab === 'details' && <InstanceDetails instance={instance}/>}
                 </div>
             </div>
         </div>

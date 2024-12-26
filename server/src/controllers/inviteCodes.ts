@@ -39,7 +39,6 @@ function getCode(token) {
 }
 
 
-
 export {
     tokens,
     verifyInvite,

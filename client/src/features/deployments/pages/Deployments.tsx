@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Plus } from 'lucide-react';
-import { useDeployments } from '../hooks/useDeployments';
-import { useProxy } from '../hooks/useProxy';
-import { useNotifications } from '../hooks/useNotifications';
-import { DeploymentsProvider, useDeploymentsContext } from '../context/DeploymentsContext';
+import React, {useState, useEffect} from 'react';
+import {motion} from 'framer-motion';
+import {Plus} from 'lucide-react';
+import {useDeployments} from '../hooks/useDeployments';
+import {useProxy} from '../hooks/useProxy';
+import {useNotifications} from '../hooks/useNotifications';
+import {DeploymentsProvider, useDeploymentsContext} from '../context/DeploymentsContext';
 import ProxyCard from '../components/cards/ProxyCard';
 import DeploymentCard from '../components/cards/DeploymentCard';
 import CreateDeploymentModal from '../components/modals/CreateDeploymentModal';
@@ -14,11 +14,11 @@ import axiosInstance from '../../../utils/auth';
 const DeploymentsContent = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [deploymentToDelete, setDeploymentToDelete] = useState(null);
-    const { setNodes, setIsLoadingNodes } = useDeploymentsContext();
+    const {setNodes, setIsLoadingNodes} = useDeploymentsContext();
 
-    const { deployments, isLoading, error, fetchDeployments } = useDeployments();
-    const { fetchProxyConfig } = useProxy();
-    const { notifications, removeNotification } = useNotifications();
+    const {deployments, isLoading, error, fetchDeployments} = useDeployments();
+    const {fetchProxyConfig} = useProxy();
+    const {notifications, removeNotification} = useNotifications();
 
     useEffect(() => {
         Promise.all([fetchDeployments(), fetchProxyConfig()]);
@@ -59,7 +59,7 @@ const DeploymentsContent = () => {
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-7xl mx-auto px-4 py-8">
                 <div className="fixed top-4 right-4 z-50 space-y-2">
-                    {notifications.map(({ id, message, type }) => (
+                    {notifications.map(({id, message, type}) => (
                         <div
                             key={id}
                             className={`${
@@ -74,7 +74,9 @@ const DeploymentsContent = () => {
                                 }`}
                             >
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                    <path fillRule="evenodd"
+                                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                          clipRule="evenodd"/>
                                 </svg>
                             </button>
                         </div>
@@ -83,13 +85,13 @@ const DeploymentsContent = () => {
 
                 <div className="flex justify-end mb-6">
                     <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        whileHover={{scale: 1.02}}
+                        whileTap={{scale: 0.98}}
                         onClick={handleOpenCreateModal}
                         className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600
                                  transition-colors inline-flex items-center space-x-2"
                     >
-                        <Plus className="w-5 h-5" />
+                        <Plus className="w-5 h-5"/>
                         <span>Create Deployment</span>
                     </motion.button>
                 </div>
@@ -97,7 +99,7 @@ const DeploymentsContent = () => {
                 <div className="space-y-8">
                     <div>
                         <h2 className="text-xl font-semibold text-gray-900 mb-4">Proxy</h2>
-                        <ProxyCard />
+                        <ProxyCard/>
                     </div>
 
                     <div>
@@ -138,7 +140,7 @@ const DeploymentsContent = () => {
 const Deployments = () => {
     return (
         <DeploymentsProvider>
-            <DeploymentsContent />
+            <DeploymentsContent/>
         </DeploymentsProvider>
     );
 };

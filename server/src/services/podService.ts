@@ -1,7 +1,7 @@
 import * as k8s from '@kubernetes/client-node';
-import { WebSocket } from 'ws';
-import { setupPodLogs } from './logService';
-import { executeCommand } from './commandService';
+import {WebSocket} from 'ws';
+import {setupPodLogs} from './logService';
+import {executeCommand} from './commandService';
 import kubernetesClient from '../controllers/k8s';
 
 interface CommandMessage {
@@ -34,7 +34,7 @@ async function handlePodConnection(
 
     ws.on('message', async (message: WebSocket.Data) => {
         try {
-            const { command } = JSON.parse(message.toString()) as CommandMessage;
+            const {command} = JSON.parse(message.toString()) as CommandMessage;
             if (!command) {
                 console.error('No command received');
                 return;

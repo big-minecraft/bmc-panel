@@ -1,44 +1,35 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { useState } from 'react';
+import type {Meta, StoryObj} from '@storybook/react';
+import {useState} from 'react';
 import Select from '../index';
-import type { SelectOption } from '../types';
+import type {SelectOption} from '../types';
 
 const meta = {
     title: 'Components/Select',
     component: Select,
     parameters: {
-        layout: 'centered',
-    },
-    tags: ['autodocs'],
-    decorators: [
-        (Story) => (
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'flex-start',
-                height: '300px',
-            }}>
-                <Story />
-            </div>
-        )
-    ]
+        docsHeight: '300px',
+        styles: {
+            alignItems: 'flex-start',
+            padding: '2rem'
+        }
+    }
 } satisfies Meta<typeof Select>;
 
 export default meta;
 type Story = StoryObj<typeof Select>;
 
 const options: SelectOption[] = [
-    { value: 'react', label: 'React' },
-    { value: 'vue', label: 'Vue' },
-    { value: 'angular', label: 'Angular' },
-    { value: 'svelte', label: 'Svelte' },
-    { value: 'next', label: 'Next.js' },
-    { value: 'nuxt', label: 'Nuxt.js' },
-    { value: 'remix', label: 'Remix' },
-    { value: 'gatsby', label: 'Gatsby' },
+    {value: 'react', label: 'React'},
+    {value: 'vue', label: 'Vue'},
+    {value: 'angular', label: 'Angular'},
+    {value: 'svelte', label: 'Svelte'},
+    {value: 'next', label: 'Next.js'},
+    {value: 'nuxt', label: 'Nuxt.js'},
+    {value: 'remix', label: 'Remix'},
+    {value: 'gatsby', label: 'Gatsby'},
 ];
 
-const manyOptions: SelectOption[] = Array.from({ length: 50 }, (_, i) => ({
+const manyOptions: SelectOption[] = Array.from({length: 50}, (_, i) => ({
     value: `option-${i}`,
     label: `Option ${i + 1}`
 }));
@@ -82,7 +73,7 @@ export const Required: Story = {
             options={options}
             placeholder="Select a framework"
             required
-            validation={{ required: true }}
+            validation={{required: true}}
         />
     )
 };

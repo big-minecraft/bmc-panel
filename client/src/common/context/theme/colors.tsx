@@ -1,93 +1,93 @@
-import { BaseColors, ThemeConfig, ThemeColors } from './types';
+import {ThemeConfig, ThemeColors} from './types';
 
-export const baseColors: BaseColors = {
-    indigo: {
-        50: '#eef2ff',
-        100: '#e0e7ff',
-        200: '#c7d2fe',
-        300: '#a5b4fc',
-        400: '#818cf8',
-        500: '#6366f1',
-        600: '#4f46e5',
-        700: '#4338ca',
-        800: '#3730a3',
-        900: '#312e81',
+// export const lightThemeColors: ThemeColors = {
+//     primary: baseColors.indigo[600],
+//     primaryHover: baseColors.indigo[700],
+//     primaryLight: baseColors.indigo[50],
+//     secondary: baseColors.gray[500],
+//     secondaryHover: baseColors.gray[600],
+//     secondaryLight: baseColors.gray[50],
+//     background: baseColors.white,
+//     backgroundOffset: baseColors.gray[50],
+//     text: baseColors.gray[900],
+//     textSecondary: baseColors.gray[500],
+//     textDisabled: baseColors.gray[300],
+//     border: baseColors.gray[200],
+//     borderHover: baseColors.gray[300],
+//     success: baseColors.success.DEFAULT,
+//     warning: baseColors.warning.DEFAULT,
+//     error: baseColors.error.DEFAULT,
+//     info: baseColors.info.DEFAULT,
+// };
+
+// export const darkThemeColors: ThemeColors = {
+//     primary: '#ff0000',
+//     primaryHover: baseColors.indigo[300],
+//     primaryLight: baseColors.indigo[900],
+//     secondary: baseColors.gray[400],
+//     secondaryHover: baseColors.gray[300],
+//     secondaryLight: baseColors.gray[800],
+//     background: baseColors.gray[900],
+//     backgroundOffset: baseColors.gray[800],
+//     text: baseColors.gray[100],
+//     textSecondary: baseColors.gray[400],
+//     textDisabled: baseColors.gray[600],
+//     border: baseColors.gray[700],
+//     borderHover: baseColors.gray[600],
+//     success: baseColors.success.light,
+//     warning: baseColors.warning.light,
+//     error: baseColors.error.light,
+//     info: baseColors.info.light,
+// };
+
+export const lightThemeColors: ThemeColors = {
+    primary: {
+        first: 'var(--primary-first)',
+        second: 'var(--primary-second)',
+        third: 'var(--primary-third)'
     },
-    gray: {
-        50: '#f9fafb',
-        100: '#f3f4f6',
-        200: '#e5e7eb',
-        300: '#d1d5db',
-        400: '#9ca3af',
-        500: '#6b7280',
-        600: '#4b5563',
-        700: '#374151',
-        800: '#1f2937',
-        900: '#111827',
+    accent: {
+        text: 'var(--accent-text)',
+        textHover: 'var(--accent-text-hover)',
+        background: 'var(--accent-bg)',
+        backgroundHover: 'var(--accent-bg-hover)',
     },
-    white: '#ffffff',
-    black: '#000000',
+    negativeAccent: {
+        text: 'var(--negative-accent-text)',
+        textHover: 'var(--negative-accent-text-hover)',
+        background: 'var(--negative-accent-bg)',
+        backgroundHover: 'var(--negative-accent-bg-hover)',
+    },
+    background: 'var(--background)',
+    backgroundOffset: 'var(--background-offset)',
+    undetermined: 'var(--undetermined)',
     success: {
-        light: '#ecfdf5',
-        DEFAULT: '#059669',
-        dark: '#065f46',
+        text: 'var(--success-text)',
+        textHover: 'var(--success-text-hover)',
+        background: 'var(--success-bg)',
+        backgroundHover: 'var(--success-bg-hover)',
     },
     warning: {
-        light: '#fffbeb',
-        DEFAULT: '#d97706',
-        dark: '#92400e',
+        text: 'var(--warning-text)',
+        textHover: 'var(--warning-text-hover)',
+        background: 'var(--warning-bg)',
+        backgroundHover: 'var(--warning-bg-hover)',
     },
-    error: {
-        light: '#fef2f2',
-        DEFAULT: '#dc2626',
-        dark: '#991b1b',
+    danger: {
+        text: 'var(--danger-text)',
+        textHover: 'var(--danger-text-hover)',
+        background: 'var(--danger-bg)',
+        backgroundHover: 'var(--danger-bg-hover)',
     },
     info: {
-        light: '#eff6ff',
-        DEFAULT: '#2563eb',
-        dark: '#1e40af',
+        text: 'var(--info-text)',
+        textHover: 'var(--info-text-hover)',
+        background: 'var(--info-bg)',
+        backgroundHover: 'var(--info-bg-hover)',
     }
 };
 
-export const lightThemeColors: ThemeColors = {
-    primary: baseColors.indigo[600],
-    primaryHover: baseColors.indigo[700],
-    primaryLight: baseColors.indigo[50],
-    secondary: baseColors.gray[500],
-    secondaryHover: baseColors.gray[600],
-    secondaryLight: baseColors.gray[50],
-    background: baseColors.white,
-    backgroundOffset: baseColors.gray[50],
-    text: baseColors.gray[900],
-    textSecondary: baseColors.gray[500],
-    textDisabled: baseColors.gray[300],
-    border: baseColors.gray[200],
-    borderHover: baseColors.gray[300],
-    success: baseColors.success.DEFAULT,
-    warning: baseColors.warning.DEFAULT,
-    error: baseColors.error.DEFAULT,
-    info: baseColors.info.DEFAULT,
-};
-
-export const darkThemeColors: ThemeColors = {
-    primary: baseColors.indigo[400],
-    primaryHover: baseColors.indigo[300],
-    primaryLight: baseColors.indigo[900],
-    secondary: baseColors.gray[400],
-    secondaryHover: baseColors.gray[300],
-    secondaryLight: baseColors.gray[800],
-    background: baseColors.gray[900],
-    backgroundOffset: baseColors.gray[800],
-    text: baseColors.gray[100],
-    textSecondary: baseColors.gray[400],
-    textDisabled: baseColors.gray[600],
-    border: baseColors.gray[700],
-    borderHover: baseColors.gray[600],
-    success: baseColors.success.light,
-    warning: baseColors.warning.light,
-    error: baseColors.error.light,
-    info: baseColors.info.light,
-};
+export const darkThemeColors = lightThemeColors;
 
 const baseThemeConfig: Omit<ThemeConfig, 'colors'> = {
     spacing: {

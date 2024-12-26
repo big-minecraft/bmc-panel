@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import {MongoClient} from 'mongodb';
 import config from '../config';
 
 interface DatabaseCredentials {
@@ -66,7 +66,7 @@ class MongoDBService {
 
             // Check if user exists
             try {
-                const users = await this.adminDb.command({ usersInfo: { user: username } });
+                const users = await this.adminDb.command({usersInfo: {user: username}});
                 if (users.users.length > 0) {
                     throw new Error(`User '${username}' already exists`);
                 }
@@ -78,7 +78,7 @@ class MongoDBService {
             const credentialsDb = this.client.db('admin');
             const existingCreds = await credentialsDb
                 .collection('database_credentials')
-                .findOne({ database_name: name });
+                .findOne({database_name: name});
 
             if (existingCreds) {
                 throw new Error(`Credentials for database '${name}' already exist`);
@@ -93,7 +93,7 @@ class MongoDBService {
             await this.adminDb.command({
                 createUser: username,
                 pwd: password,
-                roles: [{ role: 'dbOwner', db: name }]
+                roles: [{role: 'dbOwner', db: name}]
             });
 
             // Store credentials
@@ -114,10 +114,10 @@ class MongoDBService {
         } catch (error) {
             // Cleanup on failure
             try {
-                await this.adminDb.command({ dropUser: `${name}_user` });
+                await this.adminDb.command({dropUser: `${name}_user`});
                 await this.client.db(name).dropDatabase();
                 await this.client.db('admin').collection('database_credentials')
-                    .deleteOne({ database_name: name });
+                    .deleteOne({database_name: name});
             } catch (cleanupError) {
                 console.error('Cleanup failed:', cleanupError);
             }
@@ -180,14 +180,14 @@ class MongoDBService {
             await this.connect();
 
             // Drop user
-            await this.adminDb.command({ dropUser: `${name}_user` });
+            await this.adminDb.command({dropUser: `${name}_user`});
 
             // Drop database
             await this.client.db(name).dropDatabase();
 
             // Remove credentials
             await this.client.db('admin').collection('database_credentials')
-                .deleteOne({ database_name: name });
+                .deleteOne({database_name: name});
 
         } catch (error) {
             throw new Error(`Failed to delete database: ${error.message}`);
@@ -216,8 +216,8 @@ class MongoDBService {
             // Update stored credentials
             await this.client.db('admin').collection('database_credentials')
                 .updateOne(
-                    { database_name: name },
-                    { $set: { password: newPassword } }
+                    {database_name: name},
+                    {$set: {password: newPassword}}
                 );
 
             return {

@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef } from 'react';
-import { Toast, ToastType, ToastContextValue, UseToastOptions } from '../types';
+import {useState, useCallback, useRef} from 'react';
+import {Toast, ToastType, ToastContextValue, UseToastOptions} from '../types';
 
 export const useToast = (timeout: number = 5000): ToastContextValue => {
     const [toasts, setToasts] = useState<Toast[]>([]);
@@ -9,7 +9,7 @@ export const useToast = (timeout: number = 5000): ToastContextValue => {
         setToasts(prevToasts => prevToasts.filter(toast => toast.id !== id));
     }, []);
 
-    const addToast = useCallback(({ type, title, message }: Omit<Toast, 'id' | 'timestamp'>): number => {
+    const addToast = useCallback(({type, title, message}: Omit<Toast, 'id' | 'timestamp'>): number => {
         const id = toastIdCounter.current++;
 
         const newToast: Toast = {
@@ -35,7 +35,7 @@ export const useToast = (timeout: number = 5000): ToastContextValue => {
 
     const createToastMethod = useCallback((type: ToastType) => {
         return (message: string, title?: string) =>
-            addToast({ type, title, message });
+            addToast({type, title, message});
     }, [addToast]);
 
     return {

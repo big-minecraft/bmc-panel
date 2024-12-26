@@ -1,12 +1,12 @@
 import React from 'react';
-import { useFileOperations } from '../../hooks/useFileOperations';
+import {useFileOperations} from '../../hooks/useFileOperations';
 import FileIcon from './FileIcon';
 import FileActions from './FileActions';
-import { formatFileSize, formatDate } from '../../utils/fileUtils';
-import { isTextFile } from '../../utils/textUtil';
+import {formatFileSize, formatDate} from '../../utils/fileUtils';
+import {isTextFile} from '../../utils/textUtil';
 
-const FileRow = ({ file, isSelected, onSelect }) => {
-    const { handleFileClick } = useFileOperations();
+const FileRow = ({file, isSelected, onSelect}) => {
+    const {handleFileClick} = useFileOperations();
 
     const isClickable = file.type === 'd' || isTextFile(file.name);
 
@@ -46,7 +46,7 @@ const FileRow = ({ file, isSelected, onSelect }) => {
                             : 'cursor-default text-gray-500'
                     } transition-colors`}
                 >
-                    <FileIcon file={file} />
+                    <FileIcon file={file}/>
                     <span className="truncate">
                         {file.name}
                     </span>
@@ -60,7 +60,7 @@ const FileRow = ({ file, isSelected, onSelect }) => {
             </td>
             <td className="py-3 px-4 text-right">
                 <div className="flex justify-end file-actions">
-                    <FileActions file={file} />
+                    <FileActions file={file}/>
                 </div>
             </td>
         </tr>

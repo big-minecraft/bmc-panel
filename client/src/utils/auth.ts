@@ -29,8 +29,8 @@ axiosInstance.interceptors.response.use(
 export default axiosInstance;
 
 export const setAuthToken = (token, isAdmin) => {
-    Cookies.set('token', token, { expires: 7 });
-    Cookies.set('isAdmin', isAdmin, { expires: 7 });
+    Cookies.set('token', token, {expires: 7});
+    Cookies.set('isAdmin', isAdmin, {expires: 7});
 };
 
 export const getToken = () => {

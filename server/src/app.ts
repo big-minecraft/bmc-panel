@@ -1,15 +1,15 @@
-import express, { Application } from 'express';
-import { Server as HttpServer } from 'http';
+import express, {Application} from 'express';
+import {Server as HttpServer} from 'http';
 import cors from 'cors';
 import path from 'path';
-import { exec } from 'child_process';
+import {exec} from 'child_process';
 
 // Import local modules
 import config from './config';
 import router from './routes';
-import { setupWebSocket } from './services/websocketService';
-import { databaseInit } from './controllers/database';
-import { authInit } from './controllers/authentication';
+import {setupWebSocket} from './services/websocketService';
+import {databaseInit} from './controllers/database';
+import {authInit} from './controllers/authentication';
 import kubernetesClient from "./controllers/k8s";
 
 class AppServer {
@@ -26,7 +26,7 @@ class AppServer {
 
     private configureMiddleware(): void {
         this.app.use(express.json());
-        this.app.use(express.urlencoded({ extended: true }));
+        this.app.use(express.urlencoded({extended: true}));
         this.app.use(cors());
     }
 

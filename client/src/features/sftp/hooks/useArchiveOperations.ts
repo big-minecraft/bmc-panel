@@ -1,17 +1,17 @@
-import { useCallback } from 'react';
-import { useSFTPState, useSFTPDispatch } from '../context/SFTPContext';
-import { useFileOperations } from './useFileOperations';
+import {useCallback} from 'react';
+import {useSFTPState, useSFTPDispatch} from '../context/SFTPContext';
+import {useFileOperations} from './useFileOperations';
 import axiosInstance from '../../../utils/auth';
 
 export function useArchiveOperations() {
-    const { selectedFiles } = useSFTPState();
+    const {selectedFiles} = useSFTPState();
     const dispatch = useSFTPDispatch();
-    const { fetchFiles } = useFileOperations();
+    const {fetchFiles} = useFileOperations();
 
     const setLoading = useCallback((value) => {
         dispatch({
             type: 'SET_LOADING',
-            payload: { key: 'archiving', value }
+            payload: {key: 'archiving', value}
         });
     }, [dispatch]);
 
@@ -71,7 +71,7 @@ export function useArchiveOperations() {
                 }))
             });
             await fetchFiles();
-            dispatch({ type: 'SET_SELECTED_FILES', payload: [] });
+            dispatch({type: 'SET_SELECTED_FILES', payload: []});
         } catch (error) {
             console.error('error archiving files:', error);
         } finally {

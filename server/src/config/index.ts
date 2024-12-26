@@ -1,5 +1,5 @@
-import { join } from 'path';
-import { existsSync, copyFileSync } from 'fs';
+import {join} from 'path';
+import {existsSync, copyFileSync} from 'fs';
 
 interface RedisConfig {
     host: string;
@@ -120,6 +120,16 @@ const validateConfig = (config: AppConfig): void => {
         typeof config.prometheus.host !== 'string' ||
         typeof config.prometheus.port !== 'number') {
         throw new Error('Invalid Prometheus configuration');
+    }
+
+    //validate if the kubeconfig file exists
+    if (!existsSync(config.k8s.configPath)) {
+        throw new Error('Kubeconfig file does not exist');
+    }
+
+    //validate if the bmc path exists
+    if (!existsSync(config["bmc-path"])) {
+        throw new Error('BMC path does not exist');
     }
 };
 

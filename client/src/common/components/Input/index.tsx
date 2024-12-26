@@ -1,29 +1,29 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
-import type { InputProps } from './types';
-import { useInput } from './hooks/useInput';
-import { useTheme } from '../../context/theme/ThemeContext';
+import {motion} from 'framer-motion';
+import {AlertCircle, CheckCircle2} from 'lucide-react';
+import type {InputProps} from './types';
+import {useInput} from './hooks/useInput';
+import {useTheme} from '../../context/theme/ThemeContext';
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(({
-                                                                  label,
-                                                                  error,
-                                                                  success,
-                                                                  icon: Icon,
-                                                                  rightIcon: RightIcon,
-                                                                  className = '',
-                                                                  inputClassName = '',
-                                                                  disabled = false,
-                                                                  required = false,
-                                                                  helper,
-                                                                  validation,
-                                                                  name,
-                                                                  value,
-                                                                  onChange,
-                                                                  type = 'text',
-                                                                  containerProps = {},
-                                                                  ...props
-                                                              }, ref) => {
+    label,
+    error,
+    success,
+    icon: Icon,
+    rightIcon: RightIcon,
+    className = '',
+    inputClassName = '',
+    disabled = false,
+    required = false,
+    helper,
+    validation,
+    name,
+    value,
+    onChange,
+    type = 'text',
+    containerProps = {},
+    ...props
+}, ref) => {
     const theme = useTheme();
     const {
         inputProps,
@@ -45,16 +45,16 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
 
         return (
             <div className={`absolute ${position === 'left' ? 'left-3' : 'right-3'} top-1/2 -translate-y-1/2`}>
-                <IconComponent className="w-5 h-5 text-gray-400" />
+                <IconComponent className="w-5 h-5 text-gray-400"/>
             </div>
         );
     };
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+            initial={{opacity: 0, y: -10}}
+            animate={{opacity: 1, y: 0}}
+            exit={{opacity: 0, y: -10}}
             className={className}
             {...containerProps}
         >
@@ -90,18 +90,18 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
                 />
                 {renderIcon(RightIcon, 'right')}
                 {displayError && !RightIcon && (
-                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-500" />
+                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-500"/>
                 )}
                 {success && !RightIcon && !displayError && (
-                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500"/>
                 )}
             </div>
 
             {(displayError || helper) && (
                 <motion.p
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -5 }}
+                    initial={{opacity: 0, y: -5}}
+                    animate={{opacity: 1, y: 0}}
+                    exit={{opacity: 0, y: -5}}
                     className={`mt-1 text-sm ${displayError ? 'text-red-500' : 'text-gray-500'}`}
                 >
                     {displayError || helper}

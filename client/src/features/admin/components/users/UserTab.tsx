@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, {useState, useEffect} from 'react';
+import {motion} from 'framer-motion';
 import axiosInstance from "../../../../utils/auth";
 import UsersList from './UsersList';
 import DeleteUserModal from './DeleteUserModal';
-import LoadingSpinner, { ErrorAlert } from '../../../../common/zold/LoadingSpinner';
+import LoadingSpinner, {ErrorAlert} from '../../../../common/zold/LoadingSpinner';
 import ResetPasswordModal from "./ResetPasswordModal";
 
 const UsersTab = () => {
@@ -43,15 +43,15 @@ const UsersTab = () => {
         }
     };
 
-    if (isLoading) return <LoadingSpinner />;
-    if (error) return <ErrorAlert message={error} />;
+    if (isLoading) return <LoadingSpinner/>;
+    if (error) return <ErrorAlert message={error}/>;
 
     return (
         <div className="py-6 px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center mb-6">
                 <motion.h1
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
+                    initial={{opacity: 0, x: -20}}
+                    animate={{opacity: 1, x: 0}}
                     className="text-3xl font-semibold text-gray-900"
                 >
                     Users
@@ -80,7 +80,7 @@ const UsersTab = () => {
                     }}
                     onReset={async (password) => {
                         try {
-                            await axiosInstance.patch(`/api/users/${selectedUser.id}/password`, { password });
+                            await axiosInstance.patch(`/api/users/${selectedUser.id}/password`, {password});
                             setShowResetPasswordModal(false);
                             setSelectedUser(null);
                         } catch (err) {

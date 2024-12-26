@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, {createContext, useContext, useState} from 'react';
 
 const DeploymentsContext = createContext(null);
 
-export const DeploymentsProvider = ({ children }) => {
+export const DeploymentsProvider = ({children}) => {
     const [deployments, setDeployments] = useState([]);
     const [proxyConfig, setProxyConfig] = useState(null);
     const [restartingDeployments, setRestartingDeployments] = useState(new Set());

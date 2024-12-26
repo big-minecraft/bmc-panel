@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useDeploymentsContext } from '../context/DeploymentsContext';
+import {useState} from 'react';
+import {useDeploymentsContext} from '../context/DeploymentsContext';
 import axiosInstance from '../../../utils/auth';
 
 export const useDeployments = () => {
@@ -36,7 +36,7 @@ export const useDeployments = () => {
             setDeployments(prevDeployments =>
                 prevDeployments.map(deployment =>
                     deployment.name === deploymentName
-                        ? { ...deployment, enabled: !currentState }
+                        ? {...deployment, enabled: !currentState}
                         : deployment
                 )
             );

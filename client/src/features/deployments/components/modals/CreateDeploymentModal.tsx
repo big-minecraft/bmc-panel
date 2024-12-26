@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Server, AlertCircle } from 'lucide-react';
-import { useDeployments } from '../../hooks/useDeployments';
-import { useNotifications } from '../../hooks/useNotifications';
-import { useDeploymentsContext } from '../../context/DeploymentsContext';
+import React, {useState} from 'react';
+import {motion, AnimatePresence} from 'framer-motion';
+import {X, Server, AlertCircle} from 'lucide-react';
+import {useDeployments} from '../../hooks/useDeployments';
+import {useNotifications} from '../../hooks/useNotifications';
+import {useDeploymentsContext} from '../../context/DeploymentsContext';
 
-const CreateDeploymentModal = ({ show, onClose }) => {
+const CreateDeploymentModal = ({show, onClose}) => {
     const [deploymentName, setDeploymentName] = useState('');
     const [deploymentType, setDeploymentType] = useState('');
     const [error, setError] = useState(null);
 
-    const { createDeployment } = useDeployments();
-    const { addNotification } = useNotifications();
-    const { nodes, isLoadingNodes, selectedNode, setSelectedNode } = useDeploymentsContext();
+    const {createDeployment} = useDeployments();
+    const {addNotification} = useNotifications();
+    const {nodes, isLoadingNodes, selectedNode, setSelectedNode} = useDeploymentsContext();
 
     const handleCreate = async () => {
         if (!deploymentName.trim()) {
@@ -51,29 +51,29 @@ const CreateDeploymentModal = ({ show, onClose }) => {
 
     return (
         <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{opacity: 0}}
+            animate={{opacity: 1}}
+            exit={{opacity: 0}}
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={(e) => e.target === e.currentTarget && handleClose()}
         >
             <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
+                initial={{scale: 0.95, opacity: 0}}
+                animate={{scale: 1, opacity: 1}}
+                exit={{scale: 0.95, opacity: 0}}
                 className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
             >
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-100">
                     <div className="flex items-center space-x-2">
-                        <Server className="w-6 h-6 text-blue-500" />
+                        <Server className="w-6 h-6 text-blue-500"/>
                         <h3 className="text-xl font-semibold text-gray-900">Create New Deployment</h3>
                     </div>
                     <button
                         onClick={handleClose}
                         className="text-gray-400 hover:text-gray-500 transition-colors"
                     >
-                        <X className="w-5 h-5" />
+                        <X className="w-5 h-5"/>
                     </button>
                 </div>
 
@@ -81,11 +81,11 @@ const CreateDeploymentModal = ({ show, onClose }) => {
                 <div className="p-6 space-y-6">
                     {error && (
                         <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
+                            initial={{opacity: 0, y: -10}}
+                            animate={{opacity: 1, y: 0}}
                             className="bg-red-50 text-red-600 px-4 py-3 rounded-lg flex items-start space-x-2"
                         >
-                            <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                            <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0"/>
                             <span>{error}</span>
                         </motion.div>
                     )}
@@ -116,7 +116,7 @@ const CreateDeploymentModal = ({ show, onClose }) => {
                                     : 'border-gray-200 hover:border-gray-300'}`}
                                 onClick={() => setDeploymentType('persistent')}
                             >
-                                <Server className="w-6 h-6" />
+                                <Server className="w-6 h-6"/>
                                 <span className="font-medium">Persistent</span>
                             </button>
                             <button
@@ -126,7 +126,7 @@ const CreateDeploymentModal = ({ show, onClose }) => {
                                     : 'border-gray-200 hover:border-gray-300'}`}
                                 onClick={() => setDeploymentType('non-persistent')}
                             >
-                                <Server className="w-6 h-6" />
+                                <Server className="w-6 h-6"/>
                                 <span className="font-medium">Non-Persistent</span>
                             </button>
                         </div>
@@ -158,8 +158,8 @@ const CreateDeploymentModal = ({ show, onClose }) => {
                 {/* Footer */}
                 <div className="border-t border-gray-100 p-6 flex justify-end space-x-3">
                     <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        whileHover={{scale: 1.02}}
+                        whileTap={{scale: 0.98}}
                         className="px-4 py-2 text-gray-600 hover:text-gray-700 bg-gray-100 hover:bg-gray-200
                      rounded-lg transition-colors"
                         onClick={handleClose}
@@ -167,8 +167,8 @@ const CreateDeploymentModal = ({ show, onClose }) => {
                         Cancel
                     </motion.button>
                     <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                        whileHover={{scale: 1.02}}
+                        whileTap={{scale: 0.98}}
                         className="px-4 py-2 text-white bg-blue-500 hover:bg-blue-600
                      rounded-lg transition-colors flex items-center space-x-2"
                         onClick={handleCreate}

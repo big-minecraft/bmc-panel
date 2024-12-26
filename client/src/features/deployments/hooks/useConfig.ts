@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import {useState} from 'react';
 import axiosInstance from '../../../utils/auth';
 
 export const useConfig = (isProxy, name) => {

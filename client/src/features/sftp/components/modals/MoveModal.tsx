@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { useFileOperations } from '../../hooks/useFileOperations';
-import { useSFTPState, useSFTPDispatch } from '../../context/SFTPContext';
-import { MoveVertical, Loader2, X } from 'lucide-react';
+import React, {useState, useEffect} from 'react';
+import {useFileOperations} from '../../hooks/useFileOperations';
+import {useSFTPState, useSFTPDispatch} from '../../context/SFTPContext';
+import {MoveVertical, Loader2, X} from 'lucide-react';
 
-const MoveModal = ({ isOpen }) => {
-    const { currentDirectory, selectedFiles, loading } = useSFTPState();
+const MoveModal = ({isOpen}) => {
+    const {currentDirectory, selectedFiles, loading} = useSFTPState();
     const dispatch = useSFTPDispatch();
-    const { handleMove } = useFileOperations();
+    const {handleMove} = useFileOperations();
 
     const [path, setPath] = useState('');
     const [error, setError] = useState('');
@@ -34,7 +34,7 @@ const MoveModal = ({ isOpen }) => {
     const closeModal = () => {
         dispatch({
             type: 'SET_MODAL_STATE',
-            payload: { modal: 'move', state: { isOpen: false } }
+            payload: {modal: 'move', state: {isOpen: false}}
         });
     };
 
@@ -55,7 +55,7 @@ const MoveModal = ({ isOpen }) => {
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center">
-                            <MoveVertical size={20} className="text-blue-600 mr-2" />
+                            <MoveVertical size={20} className="text-blue-600 mr-2"/>
                             <h3 className="text-lg font-semibold text-gray-900">
                                 Move {selectedFiles.length} {selectedFiles.length === 1 ? 'item' : 'items'}
                             </h3>
@@ -64,7 +64,7 @@ const MoveModal = ({ isOpen }) => {
                             onClick={closeModal}
                             className="text-gray-400 hover:text-gray-500"
                         >
-                            <X size={20} />
+                            <X size={20}/>
                         </button>
                     </div>
 
@@ -103,7 +103,8 @@ const MoveModal = ({ isOpen }) => {
                         <div className="bg-gray-50 rounded-lg p-3">
                             <p className="text-sm text-gray-600">
                                 Files will be moved to:
-                                <code className="block mt-1 text-sm font-mono bg-white p-2 rounded border border-gray-200">
+                                <code
+                                    className="block mt-1 text-sm font-mono bg-white p-2 rounded border border-gray-200">
                                     {targetPath}
                                 </code>
                             </p>
@@ -141,7 +142,7 @@ const MoveModal = ({ isOpen }) => {
                             >
                                 {loading.moving ? (
                                     <>
-                                        <Loader2 size={16} className="animate-spin mr-2" />
+                                        <Loader2 size={16} className="animate-spin mr-2"/>
                                         Moving...
                                     </>
                                 ) : (

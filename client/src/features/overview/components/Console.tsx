@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Send, Terminal } from 'lucide-react';
+import React, {useState, useEffect, useRef} from 'react';
+import {Send, Terminal} from 'lucide-react';
 
-const Console = ({ podName }) => {
+const Console = ({podName}) => {
     const [logs, setLogs] = useState('');
     const [command, setCommand] = useState('');
     const [ws, setWs] = useState(null);
@@ -24,7 +24,7 @@ const Console = ({ podName }) => {
             setLogs(prevLogs => {
                 const newLogs = prevLogs + logMessage + '\n';
                 if (consoleRef.current) {
-                    const { scrollHeight, clientHeight, scrollTop } = consoleRef.current;
+                    const {scrollHeight, clientHeight, scrollTop} = consoleRef.current;
                     const isScrolledToBottom = scrollHeight - scrollTop === clientHeight;
                     if (isScrolledToBottom) {
                         setTimeout(() => {
@@ -55,7 +55,7 @@ const Console = ({ podName }) => {
 
     const handleCommandSubmit = () => {
         if (ws && command) {
-            ws.send(JSON.stringify({ command }));
+            ws.send(JSON.stringify({command}));
             setCommand('');
         }
     };
@@ -69,7 +69,7 @@ const Console = ({ podName }) => {
     return (
         <div className="space-y-4">
             <div className="flex items-center text-gray-500 mb-4">
-                <Terminal size={18} className="mr-2" />
+                <Terminal size={18} className="mr-2"/>
                 <span className="text-sm">Connected to {podName}</span>
             </div>
 
@@ -95,7 +95,7 @@ const Console = ({ podName }) => {
                     className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-blue-600 transition-colors"
                     onClick={handleCommandSubmit}
                 >
-                    <Send size={18} />
+                    <Send size={18}/>
                 </button>
             </div>
         </div>

@@ -1,7 +1,7 @@
-import { ReactNode } from 'react';
-import { LucideIcon } from 'lucide-react';
-import type { HTMLMotionProps } from 'framer-motion';
-import type { DetailedHTMLProps, InputHTMLAttributes } from 'react';
+import {ReactNode} from 'react';
+import {LucideIcon} from 'lucide-react';
+import type {HTMLMotionProps} from 'framer-motion';
+import type {DetailedHTMLProps, InputHTMLAttributes} from 'react';
 
 export interface InputValidation {
     required?: boolean;

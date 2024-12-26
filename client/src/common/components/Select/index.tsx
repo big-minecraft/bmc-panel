@@ -1,27 +1,27 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { ChevronDown, Check, X, Search } from 'lucide-react';
-import { SelectProps } from './types';
-import { useSelect } from './hooks/useSelect';
+import {motion} from 'framer-motion';
+import {ChevronDown, Check, X, Search} from 'lucide-react';
+import {SelectProps} from './types';
+import {useSelect} from './hooks/useSelect';
 import SelectMenu from './SelectMenu';
 
 const Select = React.forwardRef<HTMLDivElement, SelectProps>(({
-                                                                  options = [],
-                                                                  value,
-                                                                  onChange,
-                                                                  placeholder = 'Select option',
-                                                                  label,
-                                                                  error,
-                                                                  disabled = false,
-                                                                  required = false,
-                                                                  clearable = false,
-                                                                  searchable = false,
-                                                                  multiple = false,
-                                                                  className = '',
-                                                                  validation,
-                                                                  name,
-                                                                  ...props
-                                                              }, ref) => {
+    options = [],
+    value,
+    onChange,
+    placeholder = 'Select option',
+    label,
+    error,
+    disabled = false,
+    required = false,
+    clearable = false,
+    searchable = false,
+    multiple = false,
+    className = '',
+    validation,
+    name,
+    ...props
+}, ref) => {
     const {
         isOpen,
         searchQuery,
@@ -63,7 +63,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(({
             <div className="relative">
                 <motion.div
                     ref={ref}
-                    whileTap={!disabled ? { scale: 0.995 } : undefined}
+                    whileTap={!disabled ? {scale: 0.995} : undefined}
                     onClick={() => !disabled && setIsOpen(!isOpen)}
                     onKeyDown={handleKeyDown}
                     tabIndex={0}
@@ -106,7 +106,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(({
                     }}
                     className="p-1 hover:bg-gray-100 rounded-full mr-2"
                 >
-                    <X size={14} className="text-gray-400" />
+                    <X size={14} className="text-gray-400"/>
                 </button>
             )}
                         <ChevronDown
@@ -130,8 +130,8 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(({
 
             {displayError && (
                 <motion.p
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{opacity: 0, y: -5}}
+                    animate={{opacity: 1, y: 0}}
                     className="mt-1 text-sm text-red-500"
                 >
                     {displayError}

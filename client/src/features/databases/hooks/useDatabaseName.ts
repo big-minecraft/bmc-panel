@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import {useState, useCallback} from 'react';
 
 export interface DatabaseNameValidation {
     isValid: boolean;
@@ -18,7 +18,7 @@ export function useDatabaseName(initialValue: string = ''): {
 
     const validateName = useCallback((input: string): DatabaseNameValidation => {
         if (!input.trim()) {
-            return { isValid: false, error: null };
+            return {isValid: false, error: null};
         }
 
         const validNameRegex = /^[a-zA-Z0-9_]+$/;

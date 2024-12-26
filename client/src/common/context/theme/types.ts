@@ -1,52 +1,27 @@
-export type BaseColor = {
-    50: string;
-    100: string;
-    200: string;
-    300: string;
-    400: string;
-    500: string;
-    600: string;
-    700: string;
-    800: string;
-    900: string;
-};
-
-export type ColorPalette = {
-    light: string;
-    DEFAULT: string;
-    dark: string;
-};
-
-export type BaseColors = {
-    indigo: BaseColor;
-    gray: BaseColor;
-    white: string;
-    black: string;
-    success: ColorPalette;
-    warning: ColorPalette;
-    error: ColorPalette;
-    info: ColorPalette;
+export type ThemeColorShades = {
+    text: string;
+    textHover: string;
+    background: string;
+    backgroundHover: string;
 };
 
 export type ThemeColors = {
-    primary: string;
-    primaryHover: string;
-    primaryLight: string;
-    secondary: string;
-    secondaryHover: string;
-    secondaryLight: string;
+    primary: {
+        first: string;
+        second: string;
+        third: string;
+    };
+    accent: ThemeColorShades;
+    negativeAccent: ThemeColorShades;
     background: string;
     backgroundOffset: string;
-    text: string;
-    textSecondary: string;
-    textDisabled: string;
-    border: string;
-    borderHover: string;
-    success: string;
-    warning: string;
-    error: string;
-    info: string;
+    undetermined: string;
+    success: ThemeColorShades;
+    warning: ThemeColorShades;
+    danger: ThemeColorShades;
+    info: ThemeColorShades;
 };
+
 
 export type ThemeConfig = {
     colors: ThemeColors;

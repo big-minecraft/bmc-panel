@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Database as DatabaseIcon, Loader2 } from 'lucide-react';
-import { DatabasesProvider, useDatabases } from '../context/DatabasesContext';
-import { useNotifications } from '../hooks/useNotifications';
-import { useDatabaseName } from '../hooks/useDatabaseName';
-import { DatabaseCard } from '../components/DatabaseCard';
-import { Notifications } from '../components/Notifications';
-import { CreateDatabaseModal } from '../modals/CreateDatabaseModal';
-import { DeleteDatabaseModal } from '../modals/DeleteDatabaseModal';
-import { ResetPasswordModal } from '../modals/ResetPasswordModal';
+import React, {useState, useEffect} from 'react';
+import {motion, AnimatePresence} from 'framer-motion';
+import {Plus, Database as DatabaseIcon, Loader2} from 'lucide-react';
+import {DatabasesProvider, useDatabases} from '../context/DatabasesContext';
+import {useNotifications} from '../hooks/useNotifications';
+import {useDatabaseName} from '../hooks/useDatabaseName';
+import {DatabaseCard} from '../components/DatabaseCard';
+import {Notifications} from '../components/Notifications';
+import {CreateDatabaseModal} from '../modals/CreateDatabaseModal';
+import {DeleteDatabaseModal} from '../modals/DeleteDatabaseModal';
+import {ResetPasswordModal} from '../modals/ResetPasswordModal';
 import {DatabaseSection} from "../components/DatabaseSection";
 
 interface EmptyStateProps {
@@ -16,27 +16,28 @@ interface EmptyStateProps {
     onCreateClick: () => void;
 }
 
-const EmptyState: React.FC<EmptyStateProps> = ({ type, onCreateClick }) => (
+const EmptyState: React.FC<EmptyStateProps> = ({type, onCreateClick}) => (
     <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{opacity: 0, y: 20}}
+        animate={{opacity: 1, y: 0}}
         className="bg-white rounded-xl shadow-sm border border-gray-100 p-12"
     >
         <div className="flex flex-col items-center text-center">
             <div className="p-3 bg-blue-50 rounded-full mb-4">
-                <DatabaseIcon className="w-8 h-8 text-blue-500" />
+                <DatabaseIcon className="w-8 h-8 text-blue-500"/>
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No {type.toUpperCase()} databases yet</h3>
             <p className="text-sm text-gray-500 max-w-sm mb-6">
-                Get started by creating your first {type.toUpperCase()} database. You can manage multiple databases and their credentials from here.
+                Get started by creating your first {type.toUpperCase()} database. You can manage multiple databases and
+                their credentials from here.
             </p>
             <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{scale: 1.02}}
+                whileTap={{scale: 0.98}}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
                 onClick={onCreateClick}
             >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4"/>
                 <span className="font-medium">Create {type.toUpperCase()} Database</span>
             </motion.button>
         </div>
@@ -55,10 +56,10 @@ const DatabasesContent: React.FC = () => {
         resetPassword
     } = useDatabases();
 
-    const { notifications, addNotification, removeNotification } = useNotifications();
+    const {notifications, addNotification, removeNotification} = useNotifications();
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [selectedDatabaseType, setSelectedDatabaseType] = useState<'sql' | 'mongo'>('sql');
-    const { name: newDatabaseName, setName: setNewDatabaseName, validation: nameValidation } = useDatabaseName('');
+    const {name: newDatabaseName, setName: setNewDatabaseName, validation: nameValidation} = useDatabaseName('');
     const [databaseToDelete, setDatabaseToDelete] = useState<{ name: string; type: 'sql' | 'mongo' } | null>(null);
     const [databaseToReset, setDatabaseToReset] = useState<{ name: string; type: 'sql' | 'mongo' } | null>(null);
     const [showCredentials, setShowCredentials] = useState<Record<string, boolean>>({});
@@ -83,7 +84,7 @@ const DatabasesContent: React.FC = () => {
             setShowCreateModal(false);
             setNewDatabaseName('');
             addNotification(`Successfully created ${selectedDatabaseType.toUpperCase()} database ${newDatabaseName}`, 'success');
-            setShowCredentials(prev => ({ ...prev, [response.name]: true }));
+            setShowCredentials(prev => ({...prev, [response.name]: true}));
         } catch (err) {
             addNotification(`Failed to create ${selectedDatabaseType.toUpperCase()} database ${newDatabaseName}`, 'danger');
         }
@@ -108,7 +109,7 @@ const DatabasesContent: React.FC = () => {
         try {
             await resetPassword(databaseToReset.name, databaseToReset.type);
             addNotification(`Successfully reset password for ${databaseToReset.type.toUpperCase()} database ${databaseToReset.name}`, 'success');
-            setShowCredentials(prev => ({ ...prev, [databaseToReset.name]: true }));
+            setShowCredentials(prev => ({...prev, [databaseToReset.name]: true}));
         } catch (err) {
             addNotification(`Failed to reset password for ${databaseToReset.type.toUpperCase()} database ${databaseToReset.name}`, 'danger');
         } finally {
@@ -117,18 +118,18 @@ const DatabasesContent: React.FC = () => {
     };
 
     const toggleCredentials = (databaseName: string) => {
-        setShowCredentials(prev => ({ ...prev, [databaseName]: !prev[databaseName] }));
+        setShowCredentials(prev => ({...prev, [databaseName]: !prev[databaseName]}));
     };
 
     if (isLoading) {
         return (
             <div className="min-h-[50vh] flex items-center justify-center">
                 <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                    initial={{opacity: 0}}
+                    animate={{opacity: 1}}
                     className="flex items-center gap-3 text-blue-500"
                 >
-                    <Loader2 className="w-6 h-6 animate-spin" />
+                    <Loader2 className="w-6 h-6 animate-spin"/>
                     <span className="text-sm font-medium">Loading databases...</span>
                 </motion.div>
             </div>
@@ -138,8 +139,8 @@ const DatabasesContent: React.FC = () => {
     if (error) {
         return (
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                initial={{opacity: 0, y: 20}}
+                animate={{opacity: 1, y: 0}}
                 className="min-h-[50vh] flex items-center justify-center px-4"
             >
                 <div className="max-w-md w-full bg-red-50 text-red-800 px-6 py-4 rounded-lg border border-red-200">
@@ -169,8 +170,8 @@ const DatabasesContent: React.FC = () => {
                     showCredentials={showCredentials}
                     onCreateClick={handleShowCreateModal}
                     onShowCredentials={toggleCredentials}
-                    onDelete={(name, type) => setDatabaseToDelete({ name, type })}
-                    onReset={(name, type) => setDatabaseToReset({ name, type })}
+                    onDelete={(name, type) => setDatabaseToDelete({name, type})}
+                    onReset={(name, type) => setDatabaseToReset({name, type})}
                 />
 
                 <DatabaseSection
@@ -180,8 +181,8 @@ const DatabasesContent: React.FC = () => {
                     showCredentials={showCredentials}
                     onCreateClick={handleShowCreateModal}
                     onShowCredentials={toggleCredentials}
-                    onDelete={(name, type) => setDatabaseToDelete({ name, type })}
-                    onReset={(name, type) => setDatabaseToReset({ name, type })}
+                    onDelete={(name, type) => setDatabaseToDelete({name, type})}
+                    onReset={(name, type) => setDatabaseToReset({name, type})}
                 />
             </div>
 
@@ -217,7 +218,7 @@ const DatabasesContent: React.FC = () => {
 
 const Databases: React.FC = () => (
     <DatabasesProvider>
-        <DatabasesContent />
+        <DatabasesContent/>
     </DatabasesProvider>
 );
 
