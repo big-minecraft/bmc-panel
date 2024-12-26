@@ -14,12 +14,9 @@ export const withTheme = ({
 
         return (
             <div
+                className='flex justify-center items-center bg-background dark:bg-background-dark'
                 style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
                     height: isInDocs ? docsHeight : '100vh',
-                    backgroundColor: 'var(--background)',
                     ...customStyles
                 }}
             >

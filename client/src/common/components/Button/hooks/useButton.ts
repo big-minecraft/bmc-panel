@@ -11,11 +11,50 @@ export const useButton = ({
 }: UseButtonProps) => {
     const getVariantClasses = useCallback((): string => {
         const variants: ButtonVariantClasses = {
-            primary: `bg-[var(--negative-accent-bg)] text-[var(--negative-accent-text)] hover:bg-[var(--negative-accent-bg-hover)] focus:ring-[var(--undetermined)]`,
-            secondary: 'bg-gray-100 text-gray-600 hover:bg-gray-200 focus:ring-gray-400',
-            outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50 focus:ring-blue-500',
-            ghost: 'text-gray-600 hover:bg-gray-100 focus:ring-gray-400',
-            danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+            primary: `
+            bg-negative-accent-bg
+            text-negative-accent-text
+            hover:bg-negative-accent-bg-hover
+            focus:ring-accent-bg
+            dark:bg-negative-accent-bg-dark
+            dark:text-negative-accent-text-dark
+            dark:hover:bg-negative-accent-bg-hover-dark
+        `,
+            secondary: `
+            bg-background-offset
+            text-primary-second
+            hover:bg-background-offset-dark
+            focus:ring-primary-third
+            dark:bg-background-offset-dark
+            dark:text-primary-second-dark
+            dark:hover:bg-background-dark
+        `,
+            outline: `
+            border-2
+            border-accent-text
+            text-accent-text
+            hover:bg-accent-bg
+            focus:ring-accent-text
+            dark:border-accent-text-dark
+            dark:text-accent-text-dark
+            dark:hover:bg-accent-bg-dark
+        `,
+            ghost: `
+            text-primary-second
+            hover:bg-background-offset
+            focus:ring-primary-third
+            dark:text-primary-second-dark
+            dark:hover:bg-background-offset-dark
+        `,
+            danger: `
+            bg-danger-bg
+            text-danger-text
+            hover:bg-danger-bg-hover
+            focus:ring-danger-text
+            dark:bg-danger-bg-dark
+            dark:text-danger-text-dark
+            dark:hover:bg-danger-bg-hover-dark
+        `
         };
         return variants[variant];
     }, [variant]);
