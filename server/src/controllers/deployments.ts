@@ -204,7 +204,12 @@ async function deleteDeployment(name: string): Promise<void> {
         let directoryPath = `/deployments/${name}`;
         if (type === 'persistent') directoryPath = `/nodes/${yamlContent.dedicatedNode}/deployments/${name}`;
 
-        await deleteSFTPDirectory(`nfsshare${directoryPath}`);
+        try {
+            await deleteSFTPDirectory(`nfsshare${directoryPath}`);
+        } catch (sftpError) {
+            // Log the SFTP deletion error but continue with the deployment deletion
+            console.error('Failed to delete SFTP directory:', sftpError);
+        }
     } catch (error) {
         console.error(error);
         throw new Error('Failed to delete deployment');
