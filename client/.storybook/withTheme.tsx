@@ -19,7 +19,7 @@ export const withTheme = ({
                     justifyContent: 'center',
                     alignItems: 'center',
                     height: isInDocs ? docsHeight : '100vh',
-                    backgroundColor: 'var(--color-background)',
+                    backgroundColor: 'var(--background)',
                     ...customStyles
                 }}
             >

@@ -9,9 +9,6 @@ export const useButton = ({
     variant = 'primary',
     size = 'md'
 }: UseButtonProps) => {
-    const {theme} = useTheme();
-    const colors = theme.colors;
-
     const getVariantClasses = useCallback((): string => {
         const variants: ButtonVariantClasses = {
             primary: `bg-[var(--negative-accent-bg)] text-[var(--negative-accent-text)] hover:bg-[var(--negative-accent-bg-hover)] focus:ring-[var(--undetermined)]`,

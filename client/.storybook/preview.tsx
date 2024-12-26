@@ -27,7 +27,7 @@ const preview: Preview = {
             },
             defaultTheme: 'dark',
             Provider: ({theme, children}) => (
-                <ThemeProvider themeOverride={theme}>
+                <ThemeProvider modeOverride={theme.name}>
                     {children}
                 </ThemeProvider>
             ),

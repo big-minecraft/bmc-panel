@@ -24,6 +24,7 @@ export type ThemeColors = {
 
 
 export type ThemeConfig = {
+    name: ThemeMode;
     colors: ThemeColors;
     spacing: {
         xs: string;
