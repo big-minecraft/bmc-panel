@@ -6,7 +6,7 @@ const SFTPDispatchContext = createContext(null);
 const initialState = {
     files: [],
     selectedFiles: [],
-    currentDirectory: '/nfsshare',
+    currentDirectory: '',
     loading: {
         files: false,
         creating: false,

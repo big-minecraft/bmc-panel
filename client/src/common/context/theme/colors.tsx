@@ -89,7 +89,7 @@ export const lightThemeColors: ThemeColors = {
 
 export const darkThemeColors = lightThemeColors;
 
-const baseThemeConfig: Omit<ThemeConfig, 'colors'> = {
+const baseThemeConfig: Omit<ThemeConfig, 'colors' | 'name'> = {
     spacing: {
         xs: '0.5rem',
         sm: '0.75rem',
@@ -125,10 +125,12 @@ const baseThemeConfig: Omit<ThemeConfig, 'colors'> = {
 
 export const themes: Record<'light' | 'dark', ThemeConfig> = {
     light: {
+        name: 'light',
         ...baseThemeConfig,
         colors: lightThemeColors,
     },
     dark: {
+        name: 'dark',
         ...baseThemeConfig,
         colors: darkThemeColors,
     }

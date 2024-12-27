@@ -22,6 +22,7 @@ function SFTPContent() {
     }, [location.pathname]);
 
     useEffect(() => {
+        if (!currentDirectory) return;
         fetchFiles();
     }, [currentDirectory, fetchFiles]);
 

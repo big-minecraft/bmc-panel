@@ -1,10 +1,10 @@
-import React, {createContext, useContext, useMemo, useState, useCallback, useEffect} from 'react';
-import {ThemeColors, ThemeConfig, ThemeMode} from './types';
-import {themes} from './colors';
+import React, { createContext, useContext, useMemo, useState, useCallback, useEffect } from 'react';
+import { ThemeColors, ThemeConfig, ThemeMode } from './types';
+import { themes } from './colors';
 
 type ThemeContextType = {
     colors: ThemeColors;
-    theme: Omit<ThemeConfig,'color'>;
+    theme: Omit<ThemeConfig, 'color'>;
     mode: ThemeMode;
     toggleTheme: () => void;
     setThemeMode: (mode: ThemeMode) => void;
@@ -15,26 +15,32 @@ const ThemeContext = createContext<ThemeContextType | null>(null);
 type ThemeProviderProps = {
     initialMode?: ThemeMode;
     children: React.ReactNode;
-    themeOverride?: ThemeConfig;
+    modeOverride?: ThemeMode;
 };
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({
     initialMode = 'dark',
     children,
-    themeOverride
+    modeOverride
 }) => {
     const [mode, setMode] = useState<ThemeMode>(initialMode);
+
+    useEffect(() => {
+        if (modeOverride) setMode(modeOverride);
+    }, [modeOverride]);
 
     const toggleTheme = useCallback(() => {
         setMode(current => current === 'light' ? 'dark' : 'light');
     }, []);
 
-    let theme = useMemo(() => themes[mode], [mode]);
-    if (themeOverride) theme = themeOverride;
+    const theme = useMemo(() => themes[mode], [mode]);
 
     useEffect(() => {
-        document.documentElement.classList.remove('light', 'dark');
-        document.documentElement.classList.add(mode);
+        const root = document.documentElement;
+        requestAnimationFrame(() => {
+            root.classList.remove('light', 'dark');
+            root.classList.add(modeOverride);
+        });
     }, [mode]);
 
     const value = useMemo(() => ({
