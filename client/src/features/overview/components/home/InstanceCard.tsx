@@ -1,9 +1,11 @@
 import React from 'react';
 import {Link} from 'react-router-dom';
 import {Users, Activity} from 'lucide-react';
+import {getInstanceStateDetails} from '../../constants/instanceState';
 
 const InstanceCard = ({instance, linkPrefix = "/instance"}) => {
     const playerCount = Object.keys(instance.players).length;
+    const stateDetails = getInstanceStateDetails(instance.state);
 
     return (
         <Link
@@ -34,8 +36,8 @@ const InstanceCard = ({instance, linkPrefix = "/instance"}) => {
 
                     <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2">
-                            <Activity size={14} className="text-green-500"/>
-                            <span className="text-sm text-gray-600">Active</span>
+                            <Activity size={14} className={stateDetails.color}/>
+                            <span className={`text-sm ${stateDetails.color}`}>{stateDetails.display}</span>
                         </div>
                         <div className="text-sm text-gray-400">
                             ID: {instance.name.split('-')[0]}

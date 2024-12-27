@@ -35,9 +35,9 @@ async function createTables() {
             `);
         await conn.query(`
                 CREATE TABLE IF NOT EXISTS k8s_dash (
-                    token VARCHAR(255) NOT NULL,
-                    expires_at TIMESTAMP NOT NULL,
-                    PRIMARY KEY (token)
+                token TEXT NOT NULL,
+                expires_at TIMESTAMP NOT NULL,
+                PRIMARY KEY (token(768))
                 )
             `);
     } catch (error) {

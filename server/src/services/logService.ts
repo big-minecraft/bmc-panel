@@ -95,7 +95,7 @@ export async function setupPodLogs(ws: WebSocket, podName: string, cluster: Clus
             try {
                 const logMessage = chunk.toString();
                 if (ws.readyState === WebSocket.OPEN) {
-                    ws.send(logMessage);
+                    ws.send(JSON.stringify({type: "message", content: logMessage}));
                 }
             } catch (err) {
                 console.error('error processing log message:', err);
@@ -112,7 +112,7 @@ export async function setupPodLogs(ws: WebSocket, podName: string, cluster: Clus
         response.data.on('error', (err: Error) => {
             console.error(`error streaming logs for pod ${podName}:`, err);
             if (ws.readyState === WebSocket.OPEN) {
-                ws.send(`Error streaming logs: ${err.message}`);
+                ws.send(JSON.stringify({type: "error", content: `Error streaming logs: ${err.message}`}));
                 ws.close();
             }
         });
@@ -126,7 +126,7 @@ export async function setupPodLogs(ws: WebSocket, podName: string, cluster: Clus
     } catch (err) {
         console.error(`failed to initiate log stream for pod ${podName}:`, err);
         if (ws.readyState === WebSocket.OPEN) {
-            ws.send(`Failed to initiate log stream: ${(err as Error).message}`);
+            ws.send(JSON.stringify({type: "error", content: `Failed to initiate log stream: ${(err as Error).message}`}));
             ws.close();
         }
     }

@@ -195,6 +195,24 @@ class KubernetesClient {
             return [];
         }
     }
+
+    public async killPod(podName: string, namespace: string = 'default'): Promise<void> {
+        this.ensureInitialized();
+
+        if (!this.coreV1Api) {
+            throw new Error('CoreV1Api is not initialized');
+        }
+
+        try {
+            console.log(`Deleting pod ${podName} in namespace ${namespace}`);
+            await this.coreV1Api.deleteNamespacedPod(podName, namespace);
+            console.log('Pod deleted successfully');
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error('Unknown error occurred');
+            console.error('Error deleting pod:', err);
+            throw new Error(`Failed to delete pod: ${err.message}`);
+        }
+    }
 }
 
 // Create and export a singleton instance
