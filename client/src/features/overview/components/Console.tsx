@@ -11,6 +11,19 @@ const Console = ({podName, onWebSocketReady, onStateUpdate}) => {
     const maxReconnectAttempts = 10;
     const baseReconnectDelay = 1000;
 
+    const closeWebSocket = (socket, message) => {
+        if (socket) {
+            socket.close();
+            setWs(null);
+            setIsConnecting(false);
+            reconnectAttemptsRef.current = maxReconnectAttempts; // Prevent further reconnection attempts
+            setLogs(prevLogs => [...prevLogs, {
+                type: 'error',
+                content: message || '[System] Connection terminated'
+            }]);
+        }
+    };
+
     const connectWebSocket = () => {
         if (isConnecting) return;
 
@@ -45,6 +58,12 @@ const Console = ({podName, onWebSocketReady, onStateUpdate}) => {
                         type: 'message',
                         content: `[System] Instance state changed to: ${parsedData.content}`
                     }]);
+                    return;
+                }
+
+                // Check for "Jar file not found!" message
+                if (parsedData.content.includes('Jar file not found!')) {
+                    closeWebSocket(socket, '[System] Jar file not found. Connection terminated.');
                     return;
                 }
 
@@ -90,15 +109,9 @@ const Console = ({podName, onWebSocketReady, onStateUpdate}) => {
             setWs(null);
             setIsConnecting(false);
 
+            // Only attempt to reconnect if we haven't reached max attempts and haven't received "Jar file not found!"
             if (reconnectAttemptsRef.current < maxReconnectAttempts) {
-                const delay = Math.min(baseReconnectDelay * Math.pow(2, reconnectAttemptsRef.current), 30000);
-                reconnectAttemptsRef.current += 1;
 
-                setTimeout(() => {
-                    if (!isConnecting) {
-                        connectWebSocket();
-                    }
-                }, delay);
             } else {
                 setLogs(prevLogs => [...prevLogs, {
                     type: 'error',

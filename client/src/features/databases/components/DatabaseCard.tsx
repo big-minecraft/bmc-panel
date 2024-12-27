@@ -6,6 +6,7 @@ import {DatabaseCardProps} from "../types/types";
 export const DatabaseCard = forwardRef<HTMLDivElement, DatabaseCardProps>(
     ({database, databaseType, onShowCredentials, showCredentials, onDelete, onReset}, ref) => {
         const {name, size, tables, credentials} = database;
+        const label = databaseType === 'mongo' ? 'collections' : 'tables';
         const [copyStatus, setCopyStatus] = useState<Record<string, boolean>>({});
         const [activeTab, setActiveTab] = useState<'credentials' | 'connection'>('credentials');
 
@@ -91,7 +92,7 @@ export const DatabaseCard = forwardRef<HTMLDivElement, DatabaseCardProps>(
                                 <div className="flex items-center gap-2 mt-1">
                                     <span className="text-sm text-gray-500">{size}</span>
                                     <span className="text-gray-300">•</span>
-                                    <span className="text-sm text-gray-500">{tables} tables</span>
+                                    <span className="text-sm text-gray-500">{tables} {label}</span>
                                 </div>
                             </div>
                         </div>
