@@ -29,12 +29,18 @@ interface WebSocketOptions {
     };
 }
 
+function constructFinalCommand(command: string): string {
+    const escapedCommand = command.replace(/'/g, "'\\''");
+    return `echo '${escapedCommand}' > /tmp/server_input`;
+}
+
 async function executeCommand(
     ws: WebSocket,
     command: string,
     podName: string,
     cluster: Cluster,
-    user: User
+    user: User,
+    containerCommand: boolean
 ): Promise<void> {
     if (!podName) {
         throw new Error('Pod name is required');
@@ -46,11 +52,8 @@ async function executeCommand(
     params.append('command', 'bash');
     params.append('command', '-c');
 
-    const escapedCommand = command.replace(/'/g, "'\\''");
-    const finalCommand = `echo '${escapedCommand}' > /tmp/server_input`;
-
+    const finalCommand = containerCommand ? constructFinalCommand(command) : command;
     console.log('transformed command:', finalCommand);
-
     params.append('command', finalCommand);
     params.append('stdin', 'true');
     params.append('stdout', 'true');
@@ -62,37 +65,7 @@ async function executeCommand(
 
     const wsUrl = fullUrl.replace(/^http/, 'ws');
 
-    const wsOptions: WebSocketOptions = {
-        agent: new Agent({
-            rejectUnauthorized: true
-        }),
-        headers: {}
-    };
-
-    if (kubernetesClient.isRunningInCluster()) {
-        const tokenPath = path.join('/host-root', user.authProvider?.config.tokenFile || '');
-        const caPath = path.join('/host-root', cluster.caFile || '');
-
-        const token = fs.readFileSync(tokenPath, 'utf8');
-        const ca = fs.readFileSync(caPath);
-
-        wsOptions.agent = new Agent({
-            ca: ca,
-            rejectUnauthorized: !cluster.skipTLSVerify
-        });
-        wsOptions.headers['Authorization'] = `Bearer ${token}`;
-    } else {
-        const cert = user.certData ? Buffer.from(user.certData, 'base64') : undefined;
-        const key = user.keyData ? Buffer.from(user.keyData, 'base64') : undefined;
-        const ca = cluster.caData ? Buffer.from(cluster.caData, 'base64') : undefined;
-
-        wsOptions.agent = new Agent({
-            cert: cert,
-            key: key,
-            ca: ca,
-            rejectUnauthorized: true
-        });
-    }
+    const wsOptions = await createWebSocketConnection(wsUrl, cluster, user);
 
     const execWs = new WebSocket(wsUrl, 'v4.channel.k8s.io', wsOptions);
 
@@ -130,8 +103,46 @@ async function executeCommand(
     });
 }
 
+async function createWebSocketConnection(wsUrl: string, cluster: Cluster, user: User): Promise<WebSocketOptions> {
+    const wsOptions: WebSocketOptions = {
+        agent: new Agent({
+            rejectUnauthorized: true
+        }),
+        headers: {}
+    };
+
+    if (kubernetesClient.isRunningInCluster()) {
+        const tokenPath = path.join('/host-root', user.authProvider?.config.tokenFile || '');
+        const caPath = path.join('/host-root', cluster.caFile || '');
+
+        const token = fs.readFileSync(tokenPath, 'utf8');
+        const ca = fs.readFileSync(caPath);
+
+        wsOptions.agent = new Agent({
+            ca: ca,
+            rejectUnauthorized: !cluster.skipTLSVerify
+        });
+        wsOptions.headers['Authorization'] = `Bearer ${token}`;
+    } else {
+        const cert = user.certData ? Buffer.from(user.certData, 'base64') : undefined;
+        const key = user.keyData ? Buffer.from(user.keyData, 'base64') : undefined;
+        const ca = cluster.caData ? Buffer.from(cluster.caData, 'base64') : undefined;
+
+        wsOptions.agent = new Agent({
+            cert: cert,
+            key: key,
+            ca: ca,
+            rejectUnauthorized: true
+        });
+    }
+
+    return wsOptions;
+}
+
 export {
     executeCommand,
+    createWebSocketConnection,
+    constructFinalCommand,
     Cluster,
     User,
     WebSocketOptions

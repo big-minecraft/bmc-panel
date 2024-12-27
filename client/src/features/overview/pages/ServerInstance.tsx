@@ -1,27 +1,49 @@
 import {useParams, useNavigate} from "react-router-dom";
 import React, {useState} from "react";
-import {ArrowLeft, Activity, Server, Users, Play, RotateCw, Square, ChevronDown} from 'lucide-react';
+import {ArrowLeft, Activity, Server, Users, Play, RotateCw, Square, XCircle} from 'lucide-react';
 import Console from "../components/Console";
 import InstanceDetails from "../components/InstanceDetails";
 import MetricsSection from "../components/MetricsSection";
+import { getInstanceStateDetails } from "../constants/instanceState";
 
 function ServerInstance({instances, proxies}) {
     const {instanceName} = useParams();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('console');
-    const [showStatusDropdown, setShowStatusDropdown] = useState(false);
-    const [status, setStatus] = useState('Active');
-
+    const [websocket, setWebsocket] = useState(null);
     const instance = [...instances, ...proxies].find(inst => inst.name === instanceName);
+    const [instanceState, setInstanceState] = useState(instance?.state);
 
-    const statusOptions = [
-        {label: 'Active', color: 'bg-green-500'},
-        {label: 'Starting', color: 'bg-yellow-500'},
-        {label: 'Stopping', color: 'bg-orange-500'},
-        {label: 'Stopped', color: 'bg-red-500'}
-    ];
+    const handleStateUpdate = (newState) => {
+        setInstanceState(newState);
+    };
 
-    const currentStatusColor = statusOptions.find(opt => opt.label === status)?.color || 'bg-gray-500';
+    const stateDetails = getInstanceStateDetails(instanceState || instance?.state);
+
+    const handleWebSocketReady = (ws) => {
+        setWebsocket(ws);
+    };
+
+    const sendCommand = (command) => {
+        if (websocket && websocket.readyState === WebSocket.OPEN) {
+            websocket.send(JSON.stringify({
+                type: 'power',
+                action: command
+            }));
+        } else {
+            console.error('WebSocket is not connected');
+        }
+    };
+
+    const handleStart = () => sendCommand('start');
+    const handleStop = () => sendCommand('stop');
+    const handleRestart = () => sendCommand('restart');
+    const handleKill = () => {
+        sendCommand('kill');
+        setTimeout(() => {
+            navigate('/');
+        }, 1000);
+    };
 
     if (!instance) {
         return (
@@ -45,16 +67,23 @@ function ServerInstance({instances, proxies}) {
         </button>
     );
 
-    const ActionButton = ({icon: Icon, label, variant = 'default'}) => {
+    const ActionButton = ({icon: Icon, label, variant = 'default', onClick, disabled}) => {
         const variants = {
             default: 'text-gray-600 hover:bg-gray-50',
             start: 'text-green-600 hover:bg-green-50',
             stop: 'text-red-600 hover:bg-red-50',
-            restart: 'text-orange-600 hover:bg-orange-50'
+            restart: 'text-orange-600 hover:bg-orange-50',
+            kill: 'text-red-700 hover:bg-red-50'
         };
 
         return (
-            <button className={`flex items-center px-3 py-2 rounded-lg transition-colors ${variants[variant]}`}>
+            <button
+                className={`flex items-center px-3 py-2 rounded-lg transition-colors ${variants[variant]} ${
+                    disabled ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                onClick={onClick}
+                disabled={disabled}
+            >
                 <Icon size={18} className="mr-2"/>
                 {label}
             </button>
@@ -82,41 +111,17 @@ function ServerInstance({instances, proxies}) {
                             <div className="flex items-center text-blue-600">
                                 <Server size={20} className="mr-2"/>
                                 <h3 className="font-medium">Status</h3>
-                                <div className="relative ml-2">
-                                    <button
-                                        onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                                        className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-50"
-                                    >
-                                        <ChevronDown size={16}/>
-                                    </button>
-                                    {showStatusDropdown && (
-                                        <div
-                                            className="absolute top-full right-0 mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
-                                            {statusOptions.map((option) => (
-                                                <button
-                                                    key={option.label}
-                                                    onClick={() => {
-                                                        setStatus(option.label);
-                                                        setShowStatusDropdown(false);
-                                                    }}
-                                                    className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center"
-                                                >
-                                                    <div className={`w-2 h-2 rounded-full ${option.color} mr-2`}></div>
-                                                    {option.label}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
                             </div>
                         </div>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center">
-                                <div className={`w-2.5 h-2.5 rounded-full ${currentStatusColor} mr-2`}></div>
-                                <p className="text-2xl font-semibold text-gray-900">{status}</p>
+                                <div className={`w-2.5 h-2.5 rounded-full ${stateDetails.color.replace('text-', 'bg-')} mr-2`}></div>
+                                <p className={`text-2xl font-semibold ${stateDetails.color}`}>
+                                    {stateDetails.display}
+                                </p>
                             </div>
                             <div className="flex items-center text-gray-600">
-                                <span className="font-medium mr-1.5">24</span>
+                                <span className="font-medium mr-1.5">{instance.connections || 0}</span>
                                 <Users size={16}/>
                             </div>
                         </div>
@@ -127,7 +132,7 @@ function ServerInstance({instances, proxies}) {
                             <Activity size={20} className="mr-2"/>
                             <h3 className="font-medium">Uptime</h3>
                         </div>
-                        <p className="text-2xl font-semibold text-gray-900">6d 20h 50m</p>
+                        <p className="text-2xl font-semibold text-gray-900">{instance.uptime || '0s'}</p>
                     </div>
 
                     <div className="bg-white p-4 rounded-lg shadow-sm">
@@ -136,7 +141,7 @@ function ServerInstance({instances, proxies}) {
                             <h3 className="font-medium">CPU Usage</h3>
                         </div>
                         <div className="flex items-baseline">
-                            <span className="text-2xl font-semibold text-gray-900">45.82%</span>
+                            <span className="text-2xl font-semibold text-gray-900">{instance.cpu || '0'}%</span>
                             <span className="text-gray-500 ml-1">/ 100%</span>
                         </div>
                     </div>
@@ -147,8 +152,8 @@ function ServerInstance({instances, proxies}) {
                             <h3 className="font-medium">Memory Usage</h3>
                         </div>
                         <div className="flex items-baseline">
-                            <span className="text-2xl font-semibold text-gray-900">2.45</span>
-                            <span className="text-gray-500 ml-1">/ 4 GiB</span>
+                            <span className="text-2xl font-semibold text-gray-900">{instance.memory?.used || '0'}</span>
+                            <span className="text-gray-500 ml-1">/ {instance.memory?.total || '0'} GiB</span>
                         </div>
                     </div>
                 </div>
@@ -162,16 +167,47 @@ function ServerInstance({instances, proxies}) {
                             <TabButton id="details" icon={Users} label="Details"/>
                         </div>
                         <div className="flex space-x-2">
-                            <ActionButton icon={Play} label="Start" variant="start"/>
-                            <ActionButton icon={RotateCw} label="Restart" variant="restart"/>
-                            <ActionButton icon={Square} label="Stop" variant="stop"/>
+                            <ActionButton
+                                icon={Play}
+                                label="Start"
+                                variant="start"
+                                onClick={handleStart}
+                                disabled={stateDetails.key === 'RUNNING' || stateDetails.key === 'STARTING'}
+                            />
+                            <ActionButton
+                                icon={RotateCw}
+                                label="Restart"
+                                variant="restart"
+                                onClick={handleRestart}
+                                disabled={stateDetails.key === 'STOPPED' || stateDetails.key === 'STOPPING'}
+                            />
+                            <ActionButton
+                                icon={Square}
+                                label="Stop"
+                                variant="stop"
+                                onClick={handleStop}
+                                disabled={stateDetails.key === 'STOPPED' || stateDetails.key === 'STOPPING'}
+                            />
+                            <ActionButton
+                                icon={XCircle}
+                                label="Kill"
+                                variant="kill"
+                                onClick={handleKill}
+                                disabled={stateDetails.key === 'STOPPED'}
+                            />
                         </div>
                     </div>
                 </div>
 
                 {/* Content */}
                 <div className="bg-white rounded-lg shadow-sm p-6">
-                    {activeTab === 'console' && <Console podName={instance.podName}/>}
+                    {activeTab === 'console' && (
+                        <Console
+                            podName={instance.podName}
+                            onWebSocketReady={handleWebSocketReady}
+                            onStateUpdate={handleStateUpdate}
+                        />
+                    )}
                     {activeTab === 'metrics' && <MetricsSection podName={instance.podName}/>}
                     {activeTab === 'details' && <InstanceDetails instance={instance}/>}
                 </div>

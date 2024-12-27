@@ -1,12 +1,25 @@
 import * as k8s from '@kubernetes/client-node';
-import {WebSocket} from 'ws';
+import WebSocket from 'ws';
 import {setupPodLogs} from './logService';
 import {executeCommand} from './commandService';
+import {executePowerAction} from './powerActionService'; // New service for power actions
 import kubernetesClient from '../controllers/k8s';
 
-interface CommandMessage {
+interface BaseMessage {
+    type: 'command' | 'power';
+}
+
+interface CommandMessage extends BaseMessage {
+    type: 'command';
     command: string;
 }
+
+interface PowerActionMessage extends BaseMessage {
+    type: 'power';
+    action: 'start' | 'stop' | 'restart' | 'kill';
+}
+
+type WebSocketMessage = CommandMessage | PowerActionMessage;
 
 interface Cluster extends k8s.Cluster {
     // Add any additional cluster properties if needed
@@ -14,6 +27,14 @@ interface Cluster extends k8s.Cluster {
 
 interface User extends k8s.User {
     // Add any additional user properties if needed
+}
+
+function isPowerActionMessage(message: WebSocketMessage): message is PowerActionMessage {
+    return message.type === 'power';
+}
+
+function isCommandMessage(message: WebSocketMessage): message is CommandMessage {
+    return message.type === 'command';
 }
 
 async function handlePodConnection(
@@ -26,24 +47,29 @@ async function handlePodConnection(
 
     console.log(`Client connected for logs and commands of pod: ${podName}`);
 
-    // console.log(`Cluster: ${JSON.stringify(cluster, null, 2)}`);
-    // console.log('------------------------------------------')
-    // console.log(`User: ${JSON.stringify(user, null, 2)}`);
-
     setupPodLogs(ws, podName, cluster, user);
 
     ws.on('message', async (message: WebSocket.Data) => {
         try {
-            const {command} = JSON.parse(message.toString()) as CommandMessage;
-            if (!command) {
-                console.error('No command received');
-                return;
+            const parsedMessage = JSON.parse(message.toString()) as WebSocketMessage;
+
+            if (!parsedMessage.type) {
+                throw new Error('Message type not specified');
             }
 
-            await executeCommand(ws, command, podName, cluster, user);
+            if (isPowerActionMessage(parsedMessage)) {
+                await executePowerAction(ws, parsedMessage.action, podName, cluster, user);
+            } else if (isCommandMessage(parsedMessage)) {
+                if (!parsedMessage.command) {
+                    throw new Error('No command specified');
+                }
+                await executeCommand(ws, parsedMessage.command, podName, cluster, user, true);
+            } else {
+                throw new Error('Invalid message type');
+            }
         } catch (error) {
             console.error('Error handling message:', error);
-            ws.send(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            ws.send(JSON.stringify({type: "error", content: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`}));
         }
     });
 
@@ -55,6 +81,8 @@ async function handlePodConnection(
 export {
     handlePodConnection,
     CommandMessage,
+    PowerActionMessage,
+    WebSocketMessage,
     Cluster,
     User
 };

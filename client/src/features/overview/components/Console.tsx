@@ -1,13 +1,20 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {Send, Terminal} from 'lucide-react';
 
-const Console = ({podName}) => {
-    const [logs, setLogs] = useState('');
+const Console = ({podName, onWebSocketReady, onStateUpdate}) => {
+    const [logs, setLogs] = useState([]);
     const [command, setCommand] = useState('');
     const [ws, setWs] = useState(null);
+    const [isConnecting, setIsConnecting] = useState(false);
     const consoleRef = useRef(null);
+    const reconnectAttemptsRef = useRef(0);
+    const maxReconnectAttempts = 10;
+    const baseReconnectDelay = 1000;
 
-    useEffect(() => {
+    const connectWebSocket = () => {
+        if (isConnecting) return;
+
+        setIsConnecting(true);
         const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
         const wsHost = window.location.host;
         const wsUrl = `${wsProtocol}://${wsHost.replace('3000', '3001')}/api/logs/${podName}`;
@@ -15,14 +22,41 @@ const Console = ({podName}) => {
         const socket = new WebSocket(wsUrl);
 
         socket.onopen = () => {
-            console.log('websocket connection opened')
+            console.log('WebSocket connection opened');
+            setIsConnecting(false);
+            reconnectAttemptsRef.current = 0;
+            setLogs(prevLogs => [...prevLogs, {
+                type: 'message',
+                content: '[System] Connected to pod terminal'
+            }]);
+            onWebSocketReady(socket);
         };
 
         socket.onmessage = (event) => {
             if (event.data === '') return;
-            const logMessage = event.data.split('\n').filter(line => line.trim() !== '').join('\n');
-            setLogs(prevLogs => {
-                const newLogs = prevLogs + logMessage + '\n';
+
+            try {
+                const parsedData = JSON.parse(event.data);
+                if (!parsedData.type || !parsedData.content) return;
+
+                if (parsedData.type === 'power') {
+                    onStateUpdate?.(parsedData.content);
+                    setLogs(prevLogs => [...prevLogs, {
+                        type: 'message',
+                        content: `[System] Instance state changed to: ${parsedData.content}`
+                    }]);
+                    return;
+                }
+
+                const lines = parsedData.content.split('\n').filter(line => line.trim() !== '');
+
+                lines.forEach(line => {
+                    setLogs(prevLogs => [...prevLogs, {
+                        type: parsedData.type,
+                        content: line
+                    }]);
+                });
+
                 if (consoleRef.current) {
                     const {scrollHeight, clientHeight, scrollTop} = consoleRef.current;
                     const isScrolledToBottom = scrollHeight - scrollTop === clientHeight;
@@ -34,36 +68,79 @@ const Console = ({podName}) => {
                         }, 0);
                     }
                 }
-                return newLogs;
-            });
+            } catch (error) {
+                console.error('Error parsing message:', error);
+                setLogs(prevLogs => [...prevLogs, {
+                    type: 'error',
+                    content: '[System] Error parsing message'
+                }]);
+            }
         };
 
         socket.onerror = (error) => {
-            console.error('websocket error:', error)
+            console.error('WebSocket error:', error);
+            setLogs(prevLogs => [...prevLogs, {
+                type: 'error',
+                content: '[System] Connection error occurred'
+            }]);
         };
 
         socket.onclose = (event) => {
-            console.log('websocket connection closed', event)
+            console.log('WebSocket connection closed', event);
+            setWs(null);
+            setIsConnecting(false);
+
+            if (reconnectAttemptsRef.current < maxReconnectAttempts) {
+                const delay = Math.min(baseReconnectDelay * Math.pow(2, reconnectAttemptsRef.current), 30000);
+                reconnectAttemptsRef.current += 1;
+
+                setTimeout(() => {
+                    if (!isConnecting) {
+                        connectWebSocket();
+                    }
+                }, delay);
+            } else {
+                setLogs(prevLogs => [...prevLogs, {
+                    type: 'error',
+                    content: '[System] Maximum reconnection attempts reached. Please refresh the page.'
+                }]);
+            }
         };
 
         setWs(socket);
+    };
+
+    useEffect(() => {
+        connectWebSocket();
 
         return () => {
-            socket.close();
+            if (ws) {
+                ws.close();
+            }
         };
     }, [podName]);
 
     const handleCommandSubmit = () => {
-        if (ws && command) {
-            ws.send(JSON.stringify({command}));
+        if (ws && ws.readyState === WebSocket.OPEN && command) {
+            ws.send(JSON.stringify({
+                type: 'command',
+                command: command
+            }));
             setCommand('');
         }
     };
 
-    const handleKeyPress = (event) => {
-        if (event.key === 'Enter') {
-            handleCommandSubmit();
-        }
+    const LogLine = ({ log }) => {
+        const isSystemMessage = log.content.startsWith('[System]');
+        return (
+            <div className={`${
+                log.type === 'error' ? 'text-red-500' :
+                    isSystemMessage ? 'text-yellow-400' :
+                        'text-gray-100'
+            }`}>
+                {log.content}
+            </div>
+        );
     };
 
     return (
@@ -75,10 +152,12 @@ const Console = ({podName}) => {
 
             <div
                 ref={consoleRef}
-                className="bg-gray-900 text-gray-100 rounded-lg h-[500px] overflow-y-auto font-mono text-sm"
+                className="bg-gray-900 rounded-lg h-[500px] overflow-y-auto font-mono text-sm"
             >
                 <div className="p-4">
-                    <pre className="whitespace-pre-wrap break-words">{logs}</pre>
+                    {logs.map((log, index) => (
+                        <LogLine key={index} log={log} />
+                    ))}
                 </div>
             </div>
 

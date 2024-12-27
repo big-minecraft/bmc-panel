@@ -5,12 +5,14 @@ import config from '../config';
 // Interfaces for the data structures
 interface Instance {
     uid: string;
+    podName: string;
 
     [key: string]: any; // Additional instance properties
 }
 
 interface Proxy {
     uid: string;
+    podName: string;
 
     [key: string]: any; // Additional proxy properties
 }
@@ -97,6 +99,22 @@ async function sendProxyUpdate(): Promise<void> {
         await client.publish('proxy-modified', 'update');
     } finally {
         await redisPool.release(client);
+    }
+}
+
+export async function setPodStatus(podName: string, status: string): Promise<void> {
+    let podType: string = podName.includes('proxy') ? 'proxies' : 'instances';
+    const client: Redis = await redisPool.acquire();
+
+    const instancesData: { [key: string]: string } = await client.hgetall(podType);
+    const uid = Object.keys(instancesData).find(key => {
+        return JSON.parse(instancesData[key]).podName === podName;
+    });
+
+    if (uid) {
+        const instance = JSON.parse(instancesData[uid]);
+        instance.state = status;
+        await client.hset(podType, uid, JSON.stringify(instance));
     }
 }
 
