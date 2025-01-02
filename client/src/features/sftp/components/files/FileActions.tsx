@@ -15,6 +15,7 @@ import {useSFTPState, useSFTPDispatch} from '../../context/SFTPContext';
 const FileActions = ({file}) => {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef(null);
+    const buttonRef = useRef(null);
     const {loading} = useSFTPState();
     const dispatch = useSFTPDispatch();
     const {handleDownload} = useFileOperations();
@@ -24,7 +25,7 @@ const FileActions = ({file}) => {
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (menuRef.current && !menuRef.current.contains(event.target)) {
+            if (menuRef.current && !menuRef.current.contains(event.target) && !buttonRef.current.contains(event.target)) {
                 setIsOpen(false);
             }
         };
@@ -32,6 +33,28 @@ const FileActions = ({file}) => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    useEffect(() => {
+        if (isOpen && menuRef.current && buttonRef.current) {
+            const buttonRect = buttonRef.current.getBoundingClientRect();
+            const menuRect = menuRef.current.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+
+            const spaceBelow = viewportHeight - buttonRect.bottom;
+            const shouldShowAbove = spaceBelow < menuRect.height + 4;
+
+            menuRef.current.style.position = 'fixed';
+            menuRef.current.style.left = `${buttonRect.left}px`;
+
+            if (shouldShowAbove) {
+                menuRef.current.style.bottom = `${viewportHeight - buttonRect.top + 4}px`;
+                menuRef.current.style.top = 'auto';
+            } else {
+                menuRef.current.style.top = `${buttonRect.bottom + 4}px`;
+                menuRef.current.style.bottom = 'auto';
+            }
+        }
+    }, [isOpen]);
 
     const MenuItem = ({onClick, icon: Icon, label, variant = "default", disabled = false}) => {
         const variants = {
@@ -76,9 +99,13 @@ const FileActions = ({file}) => {
     };
 
     return (
-        <div className="relative" ref={menuRef}>
+        <div className="relative">
             <button
-                onClick={() => setIsOpen(!isOpen)}
+                ref={buttonRef}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setIsOpen(!isOpen);
+                }}
                 className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100"
             >
                 {isLoading ? (
@@ -90,11 +117,8 @@ const FileActions = ({file}) => {
 
             {isOpen && (
                 <div
-                    className="fixed right-0 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10"
-                    style={{
-                        top: 'auto',
-                        marginTop: '4px',
-                    }}
+                    ref={menuRef}
+                    className="w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
                 >
                     <MenuItem
                         onClick={() => handleDownload(file)}
