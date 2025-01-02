@@ -3,12 +3,11 @@ import {useFileOperations} from '../../hooks/useFileOperations';
 import FileIcon from './FileIcon';
 import FileActions from './FileActions';
 import {formatFileSize, formatDate} from '../../utils/fileUtils';
-import {isTextFile} from '../../utils/textUtil';
 
 const FileRow = ({file, isSelected, onSelect}) => {
     const {handleFileClick} = useFileOperations();
 
-    const isClickable = file.type === 'd' || isTextFile(file.name);
+    const isClickable = file.type === 'd' || file.isText;
 
     const handleRowClick = (e) => {
         if (

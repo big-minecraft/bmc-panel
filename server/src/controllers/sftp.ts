@@ -1,4 +1,4 @@
-import Client from 'ssh2-sftp-client';
+import Client, {FileStats} from 'ssh2-sftp-client';
 import config from '../config';
 import genericPool from 'generic-pool';
 
@@ -21,21 +21,37 @@ const sftpPool = genericPool.createPool<Client>({
     min: 2
 });
 
+const TEXT_EXTENSIONS = [
+    'txt', 'md', 'json', 'js', 'jsx', 'ts', 'tsx', 'css', 'scss',
+    'html', 'xml', 'csv', 'yml', 'yaml', 'sh', 'bash', 'py',
+    'java', 'rb', 'php', 'sql', 'log', 'conf', 'ini', 'env'
+];
+
 async function listSFTPFiles(path) {
-    let sftp;
+    let sftp: Client;
     try {
         sftp = await sftpPool.acquire();
         const list = await sftp.list(path);
-        return list.map(item => ({
-            name: item.name,
-            type: item.type,
-            size: item.size,
-            modifyTime: item.modifyTime,
-            path: `${path}/${item.name}`.replace(/\/+/g, '/'),
-            accessRights: item.rights
-        }));
+
+        const processedFiles = list.map(item => {
+            const fullPath = `${path}/${item.name}`.replace(/\/+/g, '/');
+            const extension = item.name.split('.').pop()?.toLowerCase() || '';
+            const isText = item.type !== 'd' && TEXT_EXTENSIONS.includes(extension);
+
+            return {
+                name: item.name,
+                type: item.type,
+                size: item.size,
+                modifyTime: item.modifyTime,
+                path: fullPath,
+                accessRights: item.rights,
+                isText
+            };
+        });
+
+        return processedFiles;
     } catch (error) {
-        console.error('Error listing SFTP files:', error);
+        console.error('error listing sftp files:', error);
         throw error;
     } finally {
         if (sftp) sftpPool.release(sftp);
