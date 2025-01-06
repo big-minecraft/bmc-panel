@@ -3,10 +3,14 @@ import {User, Cluster} from "./podService";
 import {executeCommand} from "./commandService";
 import kubernetesClient from "../controllers/k8s";
 import {setPodStatus} from "../controllers/redis";
+import {DeploymentYaml, getDeploymentContent} from "../controllers/deployments";
+import yaml from 'js-yaml';
+
 
 async function executePowerAction(
     ws: WebSocket,
     action: 'start' | 'stop' | 'restart' | 'kill',
+    deployment: string,
     podName: string,
     cluster: Cluster,
     user: User
@@ -22,8 +26,23 @@ async function executePowerAction(
 
             case 'start':
                 await executeCommand(ws, 'touch /tmp/should_run', podName, cluster, user, false);
-                await setPodStatus(podName, 'STARTING');
-                ws.send(JSON.stringify({type: "power", content: "STARTING"}));
+
+                let isProxy = podName.includes('proxy');
+                let status = 'RUNNING';
+
+                if (!isProxy) {
+                    let content = await getDeploymentContent(deployment);
+                    const yamlContent = yaml.load(content) as DeploymentYaml;
+                    let requireStartupConfirmation = yamlContent.queuing.requireStartupConfirmation;
+
+                    console.log(yamlContent);
+                    console.log(`Deployment ${deployment} requires startup confirmation: ${requireStartupConfirmation}`);
+
+                    status = requireStartupConfirmation === 'true' ? 'STARTING' : 'RUNNING';
+                }
+
+                await setPodStatus(podName, status);
+                ws.send(JSON.stringify({type: "power", content: status}));
                 break;
 
             case 'restart':

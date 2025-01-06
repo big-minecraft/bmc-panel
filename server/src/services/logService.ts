@@ -28,7 +28,7 @@ interface User {
     };
 }
 
-export async function setupPodLogs(ws: WebSocket, podName: string, cluster: Cluster, user: User): Promise<void> {
+export async function setupPodLogs(ws: WebSocket, deployment: string, podName: string, cluster: Cluster, user: User): Promise<void> {
     if (!podName) {
         throw new Error('Pod name is required');
     }

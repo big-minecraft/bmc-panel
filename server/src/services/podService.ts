@@ -40,14 +40,15 @@ function isCommandMessage(message: WebSocketMessage): message is CommandMessage 
 async function handlePodConnection(
     ws: WebSocket,
     req: any,
+    deployment: string,
     podName: string
 ): Promise<void> {
     const cluster: Cluster = kubernetesClient.kc.getCurrentCluster();
     const user: User = kubernetesClient.kc.getCurrentUser();
 
-    console.log(`Client connected for logs and commands of pod: ${podName}`);
+    console.log(`Client connected for logs and commands of pod: ${podName} in deployment: ${deployment}`);
 
-    setupPodLogs(ws, podName, cluster, user);
+    await setupPodLogs(ws, deployment, podName, cluster, user);
 
     ws.on('message', async (message: WebSocket.Data) => {
         try {
@@ -58,7 +59,7 @@ async function handlePodConnection(
             }
 
             if (isPowerActionMessage(parsedMessage)) {
-                await executePowerAction(ws, parsedMessage.action, podName, cluster, user);
+                await executePowerAction(ws, parsedMessage.action, deployment, podName, cluster, user);
             } else if (isCommandMessage(parsedMessage)) {
                 if (!parsedMessage.command) {
                     throw new Error('No command specified');
@@ -74,7 +75,7 @@ async function handlePodConnection(
     });
 
     ws.on('close', () => {
-        console.log(`Client disconnected from logs and commands of pod: ${podName}`);
+        console.log(`Client disconnected from logs and commands of pod: ${podName} in deployment: ${deployment}`);
     });
 }
 

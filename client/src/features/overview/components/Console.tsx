@@ -1,7 +1,7 @@
 import React, {useState, useEffect, useRef} from 'react';
 import {Send, Terminal} from 'lucide-react';
 
-const Console = ({podName, onWebSocketReady, onStateUpdate}) => {
+const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
     const [logs, setLogs] = useState([]);
     const [command, setCommand] = useState('');
     const [ws, setWs] = useState(null);
@@ -30,7 +30,7 @@ const Console = ({podName, onWebSocketReady, onStateUpdate}) => {
         setIsConnecting(true);
         const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
         const wsHost = window.location.host;
-        const wsUrl = `${wsProtocol}://${wsHost.replace('3000', '3001')}/api/logs/${podName}`;
+        const wsUrl = `${wsProtocol}://${wsHost.replace('3000', '3001')}/api/logs/${instance.deployment}/${instance.podName}`;
 
         const socket = new WebSocket(wsUrl);
 
@@ -131,7 +131,7 @@ const Console = ({podName, onWebSocketReady, onStateUpdate}) => {
                 ws.close();
             }
         };
-    }, [podName]);
+    }, [instance]);
 
     const handleCommandSubmit = () => {
         if (ws && ws.readyState === WebSocket.OPEN && command) {
@@ -160,7 +160,7 @@ const Console = ({podName, onWebSocketReady, onStateUpdate}) => {
         <div className="space-y-4">
             <div className="flex items-center text-gray-500 mb-4">
                 <Terminal size={18} className="mr-2"/>
-                <span className="text-sm">Connected to {podName}</span>
+                <span className="text-sm">Connected to {instance.podName}</span>
             </div>
 
             <div

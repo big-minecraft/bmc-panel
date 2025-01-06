@@ -10,15 +10,17 @@ function setupWebSocket(server) {
         const urlParts = request.url.split('/');
         const podName = urlParts[urlParts.length - 1];
 
-        if (!podName) {
-            console.error("No pod name specified in URL");
+        const deployment = urlParts[urlParts.length - 2];
+
+        if (!podName || !deployment) {
+            console.error("Incorrect details specified in URL");
             socket.destroy();
             return;
         }
 
         wss.handleUpgrade(request, socket, head, (ws) => {
             console.log(`WebSocket connection established for pod: ${podName}`);
-            wss.emit('connection', ws, request, podName);
+            wss.emit('connection', ws, request, deployment, podName);
         });
     });
 

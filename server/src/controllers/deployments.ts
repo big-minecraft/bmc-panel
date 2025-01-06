@@ -37,7 +37,10 @@ interface DeploymentYaml {
     scaling: {
         minInstances?: number;
     };
-    disabled?: boolean;
+    queuing: {
+        requireStartupConfirmation?: string;
+    };
+
 }
 
 // Centralized method to get full path for a deployment file

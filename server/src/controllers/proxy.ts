@@ -1,6 +1,6 @@
 import config from '../config';
 import path from 'path';
-import {promises as fs} from 'fs';
+import {readdirSync, unlinkSync, promises as fs} from 'fs';
 import yaml from 'js-yaml';
 import kubernetesClient from './k8s';
 import {sendProxyUpdate} from './redis';
@@ -16,20 +16,41 @@ interface ProxyConfig {
 }
 
 interface ProxyYaml {
-    disabled?: boolean;
     scaling: {
         minInstances?: number;
     };
 }
 
-async function getProxyConfig(): Promise<ProxyConfig> {
-    const workingDir = `${config["bmc-path"]}/local`;
-    const filePath = path.join(workingDir, "proxy.yaml");
+function getProxyFilePaths() {
+    const baseDir = `${config["bmc-path"]}/local`;
+    return {
+        enabled: path.join(baseDir, "proxy.yaml"),
+        disabled: path.join(baseDir, "disabled-proxy.yaml")
+    };
+}
 
+async function findProxyFile(): Promise<string> {
+    const paths = getProxyFilePaths();
+    const allPaths = [paths.enabled, paths.disabled];
+
+    for (const filePath of allPaths) {
+        try {
+            await fs.readFile(filePath);
+            return filePath;
+        } catch {
+            continue;
+        }
+    }
+
+    throw new Error('Proxy configuration file not found');
+}
+
+async function getProxyConfig(): Promise<ProxyConfig> {
     try {
+        const filePath = await findProxyFile();
         const fileContent = await fs.readFile(filePath, 'utf8');
         const yamlContent = yaml.load(fileContent) as ProxyYaml;
-        const isEnabled = !yamlContent.disabled;
+        const isEnabled = !filePath.includes('disabled-');
         const dataDir = "/system/proxy";
 
         return {
@@ -43,10 +64,8 @@ async function getProxyConfig(): Promise<ProxyConfig> {
 }
 
 async function getProxyContent(): Promise<string> {
-    const workingDir = `${config["bmc-path"]}/local`;
-    const filePath = path.join(workingDir, "proxy.yaml");
-
     try {
+        const filePath = await findProxyFile();
         return await fs.readFile(filePath, 'utf8');
     } catch (error) {
         console.error(error);
@@ -55,10 +74,8 @@ async function getProxyContent(): Promise<string> {
 }
 
 async function updateProxyContent(content: string): Promise<void> {
-    const workingDir = `${config["bmc-path"]}/local`;
-    const filePath = path.join(workingDir, "proxy.yaml");
-
     try {
+        const filePath = await findProxyFile();
         await fs.writeFile(filePath, content, 'utf8');
     } catch (error) {
         throw new Error('Failed to write proxy configuration file');
@@ -69,29 +86,19 @@ async function updateProxyContent(content: string): Promise<void> {
 }
 
 async function toggleProxy(enabled: boolean): Promise<void> {
-    const workingDir = `${config["bmc-path"]}/local`;
-    const filePath = path.join(workingDir, "proxy.yaml");
-
     try {
-        const fileContent = await fs.readFile(filePath, 'utf8');
-        const lines = fileContent.split('\n');
+        const currentPath = await findProxyFile();
+        const paths = getProxyFilePaths();
+        const newPath = enabled ? paths.enabled : paths.disabled;
 
+        const fileContent = await fs.readFile(currentPath, 'utf8');
         const yamlContent = yaml.load(fileContent) as ProxyYaml;
 
-        const updatedLines = lines.map(line => {
-            if (line.trim().startsWith('disabled:')) {
-                return enabled ? null : 'disabled: true';
-            }
-            return line;
-        })
-            .filter((line): line is string => line !== null);
-
-        if (!enabled && !lines.some(line => line.trim().startsWith('disabled:'))) {
-            updatedLines.push('disabled: true');
+        // Only move the file if it's not already in the correct state
+        if (currentPath !== newPath) {
+            await fs.writeFile(newPath, fileContent, 'utf8');
+            unlinkSync(currentPath);
         }
-
-        const updatedContent = updatedLines.join('\n');
-        await fs.writeFile(filePath, updatedContent, 'utf8');
 
         if (enabled) {
             const minimumInstances = yamlContent.scaling.minInstances || 1;
