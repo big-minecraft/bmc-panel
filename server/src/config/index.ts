@@ -122,15 +122,15 @@ const validateConfig = (config: AppConfig): void => {
         throw new Error('Invalid Prometheus configuration');
     }
 
-    //validate if the kubeconfig file exists
-    if (!existsSync(config.k8s.configPath)) {
-        throw new Error('Kubeconfig file does not exist');
-    }
-
-    //validate if the bmc path exists
-    if (!existsSync(config["bmc-path"])) {
-        throw new Error('BMC path does not exist');
-    }
+    // //validate if the kubeconfig file exists
+    // if (!existsSync(config.k8s.configPath)) {
+    //     throw new Error('Kubeconfig file does not exist');
+    // }
+    //
+    // //validate if the bmc path exists
+    // if (!existsSync(config["bmc-path"])) {
+    //     throw new Error('BMC path does not exist');
+    // }
 };
 
 const initializeConfig = (): AppConfig => {
