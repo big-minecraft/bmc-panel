@@ -1,11 +1,102 @@
 import WebSocket from 'ws';
-import {User, Cluster} from "./podService";
+import {User, Cluster, getPodConnections} from "./podService";
 import {executeCommand} from "./commandService";
 import kubernetesClient from "../controllers/k8s";
 import {setPodStatus} from "../controllers/redis";
 import {DeploymentYaml, getDeploymentContent} from "../controllers/deployments";
 import yaml from 'js-yaml';
 
+const podStatusMap = new Map<string, string>();
+
+async function stopPod(
+    ws: WebSocket,
+    podName: string,
+    cluster: Cluster,
+    user: User
+): Promise<void> {
+    await executeCommand(ws, 'stop', podName, cluster, user, true);
+    await executeCommand(ws, 'rm /tmp/should_run', podName, cluster, user, false);
+    await updatePod(podName, 'STOPPING');
+}
+
+async function  determineStartStatus(
+    deployment: string,
+    isProxy: boolean
+): Promise<string> {
+    if (isProxy) return 'RUNNING';
+
+    const content = await getDeploymentContent(deployment);
+    const yamlContent = yaml.load(content) as DeploymentYaml;
+    const requireStartupConfirmation = yamlContent.queuing.requireStartupConfirmation;
+
+    console.log(yamlContent);
+    console.log(`Deployment ${deployment} requires startup confirmation: ${requireStartupConfirmation}`);
+
+    return requireStartupConfirmation === 'true' ? 'STARTING' : 'RUNNING';
+}
+
+async function startPod(
+    ws: WebSocket,
+    deployment: string,
+    podName: string,
+    cluster: Cluster,
+    user: User
+): Promise<void> {
+    await executeCommand(ws, 'touch /tmp/should_run', podName, cluster, user, false);
+
+    const isProxy = podName.includes('proxy');
+    const status = await determineStartStatus(deployment, isProxy);
+
+    await updatePod(podName, status);
+}
+
+async function killPod(
+    podName: string
+): Promise<void> {
+    await kubernetesClient.killPod(podName);
+    await updatePod(podName, 'STOPPED');
+}
+
+async function waitForPodStop(
+    podName: string,
+    timeoutMs: number = 30000
+): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+            cleanup();
+            reject(new Error('Timeout waiting for pod to stop'));
+        }, timeoutMs);
+
+        const checkStatus = () => {
+            const currentStatus = podStatusMap.get(podName);
+            if (currentStatus === 'STOPPED') {
+                cleanup();
+                resolve();
+            }
+        };
+
+        const interval = setInterval(checkStatus, 500);
+        const cleanup = () => {
+            clearInterval(interval);
+            clearTimeout(timeout);
+            podStatusMap.delete(podName);
+        };
+
+        checkStatus();
+    });
+}
+
+async function restartPod(
+    ws: WebSocket,
+    deployment: string,
+    podName: string,
+    cluster: Cluster,
+    user: User
+): Promise<void> {
+    await stopPod(ws, podName, cluster, user);
+    await waitForPodStop(podName);
+    await startPod(ws, deployment, podName, cluster, user);
+}
 
 async function executePowerAction(
     ws: WebSocket,
@@ -18,53 +109,46 @@ async function executePowerAction(
     try {
         switch (action) {
             case 'stop':
-                await executeCommand(ws, 'stop', podName, cluster, user, true);
-                await executeCommand(ws, 'rm /tmp/should_run', podName, cluster, user, false);
-                await setPodStatus(podName, 'STOPPED');
-                ws.send(JSON.stringify({type: "power", content: "STOPPED"}));
+                await stopPod(ws, podName, cluster, user);
                 break;
 
             case 'start':
-                await executeCommand(ws, 'touch /tmp/should_run', podName, cluster, user, false);
-
-                let isProxy = podName.includes('proxy');
-                let status = 'RUNNING';
-
-                if (!isProxy) {
-                    let content = await getDeploymentContent(deployment);
-                    const yamlContent = yaml.load(content) as DeploymentYaml;
-                    let requireStartupConfirmation = yamlContent.queuing.requireStartupConfirmation;
-
-                    console.log(yamlContent);
-                    console.log(`Deployment ${deployment} requires startup confirmation: ${requireStartupConfirmation}`);
-
-                    status = requireStartupConfirmation === 'true' ? 'STARTING' : 'RUNNING';
-                }
-
-                await setPodStatus(podName, status);
-                ws.send(JSON.stringify({type: "power", content: status}));
+                await startPod(ws, deployment, podName, cluster, user);
                 break;
 
             case 'restart':
-                await executeCommand(ws, 'stop', podName, cluster, user, true);
-                await setPodStatus(podName, 'STOPPING');
-                ws.send(JSON.stringify({type: "power", content: "STOPPING"}));
+                await restartPod(ws, deployment, podName, cluster, user);
                 break;
 
             case 'kill':
-                await kubernetesClient.killPod(podName);
-                await setPodStatus(podName, 'STOPPED');
-                ws.send(JSON.stringify({type: "power", content: "STOPPED"}));
+                await killPod(podName);
                 break;
+
             default:
                 throw new Error(`Unsupported power action: ${action}`);
         }
     } catch (error) {
         console.error(`Error executing power action ${action}:`, error);
-        ws.send(JSON.stringify({type: "error", content: `Error executing power action: ${error instanceof Error ? error.message : 'Unknown error'}`}));
+        ws.send(JSON.stringify({
+            type: "error",
+            content: `Error executing power action: ${error instanceof Error ? error.message : 'Unknown error'}`
+        }));
     }
 }
 
+async function updatePod(podName: string, action: string) {
+    podStatusMap.set(podName, action);
+
+    await setPodStatus(podName, action);
+
+    getPodConnections(podName).forEach(connection => {
+        if (connection.ws.readyState === WebSocket.OPEN) {
+            connection.ws.send(JSON.stringify({type: "power", content: action}));
+        }
+    });
+}
+
 export {
-    executePowerAction
+    executePowerAction,
+    updatePod
 };
