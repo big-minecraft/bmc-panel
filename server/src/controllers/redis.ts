@@ -105,15 +105,22 @@ export async function setPodStatus(podName: string, status: string): Promise<voi
     let podType: string = podName.includes('proxy') ? 'proxies' : 'instances';
     const client: Redis = await redisPool.acquire();
 
-    const instancesData: { [key: string]: string } = await client.hgetall(podType);
-    const uid = Object.keys(instancesData).find(key => {
-        return JSON.parse(instancesData[key]).podName === podName;
-    });
+    try {
+        const instancesData: { [key: string]: string } = await client.hgetall(podType);
+        const uid = Object.keys(instancesData).find(key => {
+            return JSON.parse(instancesData[key]).podName === podName;
+        });
 
-    if (uid) {
-        const instance = JSON.parse(instancesData[uid]);
-        instance.state = status;
-        await client.hset(podType, uid, JSON.stringify(instance));
+        if (uid) {
+            const instance = JSON.parse(instancesData[uid]);
+            instance.state = status;
+            await client.hset(podType, uid, JSON.stringify(instance));
+        }
+    } catch (error) {
+        console.error('Failed to set pod status:', error);
+        throw error
+    } finally {
+        await redisPool.release(client);
     }
 }
 
