@@ -1,29 +1,27 @@
 import Redis from 'ioredis';
 import * as genericPool from 'generic-pool';
 import config from '../config';
+import {RedisService} from "../services/redisService";
 
-// Interfaces for the data structures
 interface Instance {
     uid: string;
     podName: string;
 
-    [key: string]: any; // Additional instance properties
+    [key: string]: any;
 }
 
 interface Proxy {
     uid: string;
     podName: string;
 
-    [key: string]: any; // Additional proxy properties
+    [key: string]: any;
 }
 
-// Pool configuration interface
 interface RedisPool extends genericPool.Pool<Redis> {
     acquire: () => Promise<Redis>;
     release: (client: Redis) => Promise<void>;
 }
 
-// Create the Redis connection pool
 const redisPool: RedisPool = genericPool.createPool({
     create: (): Promise<Redis> => {
         return Promise.resolve(new Redis({
@@ -40,13 +38,16 @@ const redisPool: RedisPool = genericPool.createPool({
     min: 2
 }) as RedisPool;
 
+const redisService = new RedisService();
+redisService.initialize().then(r => {
+    console.log('Redis service initialized');
+});
+
 async function getInstances(): Promise<Instance[]> {
     const client: Redis = await redisPool.acquire();
     try {
-        // Fetch all instances from the hash
         const instancesData: { [key: string]: string } = await client.hgetall('instances');
 
-        // Parse each JSON string back into an object
         return Object.entries(instancesData).map(([uid, jsonString]: [string, string]): Instance => {
             const instance = JSON.parse(jsonString);
             return {
@@ -65,10 +66,8 @@ async function getInstances(): Promise<Instance[]> {
 async function getProxies(): Promise<Proxy[]> {
     const client: Redis = await redisPool.acquire();
     try {
-        // Fetch all instances from the hash
         const proxiesData: { [key: string]: string } = await client.hgetall('proxies');
 
-        // Parse each JSON string back into an object
         return Object.entries(proxiesData).map(([uid, jsonString]: [string, string]): Proxy => {
             const proxy = JSON.parse(jsonString);
             return {
@@ -106,15 +105,22 @@ export async function setPodStatus(podName: string, status: string): Promise<voi
     let podType: string = podName.includes('proxy') ? 'proxies' : 'instances';
     const client: Redis = await redisPool.acquire();
 
-    const instancesData: { [key: string]: string } = await client.hgetall(podType);
-    const uid = Object.keys(instancesData).find(key => {
-        return JSON.parse(instancesData[key]).podName === podName;
-    });
+    try {
+        const instancesData: { [key: string]: string } = await client.hgetall(podType);
+        const uid = Object.keys(instancesData).find(key => {
+            return JSON.parse(instancesData[key]).podName === podName;
+        });
 
-    if (uid) {
-        const instance = JSON.parse(instancesData[uid]);
-        instance.state = status;
-        await client.hset(podType, uid, JSON.stringify(instance));
+        if (uid) {
+            const instance = JSON.parse(instancesData[uid]);
+            instance.state = status;
+            await client.hset(podType, uid, JSON.stringify(instance));
+        }
+    } catch (error) {
+        console.error('Failed to set pod status:', error);
+        throw error
+    } finally {
+        await redisPool.release(client);
     }
 }
 

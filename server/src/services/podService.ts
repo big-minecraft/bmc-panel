@@ -2,7 +2,7 @@ import * as k8s from '@kubernetes/client-node';
 import WebSocket from 'ws';
 import {setupPodLogs} from './logService';
 import {executeCommand} from './commandService';
-import {executePowerAction} from './powerActionService'; // New service for power actions
+import {executePowerAction} from './powerActionService';
 import kubernetesClient from '../controllers/k8s';
 
 interface BaseMessage {
@@ -22,11 +22,107 @@ interface PowerActionMessage extends BaseMessage {
 type WebSocketMessage = CommandMessage | PowerActionMessage;
 
 interface Cluster extends k8s.Cluster {
-    // Add any additional cluster properties if needed
 }
 
 interface User extends k8s.User {
-    // Add any additional user properties if needed
+}
+
+interface PodConnection {
+    ws: WebSocket;
+    deployment: string;
+    podName: string;
+    cluster: Cluster;
+    user: User;
+    connectedAt: Date;
+    clientId: string;
+}
+
+class WebSocketRegistry {
+    private static instance: WebSocketRegistry;
+    private connections: Map<string, Set<PodConnection>>;
+
+    private constructor() {
+        this.connections = new Map();
+    }
+
+    public static getInstance(): WebSocketRegistry {
+        if (!WebSocketRegistry.instance) {
+            WebSocketRegistry.instance = new WebSocketRegistry();
+        }
+        return WebSocketRegistry.instance;
+    }
+
+    private generateClientId(): string {
+        return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    public addConnection(podName: string, connection: Omit<PodConnection, 'clientId' | 'connectedAt'>): string {
+        const clientId = this.generateClientId();
+        const fullConnection: PodConnection = {
+            ...connection,
+            clientId,
+            connectedAt: new Date()
+        };
+
+        if (!this.connections.has(podName)) {
+            this.connections.set(podName, new Set());
+        }
+
+        this.connections.get(podName)!.add(fullConnection);
+        return clientId;
+    }
+
+    public removeConnection(podName: string, clientId: string): void {
+        const podConnections = this.connections.get(podName);
+        if (podConnections) {
+            for (const conn of podConnections) {
+                if (conn.clientId === clientId) {
+                    podConnections.delete(conn);
+                    break;
+                }
+            }
+
+            if (podConnections.size === 0) {
+                this.connections.delete(podName);
+            }
+        }
+    }
+
+    public getConnections(podName: string): Set<PodConnection> | undefined {
+        return this.connections.get(podName);
+    }
+
+    public getConnection(podName: string, clientId: string): PodConnection | undefined {
+        const podConnections = this.connections.get(podName);
+        if (podConnections) {
+            return Array.from(podConnections).find(conn => conn.clientId === clientId);
+        }
+        return undefined;
+    }
+
+    public getAllConnections(): Map<string, Set<PodConnection>> {
+        return new Map(this.connections);
+    }
+
+    public getActiveConnectionCount(): number {
+        let count = 0;
+        for (const connections of this.connections.values()) {
+            count += connections.size;
+        }
+        return count;
+    }
+
+    public broadcastToPod(podName: string, message: any): void {
+        const connections = this.connections.get(podName);
+        if (connections) {
+            const messageString = JSON.stringify(message);
+            connections.forEach(connection => {
+                if (connection.ws.readyState === WebSocket.OPEN) {
+                    connection.ws.send(messageString);
+                }
+            });
+        }
+    }
 }
 
 function isPowerActionMessage(message: WebSocketMessage): message is PowerActionMessage {
@@ -40,14 +136,24 @@ function isCommandMessage(message: WebSocketMessage): message is CommandMessage 
 async function handlePodConnection(
     ws: WebSocket,
     req: any,
+    deployment: string | undefined,
     podName: string
 ): Promise<void> {
     const cluster: Cluster = kubernetesClient.kc.getCurrentCluster();
     const user: User = kubernetesClient.kc.getCurrentUser();
+    const registry = WebSocketRegistry.getInstance();
 
-    console.log(`Client connected for logs and commands of pod: ${podName}`);
+    const clientId = registry.addConnection(podName, {
+        ws,
+        deployment,
+        podName,
+        cluster,
+        user
+    });
 
-    setupPodLogs(ws, podName, cluster, user);
+    console.log(`Client ${clientId} connected to pod: ${podName}${deployment ? ` in deployment: ${deployment}` : ''}`);
+
+    await setupPodLogs(ws, deployment, podName, cluster, user);
 
     ws.on('message', async (message: WebSocket.Data) => {
         try {
@@ -58,7 +164,7 @@ async function handlePodConnection(
             }
 
             if (isPowerActionMessage(parsedMessage)) {
-                await executePowerAction(ws, parsedMessage.action, podName, cluster, user);
+                await executePowerAction(ws, parsedMessage.action, deployment, podName, cluster, user);
             } else if (isCommandMessage(parsedMessage)) {
                 if (!parsedMessage.command) {
                     throw new Error('No command specified');
@@ -74,8 +180,30 @@ async function handlePodConnection(
     });
 
     ws.on('close', () => {
-        console.log(`Client disconnected from logs and commands of pod: ${podName}`);
+        registry.removeConnection(podName, clientId);
+        console.log(`Client ${clientId} disconnected from pod: ${podName}`);
     });
+
+    ws.on('error', (error) => {
+        console.error(`WebSocket error for client ${clientId} on pod ${podName}:`, error);
+        registry.removeConnection(podName, clientId);
+    });
+}
+
+function getPodConnections(podName: string): Set<PodConnection> | undefined {
+    return WebSocketRegistry.getInstance().getConnections(podName);
+}
+
+function getPodConnection(podName: string, clientId: string): PodConnection | undefined {
+    return WebSocketRegistry.getInstance().getConnection(podName, clientId);
+}
+
+function broadcastToPod(podName: string, message: any): void {
+    WebSocketRegistry.getInstance().broadcastToPod(podName, message);
+}
+
+function getActiveConnectionCount(): number {
+    return WebSocketRegistry.getInstance().getActiveConnectionCount();
 }
 
 export {
@@ -84,5 +212,10 @@ export {
     PowerActionMessage,
     WebSocketMessage,
     Cluster,
-    User
+    User,
+    PodConnection,
+    getPodConnections,
+    getPodConnection,
+    broadcastToPod,
+    getActiveConnectionCount
 };
