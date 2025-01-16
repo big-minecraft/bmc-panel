@@ -22,12 +22,6 @@ const sftpPool = genericPool.createPool<Client>({
     min: 2
 });
 
-const TEXT_EXTENSIONS = [
-    'txt', 'md', 'json', 'js', 'jsx', 'ts', 'tsx', 'css', 'scss',
-    'html', 'xml', 'csv', 'yml', 'yaml', 'sh', 'bash', 'py',
-    'java', 'rb', 'php', 'sql', 'log', 'conf', 'ini', 'env'
-];
-
 async function listSFTPFiles(path) {
     const { isText } = await import("istextorbinary")
     let sftp: Client;
@@ -38,14 +32,16 @@ async function listSFTPFiles(path) {
         const processedFiles = await Promise.all(list.map(async item => {
             const fullPath = `${path}/${item.name}`.replace(/\/+/g, '/');
 
-            let isTextFile = false;
-            if (item.type !== 'd') {
+            let isTextFile = item.size == 0;
+            if (item.type !== 'd' && item.size < 1024 * 100 && item.size > 0) {
                 try {
                     const data = await sftp.get(fullPath);
                     if (Buffer.isBuffer(data)) {
                         isTextFile = isText(null, data);
+                        console.log("reading buffer")
                     } else if (typeof data === 'string') {
                         isTextFile = isText(null, Buffer.from(data, 'utf8'));
+                        console.log("reading string")
                     } else if (data instanceof WritableStream || data instanceof Readable) {
                         console.error(`skipping stream for ${fullPath}`);
                     } else {
