@@ -25,6 +25,7 @@
     "express": "^4.17.1",
     "generic-pool": "^3.9.0",
     "ioredis": "^5.4.1",
+    "istextorbinary": "^9.5.0",
     "js-yaml": "^4.1.0",
     "jsonwebtoken": "^9.0.2",
     "jszip": "^3.10.1",

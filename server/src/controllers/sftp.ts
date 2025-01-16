@@ -1,6 +1,7 @@
-import Client, {FileStats} from 'ssh2-sftp-client';
+import Client from 'ssh2-sftp-client';
 import config from '../config';
 import genericPool from 'generic-pool';
+import {Readable} from "node:stream";
 
 const sftpPool = genericPool.createPool<Client>({
     create: async () => {
@@ -28,15 +29,32 @@ const TEXT_EXTENSIONS = [
 ];
 
 async function listSFTPFiles(path) {
+    const { isText } = await import("istextorbinary")
     let sftp: Client;
     try {
         sftp = await sftpPool.acquire();
         const list = await sftp.list(path);
 
-        const processedFiles = list.map(item => {
+        const processedFiles = await Promise.all(list.map(async item => {
             const fullPath = `${path}/${item.name}`.replace(/\/+/g, '/');
-            const extension = item.name.split('.').pop()?.toLowerCase() || '';
-            const isText = item.type !== 'd' && TEXT_EXTENSIONS.includes(extension);
+
+            let isTextFile = false;
+            if (item.type !== 'd') {
+                try {
+                    const data = await sftp.get(fullPath);
+                    if (Buffer.isBuffer(data)) {
+                        isTextFile = isText(null, data);
+                    } else if (typeof data === 'string') {
+                        isTextFile = isText(null, Buffer.from(data, 'utf8'));
+                    } else if (data instanceof WritableStream || data instanceof Readable) {
+                        console.error(`skipping stream for ${fullPath}`);
+                    } else {
+                        console.error(`unexpected data type for ${fullPath}`);
+                    }
+                } catch (readError) {
+                    console.error(`error reading file ${fullPath}:`, readError);
+                }
+            }
 
             return {
                 name: item.name,
@@ -45,9 +63,9 @@ async function listSFTPFiles(path) {
                 modifyTime: item.modifyTime,
                 path: fullPath,
                 accessRights: item.rights,
-                isText
+                isText: isTextFile
             };
-        });
+        }));
 
         return processedFiles;
     } catch (error) {
