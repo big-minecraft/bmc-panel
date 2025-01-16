@@ -34,5 +34,5 @@
   },
   "token-secret": "secret",
   "invite-code-expiry-days": 7,
-  "max-upload-size-mb": 32
+  "max-upload-size-mb": 100
 }
