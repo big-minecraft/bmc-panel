@@ -57,14 +57,14 @@ async function verify(username, token, inviteToken) {
         token
     });
 
-    // TODO: turn this back off
-    if (verified || true) {
+    let environment = config.environment;
+
+    if (verified || environment === 'development') {
         delete users[username];
         await addUser(username, user.password, user.secret);
     }
 
-    // TODO: turn this back on
-    if (!verified && false) throw new Error('Invalid token');
+    if (!verified && environment === "production") throw new Error('Invalid token');
 
     await setInviteTokenUsed(getCode(inviteToken), username);
     removeToken(inviteToken)
@@ -100,8 +100,8 @@ async function verifyLogin(username, token, sessionToken) {
         token
     });
 
-    // TODO: turn this back on
-    // if (!verified) throw new Error('Invalid token');
+    let environment = config.environment;
+    if (!verified && environment === "production") throw new Error('Invalid token');
 
     return await generateToken(username);
 }

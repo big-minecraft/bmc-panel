@@ -1,13 +1,18 @@
 import {verifyInviteCode} from './database';
 import {isCodeExpired} from "./database";
+import config from "../config";
 
 const tokens = {}
 
 async function verifyInvite(code) {
-    // TODO: turn this back on
-    // if (await isCodeExpired(code)) throw new Error('Invite code expired');
-    // let verified = await verifyInviteCode(code);
-    // if (!verified) throw new Error('Invalid invite code');
+    let environment = config.environment;
+
+    if (environment === 'production') {
+        if (await isCodeExpired(code)) throw new Error('Invite code expired');
+        let verified = await verifyInviteCode(code);
+        if (!verified) throw new Error('Invalid invite code');
+    }
+
 
     const token = Math.random().toString(36).substr(2);
     tokens[code] = token;

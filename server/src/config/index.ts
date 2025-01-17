@@ -40,6 +40,7 @@ interface PrometheusConfig {
 
 // Add index signature to make it compatible with Record<string, unknown>
 interface AppConfig extends Record<string, unknown> {
+    'environment': string;
     'panel-host': string;
     'bmc-path': string;
     'token-secret': string;
