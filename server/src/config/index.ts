@@ -209,6 +209,10 @@ const initializeConfig = (): AppConfig => {
         if (process.env.SFTP_PASSWORD) {
             config.sftp.password = process.env.SFTP_PASSWORD;
         }
+
+        if(process.env.ENVIRONMENT) {
+            config.environment = process.env.ENVIRONMENT;
+        }
     };
 
     checkMissingKeys(exampleConfig, config);
