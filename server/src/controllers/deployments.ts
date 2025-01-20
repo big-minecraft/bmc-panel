@@ -15,7 +15,7 @@ interface DeploymentPaths {
         enabled: string;
         disabled: string;
     };
-    nonPersistent: {
+    scalable: {
         enabled: string;
         disabled: string;
     };
@@ -26,7 +26,7 @@ interface Deployment {
     path: string;
     enabled: boolean;
     dataDirectory: string;
-    type: 'persistent' | 'non-persistent';
+    type: 'persistent' | 'scalable';
 }
 
 interface DeploymentYaml {
@@ -51,9 +51,9 @@ function getDeploymentFilePaths(name: string): DeploymentPaths {
             enabled: path.join(baseDir, "persistent", `${name}.yaml`),
             disabled: path.join(baseDir, "persistent", `disabled-${name}.yaml`)
         },
-        nonPersistent: {
-            enabled: path.join(baseDir, "non-persistent", `${name}.yaml`),
-            disabled: path.join(baseDir, "non-persistent", `disabled-${name}.yaml`)
+        scalable: {
+            enabled: path.join(baseDir, "scalable", `${name}.yaml`),
+            disabled: path.join(baseDir, "scalable", `disabled-${name}.yaml`)
         }
     };
 }
@@ -62,7 +62,7 @@ async function findDeploymentFile(name: string): Promise<string> {
     const paths = getDeploymentFilePaths(name);
     const allPaths = [
         ...Object.values(paths.persistent),
-        ...Object.values(paths.nonPersistent)
+        ...Object.values(paths.scalable)
     ];
 
     for (const filePath of allPaths) {
@@ -76,13 +76,13 @@ async function findDeploymentFile(name: string): Promise<string> {
     throw new Error('Deployment file not found');
 }
 
-function getDeploymentType(filePath: string): 'persistent' | 'non-persistent' {
-    return filePath.includes('/persistent/') ? 'persistent' : 'non-persistent';
+function getDeploymentType(filePath: string): 'persistent' | 'scalable' {
+    return filePath.includes('/persistent/') ? 'persistent' : 'scalable';
 }
 
 async function getDeployments(): Promise<Deployment[]> {
     const baseDir = path.join(config["bmc-path"], "local/deployments");
-    const types: Array<'persistent' | 'non-persistent'> = ['persistent', 'non-persistent'];
+    const types: Array<'persistent' | 'scalable'> = ['persistent', 'scalable'];
     const deployments: Deployment[] = [];
 
     await kubernetesClient.listNodeNames();
@@ -264,7 +264,7 @@ async function restartDeployment(name: string): Promise<void> {
 
 async function createDeployment(
     name: string,
-    type: 'persistent' | 'non-persistent' = 'non-persistent',
+    type: 'persistent' | 'scalable' = 'scalable',
     node?: string
 ): Promise<void> {
     const workingDir = path.join(config["bmc-path"], "local/deployments", type);
