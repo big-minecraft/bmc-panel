@@ -42,6 +42,7 @@ interface PrometheusConfig {
 interface AppConfig extends Record<string, unknown> {
     'environment': string;
     'panel-host': string;
+    'k8s-dashboard-host': string;
     'bmc-path': string;
     'token-secret': string;
     'invite-code-expiry-days': number;
@@ -59,7 +60,7 @@ const EXAMPLE_CONFIG_PATH = join(__dirname, '../../config.example.json');
 
 const validateConfig = (config: AppConfig): void => {
     // Validate required string fields
-    const requiredStrings: Array<keyof AppConfig> = ['panel-host', 'bmc-path', 'token-secret'];
+    const requiredStrings: Array<keyof AppConfig> = ['panel-host', 'k8s-dashboard-host', 'bmc-path', 'token-secret'];
     requiredStrings.forEach(key => {
         if (typeof config[key] !== 'string' || !config[key]) {
             throw new Error(`Configuration error: ${key} must be a non-empty string`);
@@ -196,6 +197,10 @@ const initializeConfig = (): AppConfig => {
 
         if (process.env.PANEL_HOST) {
             config['panel-host'] = process.env.PANEL_HOST;
+        }
+
+        if (process.env.K8S_DASHBOARD_HOST) {
+            config['k8s-dashboard-host'] = process.env.K8S_DASHBOARD_HOST;
         }
 
         if (process.env.TOKEN_SECRET) {

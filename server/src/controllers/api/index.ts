@@ -369,6 +369,14 @@ const api = {
         }
     },
 
+    getK8sDashboardHost(req, res) {
+        try {
+            res.json({host: config["k8s-dashboard-host"]});
+        } catch (error) {
+            res.status(500).json({error: 'Failed to get the k8s dashboard host'});
+        }
+    },
+
     getSFTPFiles: async (req, res) => {
         const {path} = req.query;
 

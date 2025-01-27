@@ -6,6 +6,7 @@ import LoadingSpinner from '../../../../common/zold/LoadingSpinner';
 import {ExternalLink, Copy, Eye, EyeOff, Plus, Trash2, Check} from 'lucide-react';
 
 const K8sDashboardTab = () => {
+    const [host, setHost] = useState<string | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [showToken, setShowToken] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -14,14 +15,18 @@ const K8sDashboardTab = () => {
     const [showCopied, setShowCopied] = useState(false);
 
     useEffect(() => {
-        fetchToken();
+        fetchData();
     }, []);
 
-    const fetchToken = async () => {
+    const fetchData = async () => {
         try {
             setIsLoading(true);
-            const response = await axiosInstance.get('/api/admin/k8sdashtoken');
-            setToken(response.data.token || null);
+
+            const hostResponse = await axiosInstance.get('/api/admin/k8sdashhost');
+            setHost(hostResponse.data.host || null);
+
+            const tokenResponse = await axiosInstance.get('/api/admin/k8sdashtoken');
+            setToken(tokenResponse.data.token || null);
         } catch (err) {
             setError('Failed to load K8s dashboard token');
             console.error('error fetching k8s token:', err);
@@ -29,6 +34,7 @@ const K8sDashboardTab = () => {
             setIsLoading(false);
         }
     };
+
 
     const handleCreate = async () => {
         try {
@@ -52,7 +58,7 @@ const K8sDashboardTab = () => {
     const handleDashboardAccess = async () => {
         if (token) {
             await navigator.clipboard.writeText(token);
-            window.open('https://k8s.wiji.dev/#/login', '_blank');
+            window.open(`https://${host}/#/login`, '_blank');
         }
     };
 

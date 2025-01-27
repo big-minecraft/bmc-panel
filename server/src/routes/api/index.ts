@@ -72,6 +72,9 @@ router.route('/admin/k8sdashtoken')
     .put(verifyAdminToken, controller.createK8sDashboardToken)
     .delete(verifyAdminToken, controller.deleteK8sDashboardToken);
 
+router.route('/admin/k8sdashhost')
+    .get(verifyAdminToken, controller.getK8sDashboardHost)
+
 router.route('/sftp/files')
     .get(verifyToken, controller.getSFTPFiles);
 
