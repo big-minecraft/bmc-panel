@@ -42,11 +42,10 @@ const DeploymentCard = ({deployment}) => {
                     {/* Status Indicator */}
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-2">
-                            <div
-                                className={`w-3 h-3 rounded-full ${deployment.enabled ? 'bg-green-500' : 'bg-gray-300'}`}/>
+                            <div className={`w-3 h-3 rounded-full ${deployment.enabled ? 'bg-green-500' : 'bg-gray-300'}`}/>
                             <span className="text-sm font-medium text-gray-500">
-                {deployment.enabled ? 'Active' : 'Inactive'}
-              </span>
+                                {deployment.enabled ? 'Active' : 'Inactive'}
+                            </span>
                         </div>
                         <div className="flex items-center space-x-2">
                             <motion.button
