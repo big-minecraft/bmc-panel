@@ -25,7 +25,7 @@ function authInit() {
     }
 }
 
-async function register(username, password, inviteToken) {
+async function register(username: string, password: string, inviteToken: string) {
     if (await userExists(username)) throw new Error('User already exists');
     if (!checkToken(inviteToken)) throw new Error('Invalid invite token');
 

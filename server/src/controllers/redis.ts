@@ -1,7 +1,7 @@
 import Redis from 'ioredis';
 import * as genericPool from 'generic-pool';
 import config from '../config';
-import {RedisService} from "../services/redisService";
+import {RedisListenerService} from "../services/redisListenerService";
 
 interface Instance {
     uid: string;
@@ -38,7 +38,7 @@ const redisPool: RedisPool = genericPool.createPool({
     min: 2
 }) as RedisPool;
 
-const redisService = new RedisService();
+const redisService = new RedisListenerService();
 redisService.initialize().then(r => {
     console.log('Redis service initialized');
 });

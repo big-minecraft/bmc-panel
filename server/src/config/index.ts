@@ -1,58 +1,6 @@
 import {join} from 'path';
 import {existsSync, copyFileSync} from 'fs';
-
-interface RedisConfig {
-    host: string;
-    port: number;
-}
-
-interface KubernetesConfig {
-    configPath: string;
-}
-
-interface MariaDBConfig {
-    host: string;
-    port: number;
-    username: string;
-    password: string;
-    database: string;
-}
-
-interface MongoDBConfig {
-    host: string;
-    port: number;
-    username: string;
-    password: string;
-    database: string;
-}
-
-interface SFTPConfig {
-    host: string;
-    port: number;
-    username: string;
-    password: string;
-}
-
-interface PrometheusConfig {
-    host: string;
-    port: number;
-}
-
-// Add index signature to make it compatible with Record<string, unknown>
-interface AppConfig extends Record<string, unknown> {
-    'environment': string;
-    'panel-host': string;
-    'bmc-path': string;
-    'token-secret': string;
-    'invite-code-expiry-days': number;
-    'max-upload-size-mb': number;
-    redis: RedisConfig;
-    k8s: KubernetesConfig;
-    mariadb: MariaDBConfig;
-    mongodb: MongoDBConfig;
-    sftp: SFTPConfig;
-    prometheus: PrometheusConfig;
-}
+import AppConfig from "./appConfig";
 
 const CONFIG_PATH = join(__dirname, '../../config.json');
 const EXAMPLE_CONFIG_PATH = join(__dirname, '../../config.example.json');
