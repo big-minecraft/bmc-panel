@@ -200,11 +200,12 @@ export const DatabaseCard = forwardRef<HTMLDivElement, DatabaseCardProps>(
                                             </div>
                                             {renderField('Connection String', generateConnectionString(), true, `${name}-connection-string`)}
 
-                                            <div className="flex items-center gap-2 mb-2 mt-6">
-                                                <Terminal className="w-4 h-4 text-gray-400"/>
-                                                <span className="text-sm font-medium text-gray-700">CLI Command</span>
-                                            </div>
-                                            {renderField('Command', generateConnectionCommand(), true, `${name}-cli-command`)}
+                                            {/*I thought it looked cool and would be nice to have but this is entirely untested*/}
+                                            {/*<div className="flex items-center gap-2 mb-2 mt-6">*/}
+                                            {/*    <Terminal className="w-4 h-4 text-gray-400"/>*/}
+                                            {/*    <span className="text-sm font-medium text-gray-700">CLI Command</span>*/}
+                                            {/*</div>*/}
+                                            {/*{renderField('Command', generateConnectionCommand(), true, `${name}-cli-command`)}*/}
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
