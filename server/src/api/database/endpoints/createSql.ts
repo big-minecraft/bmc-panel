@@ -1,6 +1,5 @@
 import {ApiEndpoint, AuthType} from '../../types';
 import {z} from 'zod';
-import {createSqlDatabase} from "../../../controllers/mariadbService";
 import mariadbService from "../../../services/mariadbService";
 
 const createSqlSchema = z.object({
@@ -15,7 +14,7 @@ export interface CreateSqlResponse {
 
 export const createSqlEndpoint: ApiEndpoint<CreateSqlRequest, CreateSqlResponse> = {
     path: '/api/database/sql',
-    method: 'get',
+    method: 'post',
     auth: AuthType.Basic,
     handler: async (req, res) => {
         try {

@@ -1,7 +1,4 @@
 import {ApiEndpoint, AuthType} from '../../types';
-import {z} from 'zod';
-import {deleteSqlDatabase} from "../../../controllers/mariadbService";
-import {Types} from "mongoose";
 import mariadbService from "../../../services/mariadbService";
 
 export interface DeleteSqlResponse {

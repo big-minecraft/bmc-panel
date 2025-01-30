@@ -15,7 +15,7 @@ interface KubernetesConfig {
 
 class KubernetesClient {
     private static instance: KubernetesClient;
-    private kc: K8s.KubeConfig;
+    kc: K8s.KubeConfig;
     private coreV1Api: K8s.CoreV1Api | null;
     private appsV1Api: K8s.AppsV1Api | null;
     private initialized: boolean;

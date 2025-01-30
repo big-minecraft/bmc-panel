@@ -22,7 +22,7 @@ const UsersTab = () => {
         try {
             setIsLoading(true);
             const response = await axiosInstance.get('/api/users');
-            setUsers(response.data);
+            setUsers(response.data.data.users);
             setError(null);
         } catch (err) {
             setError('Failed to load users');

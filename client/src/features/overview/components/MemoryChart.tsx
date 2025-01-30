@@ -20,7 +20,7 @@ const MemoryChart = ({podName}) => {
             try {
                 setLoading(true);
                 const response = await axiosInstance.get(`/api/metrics/memory?pod=${podName}`);
-                const formattedData = response.data.map(point => ({
+                const formattedData = response.data.data.map(point => ({
                     timestamp: new Date(point.timestamp).toLocaleTimeString(),
                     value: parseFloat((point.value / 1024).toFixed(2))
                 }));

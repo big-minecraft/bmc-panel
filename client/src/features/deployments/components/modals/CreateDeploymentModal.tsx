@@ -121,13 +121,13 @@ const CreateDeploymentModal = ({show, onClose}) => {
                             </button>
                             <button
                                 className={`p-4 border-2 rounded-lg flex flex-col items-center space-y-2 transition-all
-                          ${deploymentType === 'non-persistent'
+                          ${deploymentType === 'scalable'
                                     ? 'border-blue-500 bg-blue-50 text-blue-600'
                                     : 'border-gray-200 hover:border-gray-300'}`}
-                                onClick={() => setDeploymentType('non-persistent')}
+                                onClick={() => setDeploymentType('scalable')}
                             >
                                 <Server className="w-6 h-6"/>
-                                <span className="font-medium">Non-Persistent</span>
+                                <span className="font-medium">Scalable</span>
                             </button>
                         </div>
                     </div>

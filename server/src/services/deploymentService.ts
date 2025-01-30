@@ -27,10 +27,10 @@ export interface Deployment {
     path: string;
     enabled: boolean;
     dataDirectory: string;
-    type: 'persistent' | 'non-persistent';
+    type: 'persistent' | 'scalable';
 }
 
-interface DeploymentYaml {
+export interface DeploymentYaml {
     volume: {
         dataDirectory?: string;
     };
@@ -63,8 +63,8 @@ class DeploymentManager {
                 disabled: path.join(baseDir, "persistent", `disabled-${name}.yaml`)
             },
             nonPersistent: {
-                enabled: path.join(baseDir, "non-persistent", `${name}.yaml`),
-                disabled: path.join(baseDir, "non-persistent", `disabled-${name}.yaml`)
+                enabled: path.join(baseDir, "scalable", `${name}.yaml`),
+                disabled: path.join(baseDir, "scalable", `disabled-${name}.yaml`)
             }
         };
     }
@@ -88,13 +88,13 @@ class DeploymentManager {
         throw new Error('Deployment file not found');
     }
 
-    private getDeploymentType(filePath: string): 'persistent' | 'non-persistent' {
-        return filePath.includes('/persistent/') ? 'persistent' : 'non-persistent';
+    private getDeploymentType(filePath: string): 'persistent' | 'scalable' {
+        return filePath.includes('/persistent/') ? 'persistent' : 'scalable';
     }
 
     public async getDeployments(): Promise<Deployment[]> {
         const baseDir = path.join(config["bmc-path"], "local/deployments");
-        const types: Array<'persistent' | 'non-persistent'> = ['persistent', 'non-persistent'];
+        const types: Array<'persistent' | 'scalable'> = ['persistent', 'scalable'];
         const deployments: Deployment[] = [];
 
         await kubernetesService.listNodeNames();
@@ -273,7 +273,7 @@ class DeploymentManager {
 
     public async createDeployment(
         name: string,
-        type: 'persistent' | 'non-persistent' = 'non-persistent',
+        type: 'persistent' | 'scalable' = 'scalable',
         node?: string
     ): Promise<void> {
         const workingDir = path.join(config["bmc-path"], "local/deployments", type);

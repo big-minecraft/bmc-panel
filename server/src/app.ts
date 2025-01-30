@@ -6,11 +6,11 @@ import {exec} from 'child_process';
 
 // Import local modules
 import config from './config';
-import router from './routes';
 import {setupWebSocket} from './services/websocketService';
-import {databaseInit} from './controllers/database';
-import {authInit} from './controllers/authentication';
-import kubernetesClient from "./controllers/k8s";
+import ApiManager from "./controllers/api/apiManager";
+import databaseService from "./services/databaseService";
+import authService from "./services/authService";
+import kubernetesService from "./services/kubernetesService";
 
 class AppServer {
     private app: Application;
@@ -31,17 +31,15 @@ class AppServer {
     }
 
     private configureRoutes(): void {
-        this.app.use('/', router);
+        this.app.use(ApiManager.getInstance().getRouter());
     }
 
     private async initializeServices(): Promise<void> {
-        // Setup WebSocket handling
         setupWebSocket(this.server);
 
-        // Initialize other services
-        await databaseInit();
-        await authInit();
-        if (kubernetesClient.isRunningInCluster()) await this.installDependencies();
+        await databaseService;
+        await authService;
+        if (kubernetesService.isRunningInCluster()) await this.installDependencies();
     }
 
     private async installDependencies(): Promise<void> {
@@ -63,7 +61,6 @@ class AppServer {
                         console.error(`Failed to install dependencies: ${stderr}`);
                     }
 
-                    // console.log(`stdout: ${stdout}`);
                     resolve();
                 }
             );
@@ -77,6 +74,5 @@ class AppServer {
     }
 }
 
-// Initialize and start the server
 const appServer = new AppServer();
 appServer.start();

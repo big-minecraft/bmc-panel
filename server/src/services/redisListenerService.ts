@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import {updatePod} from "./powerActionService";
-import redisService from "./redisService";
+import {RedisManager} from "./redisService";
 
 interface ServerShutdownEvent {
     server: string;
@@ -11,6 +11,11 @@ interface ServerShutdownEvent {
 export class RedisListenerService {
     private subscriber: Redis | null = null;
     private isInitialized: boolean = false;
+    private redisService: RedisManager;
+
+    public constructor(redisService: RedisManager) {
+        this.redisService = redisService
+    }
 
     public async initialize() {
         if (this.isInitialized) {
@@ -18,7 +23,7 @@ export class RedisListenerService {
         }
 
         try {
-            this.subscriber = await redisService.redisPool.acquire();
+            this.subscriber = await this.redisService.redisPool.acquire();
 
             await this.subscriber.subscribe('server-status', (err, count) => {
                 if (err) {
@@ -41,7 +46,7 @@ export class RedisListenerService {
             this.isInitialized = true;
         } catch (error) {
             if (this.subscriber) {
-                await redisService.redisPool.release(this.subscriber);
+                await this.redisService.redisPool.release(this.subscriber);
                 this.subscriber = null;
             }
             console.error('Failed to initialize Redis service:', error);
@@ -52,14 +57,14 @@ export class RedisListenerService {
     private async handleServerShutdown(event: ServerShutdownEvent) {
         console.log(`Server ${event.server} shutdown at ${event.timestamp}`);
 
-        await redisService.setPodStatus(event.server, 'STOPPED');
+        await this.redisService.setPodStatus(event.server, 'STOPPED');
         await updatePod(event.server, 'STOPPED');
     }
 
     public async shutdown() {
         if (this.subscriber) {
             await this.subscriber.unsubscribe('server-status');
-            await redisService.redisPool.release(this.subscriber);
+            await this.redisService.redisPool.release(this.subscriber);
             this.subscriber = null;
         }
         this.isInitialized = false;

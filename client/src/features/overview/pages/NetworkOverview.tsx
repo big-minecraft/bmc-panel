@@ -19,11 +19,11 @@ const NetworkOverview = ({instances: initialInstances, proxies: initialProxies})
         try {
             setIsLoading(true);
             const [instancesRes, proxiesRes] = await Promise.all([
-                axiosInstance.get('/api/instances'),
-                axiosInstance.get('/api/proxies')
+                axiosInstance.get('/api/network/instances'),
+                axiosInstance.get('/api/network/proxies')
             ]);
-            setInstances(instancesRes.data);
-            setProxies(proxiesRes.data);
+            setInstances(instancesRes.data.data.instances);
+            setProxies(proxiesRes.data.data.proxies);
         } catch (err) {
             console.error(err);
         } finally {

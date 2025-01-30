@@ -14,7 +14,7 @@ export interface CreateMongoResponse {
 
 export const createMongoEndpoint: ApiEndpoint<CreateMongoRequest, CreateMongoResponse> = {
     path: '/api/database/mongo',
-    method: 'get',
+    method: 'post',
     auth: AuthType.Basic,
     handler: async (req, res) => {
         try {

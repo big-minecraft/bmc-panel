@@ -26,13 +26,15 @@ export const useRegistration = () => {
         setLoading(true);
 
         try {
-            const response = await axiosInstance.post('/api/verify-invite', {
+            const response = await axiosInstance.post('/api/auth/verify-invite', {
                 inviteCode
             });
 
-            if (response.data.token) {
+            console.log(response.data.data);
+
+            if (response.data.data.token) {
                 setAuthStep(2);
-                setInviteToken(response.data.token);
+                setInviteToken(response.data.data.token);
             } else {
                 setError('invalid invite code please try again');
             }
@@ -49,14 +51,13 @@ export const useRegistration = () => {
         setLoading(true);
 
         try {
-            const response = await axiosInstance.post('/api/register', {
-                inviteCode,
+            const response = await axiosInstance.post('/api/auth/register', {
                 username,
                 password,
                 inviteToken
             });
 
-            setQrCode(response.data.qrCode);
+            setQrCode(response.data.data.qrCode);
             setAuthStep(3);
         } catch (err) {
             setError(err.response?.data?.error || 'registration failed please try again');
@@ -71,16 +72,16 @@ export const useRegistration = () => {
         setLoading(true);
 
         try {
-            const response = await axiosInstance.post('/api/verify', {
+            const response = await axiosInstance.post('/api/auth/verify-registration', {
                 username,
                 token,
                 inviteToken
             });
 
-            if (response.data.loginToken) {
+            if (response.data.data.loginToken) {
                 setSuccess(true);
                 setAuthStep(4);
-                setAuthToken(response.data.loginToken, response.data.isAdmin === 1 ? 'true' : 'false');
+                setAuthToken(response.data.data.loginToken, response.data.data.isAdmin === 1 ? 'true' : 'false');
                 window.location.href = '/';
             }
         } catch (err) {

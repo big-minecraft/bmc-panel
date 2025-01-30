@@ -14,7 +14,7 @@ export interface UpdateDeploymentContentResponse {
 }
 
 export const updateDeploymentContentEndpoint: ApiEndpoint<UpdateDeploymentContentRequest, UpdateDeploymentContentResponse> = {
-    path: '/api/deployment/:name',
+    path: '/api/deployments/:name',
     method: 'patch',
     auth: AuthType.Basic,
     handler: async (req, res) => {

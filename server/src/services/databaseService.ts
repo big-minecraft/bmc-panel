@@ -14,6 +14,8 @@ class DatabaseService {
             database: config.mariadb.database,
             connectionLimit: 5
         });
+
+        this.databaseInit();
     }
 
     public static getInstance(): DatabaseService {
@@ -23,7 +25,7 @@ class DatabaseService {
         return DatabaseService.instance;
     }
 
-    public async databaseInit(): Promise<void> {
+    private async databaseInit(): Promise<void> {
         try {
             await this.createTables();
             await this.checkAndCreateInitialInviteCode();

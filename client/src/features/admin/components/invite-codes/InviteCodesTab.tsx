@@ -38,8 +38,8 @@ const InviteCodesTab = () => {
         try {
             setIsLoading(true);
             const response = await axiosInstance.get('/api/invite-codes');
-            setInviteCodes(response.data);
-            setFilteredCodes(response.data);
+            setInviteCodes(response.data.data.codes);
+            setFilteredCodes(response.data.data.codes);
             setError(null);
         } catch (err) {
             setError('Failed to load invite codes');

@@ -20,7 +20,7 @@ interface RedisPool extends genericPool.Pool<Redis> {
     release: (client: Redis) => Promise<void>;
 }
 
-class RedisManager {
+export class RedisManager {
     private static instance: RedisManager;
     public redisPool: RedisPool;
     private redisListenerService: RedisListenerService;
@@ -42,7 +42,7 @@ class RedisManager {
             min: 2
         }) as RedisPool;
 
-        this.redisListenerService = new RedisListenerService();
+        this.redisListenerService = new RedisListenerService(this);
         this.redisListenerService.initialize().then(() => {
             console.log('Redis service initialized');
         });

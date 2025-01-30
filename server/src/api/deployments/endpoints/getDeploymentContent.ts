@@ -6,7 +6,7 @@ export interface GetDeploymentContentResponse {
 }
 
 export const getDeploymentContentEndpoint: ApiEndpoint<unknown, GetDeploymentContentResponse> = {
-    path: '/api/deployment/:name',
+    path: '/api/deployments/:name',
     method: 'get',
     auth: AuthType.Basic,
     handler: async (req, res) => {

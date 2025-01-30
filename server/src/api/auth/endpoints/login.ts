@@ -1,7 +1,6 @@
 import {ApiEndpoint, AuthType} from '../../types';
 import {z} from 'zod';
 import authController from '../../../services/authService';
-import {getUser} from "../../../controllers/database";
 
 const loginSchema = z.object({
     username: z.string().min(1).nullish(),

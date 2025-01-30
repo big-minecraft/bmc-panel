@@ -6,8 +6,8 @@ export interface GetDeploymentsResponse {
     deployments: Deployment[];
 }
 
-export const getDeploymentEndpoint: ApiEndpoint<unknown, GetDeploymentsResponse> = {
-    path: '/api/deployment',
+export const getDeploymentsEndpoint: ApiEndpoint<unknown, GetDeploymentsResponse> = {
+    path: '/api/deployments',
     method: 'get',
     auth: AuthType.Basic,
     handler: async (req, res) => {

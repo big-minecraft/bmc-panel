@@ -6,7 +6,7 @@ export interface DeleteDeploymentResponse {
 }
 
 export const deleteDeploymentEndpoint: ApiEndpoint<unknown, DeleteDeploymentResponse> = {
-    path: '/api/deployment/:name',
+    path: '/api/deployments/:name',
     method: 'delete',
     auth: AuthType.Basic,
     handler: async (req, res) => {

@@ -4,8 +4,8 @@ import deploymentService from "../../../services/deploymentService";
 
 const createDeploymentSchema = z.object({
     name: z.string().min(1),
-    type: z.enum(['persistent', 'non-persistent']),
-    node: z.string().min(1),
+    type: z.enum(['persistent', 'scalable']),
+    node: z.string().min(1).optional(),
 }).strict();
 
 export type CreateDeploymentRequest = z.infer<typeof createDeploymentSchema>;
@@ -15,7 +15,7 @@ export interface CreateDeploymentResponse {
 }
 
 export const createDeploymentEndpoint: ApiEndpoint<CreateDeploymentRequest, CreateDeploymentResponse> = {
-    path: '/api/deployment',
+    path: '/api/deployments',
     method: 'post',
     auth: AuthType.Basic,
     handler: async (req, res) => {

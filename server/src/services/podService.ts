@@ -3,7 +3,7 @@ import WebSocket from 'ws';
 import {setupPodLogs} from './logService';
 import {executeCommand} from './commandService';
 import {executePowerAction} from './powerActionService';
-import kubernetesClient from '../controllers/k8s';
+import kubernetesService from "./kubernetesService";
 
 interface BaseMessage {
     type: 'command' | 'power';
@@ -139,8 +139,8 @@ async function handlePodConnection(
     deployment: string | undefined,
     podName: string
 ): Promise<void> {
-    const cluster: Cluster = kubernetesClient.kc.getCurrentCluster();
-    const user: User = kubernetesClient.kc.getCurrentUser();
+    const cluster: Cluster = kubernetesService.kc.getCurrentCluster();
+    const user: User = kubernetesService.kc.getCurrentUser();
     const registry = WebSocketRegistry.getInstance();
 
     const clientId = registry.addConnection(podName, {

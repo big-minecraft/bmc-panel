@@ -9,7 +9,7 @@ const LogoutButton = () => {
 
     const handleLogout = async () => {
         try {
-            const response = await axiosInstance.post('/api/logout');
+            const response = await axiosInstance.post('/api/auth/logout');
 
             if (response.status === 200) {
                 clearToken();

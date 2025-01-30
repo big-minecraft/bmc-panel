@@ -13,7 +13,7 @@ export interface ToggleDeploymentResponse {
 }
 
 export const toggleDeploymentEndpoint: ApiEndpoint<ToggleDeploymentRequest, ToggleDeploymentResponse> = {
-    path: '/api/deployment/:name/toggle',
+    path: '/api/deployments/:name/toggle',
     method: 'post',
     auth: AuthType.Basic,
     handler: async (req, res) => {

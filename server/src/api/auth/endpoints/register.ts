@@ -37,6 +37,8 @@ export interface RegisterResponse {
             if (error.message === 'User already exists') message = error.message;
             else message = 'Failed to register user';
 
+            console.error(message, error)
+
             res.status(500).json({
                 success: false,
                 error: message

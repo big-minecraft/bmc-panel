@@ -8,14 +8,14 @@ export const useConfig = (isProxy, name) => {
     const [isSaving, setIsSaving] = useState(false);
     const [savedSuccessfully, setSavedSuccessfully] = useState(false);
 
-    const endpoint = isProxy ? '/api/proxy' : `/api/deployments/${name}`;
+    const endpoint = isProxy ? '/api/proxy/content' : `/api/deployments/${name}`;
     const displayType = isProxy ? 'Proxy Configuration' : 'Game Configuration';
 
     const fetchContent = async () => {
         try {
             setIsLoading(true);
             const response = await axiosInstance.get(endpoint);
-            setContent(response.data.content);
+            setContent(response.data.data.content);
             setError(null);
         } catch (err) {
             setError(`Failed to load ${displayType.toLowerCase()} content`);
@@ -28,7 +28,7 @@ export const useConfig = (isProxy, name) => {
     const saveContent = async (newContent) => {
         try {
             setIsSaving(true);
-            await axiosInstance.put(endpoint, {
+            await axiosInstance.patch(endpoint, {
                 content: newContent
             });
             setSavedSuccessfully(true);

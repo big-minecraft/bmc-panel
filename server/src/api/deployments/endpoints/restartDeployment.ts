@@ -6,7 +6,7 @@ export interface RestartDeploymentResponse {
 }
 
 export const restartDeploymentEndpoint: ApiEndpoint<unknown, RestartDeploymentResponse> = {
-    path: '/api/deployment/:name/restart',
+    path: '/api/deployments/:name/restart',
     method: 'post',
     auth: AuthType.Basic,
     handler: async (req, res) => {

@@ -69,7 +69,7 @@ export function useCreateOperations() {
 
         try {
             const dirPath = `${currentDirectory}/${newDirName}`.replace(/\/+/g, '/');
-            await axiosInstance.post('/api/sftp/directories', {
+            await axiosInstance.post('/api/sftp/directory', {
                 path: dirPath
             });
 
