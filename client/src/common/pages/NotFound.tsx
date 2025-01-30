@@ -1,6 +1,6 @@
 import React from 'react';
 import {motion} from 'framer-motion';
-import {useNavigate} from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import {Home, MoveLeft, XCircle} from 'lucide-react';
 import Button from '../components/Button';
 
@@ -63,23 +63,27 @@ const NotFound = () => {
                             </motion.div>
 
                             <div className="space-y-4">
-                                <Button
-                                    variant="secondary"
-                                    icon={MoveLeft}
-                                    fullWidth
+                                <button
                                     onClick={() => window.history.back()}
+                                    className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium
+                                             text-gray-700 bg-gray-50 border border-gray-300 rounded-lg
+                                             hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2
+                                             focus:ring-gray-500 transition-colors duration-200"
                                 >
+                                    <MoveLeft className="w-4 h-4 mr-2"/>
                                     Go Back
-                                </Button>
+                                </button>
 
-                                <Button
-                                    variant="primary"
-                                    icon={Home}
-                                    fullWidth
-                                    onClick={() => navigate('/')}
+                                <Link
+                                    to="/"
+                                    className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white
+                                             bg-indigo-600 rounded-lg hover:bg-indigo-500
+                                             focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500
+                                             transition-colors duration-200"
                                 >
+                                    <Home className="w-4 h-4 mr-2"/>
                                     Return Home
-                                </Button>
+                                </Link>
                             </div>
                         </motion.div>
                     </div>
