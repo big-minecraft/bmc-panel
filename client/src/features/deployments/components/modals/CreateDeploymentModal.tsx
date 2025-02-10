@@ -108,7 +108,7 @@ const CreateDeploymentModal = ({show, onClose}) => {
                         <label className="block text-sm font-medium text-gray-700">
                             Deployment Type
                         </label>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-3 gap-4">
                             <button
                                 className={`p-4 border-2 rounded-lg flex flex-col items-center space-y-2 transition-all
                           ${deploymentType === 'persistent'
@@ -128,6 +128,16 @@ const CreateDeploymentModal = ({show, onClose}) => {
                             >
                                 <Server className="w-6 h-6"/>
                                 <span className="font-medium">Scalable</span>
+                            </button>
+                            <button
+                                className={`p-4 border-2 rounded-lg flex flex-col items-center space-y-2 transition-all
+                          ${deploymentType === 'process'
+                                    ? 'border-blue-500 bg-blue-50 text-blue-600'
+                                    : 'border-gray-200 hover:border-gray-300'}`}
+                                onClick={() => setDeploymentType('process')}
+                            >
+                                <Server className="w-6 h-6"/>
+                                <span className="font-medium">Process</span>
                             </button>
                         </div>
                     </div>

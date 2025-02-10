@@ -103,7 +103,7 @@ const DeploymentsContent = () => {
                     </div>
 
                     <div>
-                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Deployments</h2>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Games</h2>
                         <div className="space-y-4">
                             {deployments.length === 0 ? (
                                 <div className="bg-white rounded-xl border border-gray-200 p-8">
