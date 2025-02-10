@@ -24,13 +24,13 @@ export const useLogin = () => {
         setLoading(true);
 
         try {
-            const response = await axiosInstance.post('/api/login', {
+            const response = await axiosInstance.post('/api/auth/login', {
                 username,
                 password
             });
 
-            setSessionToken(response.data.sessionToken);
-            localStorage.setItem('sessionToken', response.data.sessionToken);
+            setSessionToken(response.data.data.sessionToken);
+            localStorage.setItem('sessionToken', response.data.data.sessionToken);
             setAuthStep(2);
         } catch (err) {
             setError(err.response?.data?.message || 'login failed please check your credentials');
@@ -47,14 +47,14 @@ export const useLogin = () => {
         try {
             const sessionToken = localStorage.getItem('sessionToken');
 
-            const response = await axiosInstance.post('/api/verify-login', {
+            const response = await axiosInstance.post('/api/auth/verify-login', {
                 username,
                 token,
                 sessionToken
             });
 
-            if (response.data.verified) {
-                setAuthToken(response.data.token, response.data.isAdmin === 1 ? 'true' : 'false');
+            if (response.data.success) {
+                setAuthToken(response.data.data.token, response.data.data.isAdmin === 1 ? 'true' : 'false');
                 window.location.href = '/';
             } else {
                 setError('invalid verification code');

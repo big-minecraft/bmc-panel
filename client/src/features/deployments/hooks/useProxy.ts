@@ -14,8 +14,8 @@ export const useProxy = () => {
 
     const fetchProxyConfig = async () => {
         try {
-            const response = await axiosInstance.get('/api/proxy-config');
-            setProxyConfig(response.data);
+            const response = await axiosInstance.get('/api/proxy');
+            setProxyConfig(response.data.data.proxy);
             setError(null);
         } catch (err) {
             console.error('error fetching proxy config:', err);
@@ -25,7 +25,7 @@ export const useProxy = () => {
 
     const toggleProxy = async (currentState) => {
         try {
-            await axiosInstance.patch('/api/proxy', {
+            await axiosInstance.post('/api/proxy/toggle', {
                 enabled: !currentState
             });
             setProxyConfig(prev => ({...prev, enabled: !currentState}));
@@ -39,7 +39,7 @@ export const useProxy = () => {
     const restartProxy = async () => {
         setRestartingProxy(true);
         try {
-            await axiosInstance.post('/api/proxy');
+            await axiosInstance.post('/api/proxy/restart');
             await fetchProxyConfig();
             return true;
         } catch (err) {

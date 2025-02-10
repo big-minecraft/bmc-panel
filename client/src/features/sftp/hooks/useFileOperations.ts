@@ -17,7 +17,7 @@ export function useFileOperations() {
                 params: {path: state.currentDirectory}
             });
 
-            const processedFiles = response.data
+            const processedFiles = response.data.data.files
                 .map(file => ({
                     ...file,
                     isArchived: file.type !== 'd' && (
@@ -168,7 +168,7 @@ export function useFileOperations() {
                     responseType: 'blob'
                 });
 
-                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const url = window.URL.createObjectURL(new Blob([response.data.data]));
                 const link = document.createElement('a');
                 link.href = url;
                 link.setAttribute('download', `${file.name}.zip`);
@@ -182,7 +182,7 @@ export function useFileOperations() {
                     responseType: 'blob'
                 });
 
-                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const url = window.URL.createObjectURL(new Blob([response.data.data]));
                 const link = document.createElement('a');
                 link.href = url;
                 link.setAttribute('download', file.name);
@@ -218,7 +218,7 @@ export function useFileOperations() {
                     responseType: 'blob'
                 });
 
-                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const url = window.URL.createObjectURL(new Blob([response.data.data]));
                 const link = document.createElement('a');
                 link.href = url;
                 link.setAttribute('download', 'files.zip');
@@ -237,7 +237,7 @@ export function useFileOperations() {
     const handleSaveFile = useCallback(async (file, content) => {
         dispatch({type: 'SET_LOADING', payload: {key: 'saving', value: true}});
         try {
-            await axiosInstance.post('/api/sftp/file', {
+            await axiosInstance.patch('/api/sftp/file/content', {
                 path: file.path,
                 content: content
             });
@@ -255,16 +255,16 @@ export function useFileOperations() {
             handleDirectoryChange(file.path);
         } else if (file.type !== 'd' && !file.isArchived) {
             try {
-                const response = await axiosInstance.get('/api/sftp/file', {
+                const response = await axiosInstance.get('/api/sftp/file/content', {
                     params: {path: file.path}
                 });
 
                 let fileContent = '';
-                if (response.data && response.data.content) {
-                    if (typeof response.data.content === 'string') {
-                        fileContent = response.data.content;
-                    } else if (response.data.content.data) {
-                        fileContent = new TextDecoder().decode(new Uint8Array(response.data.content.data));
+                if (response.data.data && response.data.data.content) {
+                    if (typeof response.data.data.content === 'string') {
+                        fileContent = response.data.data.content;
+                    } else if (response.data.data.content.data) {
+                        fileContent = new TextDecoder().decode(new Uint8Array(response.data.data.content.data));
                     }
                 }
 

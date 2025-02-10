@@ -22,11 +22,11 @@ const K8sDashboardTab = () => {
         try {
             setIsLoading(true);
 
-            const hostResponse = await axiosInstance.get('/api/admin/k8sdashhost');
-            setHost(hostResponse.data.host || null);
+            const hostResponse = await axiosInstance.get('/api/admin/k8sdashboard/token');
+            setHost(hostResponse.data.data.host || null);
 
-            const tokenResponse = await axiosInstance.get('/api/admin/k8sdashtoken');
-            setToken(tokenResponse.data.token || null);
+            const tokenResponse = await axiosInstance.get('/api/admin/k8sdashboard/token');
+            setToken(tokenResponse.data.data.token || null);
         } catch (err) {
             setError('Failed to load K8s dashboard token');
             console.error('error fetching k8s token:', err);
@@ -38,8 +38,8 @@ const K8sDashboardTab = () => {
 
     const handleCreate = async () => {
         try {
-            const response = await axiosInstance.put('/api/admin/k8sdashtoken');
-            setToken(response.data.token || null);
+            const response = await axiosInstance.post('/api/admin/k8sdashboard/token');
+            setToken(response.data.data.token || null);
             setShowCreateModal(false);
         } catch (err) {
             console.error('error creating k8s token:', err);
@@ -48,7 +48,7 @@ const K8sDashboardTab = () => {
 
     const handleDelete = async () => {
         try {
-            await axiosInstance.delete('/api/admin/k8sdashtoken');
+            await axiosInstance.delete('/api/admin/k8sdashboard/token');
             setToken(null);
         } catch (err) {
             console.error('error deleting k8s token:', err);

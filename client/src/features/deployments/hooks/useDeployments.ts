@@ -17,7 +17,7 @@ export const useDeployments = () => {
         try {
             setIsLoading(true);
             const response = await axiosInstance.get('/api/deployments');
-            setDeployments(response.data);
+            setDeployments(response.data.data.deployments);
             setError(null);
         } catch (err) {
             setError('Failed to load deployments');
@@ -29,7 +29,7 @@ export const useDeployments = () => {
 
     const toggleDeployment = async (deploymentName, currentState) => {
         try {
-            await axiosInstance.patch(`/api/deployments/${deploymentName}`, {
+            await axiosInstance.post(`/api/deployments/${deploymentName}/toggle`, {
                 enabled: !currentState
             });
 
@@ -50,7 +50,7 @@ export const useDeployments = () => {
     const restartDeployment = async (deploymentName) => {
         setRestartingDeployments(prev => new Set([...prev, deploymentName]));
         try {
-            await axiosInstance.post(`/api/deployments/${deploymentName}`);
+            await axiosInstance.post(`/api/deployments/${deploymentName}/restart`);
             await fetchDeployments();
             return true;
         } catch (err) {

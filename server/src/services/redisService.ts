@@ -1,67 +1,140 @@
 import Redis from 'ioredis';
-import {redisPool, setPodStatus} from "../controllers/redis";
-import {updatePod} from "./powerActionService";
+import * as genericPool from 'generic-pool';
+import config from '../config';
+import {RedisListenerService} from "./redisListenerService";
 
-interface ServerShutdownEvent {
-    server: string;
-    event: 'shutdown';
-    timestamp: string;
+export interface Instance {
+    uid: string;
+    podName: string;
+    [key: string]: any;
 }
 
-export class RedisService {
-    private subscriber: Redis | null = null;
-    private isInitialized: boolean = false;
+export interface Proxy {
+    uid: string;
+    podName: string;
+    [key: string]: any;
+}
 
-    public async initialize() {
-        if (this.isInitialized) {
-            return;
+interface RedisPool extends genericPool.Pool<Redis> {
+    acquire: () => Promise<Redis>;
+    release: (client: Redis) => Promise<void>;
+}
+
+export class RedisManager {
+    private static instance: RedisManager;
+    public redisPool: RedisPool;
+    private redisListenerService: RedisListenerService;
+
+    private constructor() {
+        this.redisPool = genericPool.createPool({
+            create: (): Promise<Redis> => {
+                return Promise.resolve(new Redis({
+                    host: config.redis.host,
+                    port: config.redis.port,
+                }));
+            },
+            destroy: async (client: Redis): Promise<void> => {
+                await client.quit();
+                return;
+            }
+        }, {
+            max: 10,
+            min: 2
+        }) as RedisPool;
+
+        this.redisListenerService = new RedisListenerService(this);
+        this.redisListenerService.initialize().then(() => {
+            console.log('Redis service initialized');
+        });
+    }
+
+    public static getInstance(): RedisManager {
+        if (!RedisManager.instance) {
+            RedisManager.instance = new RedisManager();
         }
+        return RedisManager.instance;
+    }
+
+    public async getInstances(): Promise<Instance[]> {
+        const client: Redis = await this.redisPool.acquire();
+        try {
+            const instancesData: { [key: string]: string } = await client.hgetall('instances');
+
+            return Object.entries(instancesData).map(([uid, jsonString]: [string, string]): Instance => {
+                const instance = JSON.parse(jsonString);
+                return {
+                    uid,
+                    ...instance
+                };
+            });
+        } catch (error) {
+            console.error('Failed to fetch instances:', error);
+            throw error;
+        } finally {
+            await this.redisPool.release(client);
+        }
+    }
+
+    public async getProxies(): Promise<Proxy[]> {
+        const client: Redis = await this.redisPool.acquire();
+        try {
+            const proxiesData: { [key: string]: string } = await client.hgetall('proxies');
+
+            return Object.entries(proxiesData).map(([uid, jsonString]: [string, string]): Proxy => {
+                const proxy = JSON.parse(jsonString);
+                return {
+                    uid,
+                    ...proxy
+                };
+            });
+        } catch (error) {
+            console.error('Failed to fetch proxies:', error);
+            throw error;
+        } finally {
+            await this.redisPool.release(client);
+        }
+    }
+
+    public async sendDeploymentUpdate(): Promise<void> {
+        const client: Redis = await this.redisPool.acquire();
+        try {
+            await client.publish('deployment-modified', 'update');
+        } finally {
+            await this.redisPool.release(client);
+        }
+    }
+
+    public async sendProxyUpdate(): Promise<void> {
+        const client: Redis = await this.redisPool.acquire();
+        try {
+            await client.publish('proxy-modified', 'update');
+        } finally {
+            await this.redisPool.release(client);
+        }
+    }
+
+    public async setPodStatus(podName: string, status: string): Promise<void> {
+        let podType: string = podName.includes('proxy') ? 'proxies' : 'instances';
+        const client: Redis = await this.redisPool.acquire();
 
         try {
-            this.subscriber = await redisPool.acquire();
-
-            await this.subscriber.subscribe('server-status', (err, count) => {
-                if (err) {
-                    console.error('Failed to subscribe:', err);
-                    return;
-                }
+            const instancesData: { [key: string]: string } = await client.hgetall(podType);
+            const uid = Object.keys(instancesData).find(key => {
+                return JSON.parse(instancesData[key]).podName === podName;
             });
 
-            this.subscriber.on('message', (channel: string, message: string) => {
-                if (channel === 'server-status') {
-                    try {
-                        const event: ServerShutdownEvent = JSON.parse(message);
-                        this.handleServerShutdown(event);
-                    } catch (error) {
-                        console.error('Error parsing server shutdown message:', error);
-                    }
-                }
-            });
-
-            this.isInitialized = true;
-        } catch (error) {
-            if (this.subscriber) {
-                await redisPool.release(this.subscriber);
-                this.subscriber = null;
+            if (uid) {
+                const instance = JSON.parse(instancesData[uid]);
+                instance.state = status;
+                await client.hset(podType, uid, JSON.stringify(instance));
             }
-            console.error('Failed to initialize Redis service:', error);
+        } catch (error) {
+            console.error('Failed to set pod status:', error);
             throw error;
+        } finally {
+            await this.redisPool.release(client);
         }
-    }
-
-    private async handleServerShutdown(event: ServerShutdownEvent) {
-        console.log(`Server ${event.server} shutdown at ${event.timestamp}`);
-
-        await setPodStatus(event.server, 'STOPPED');
-        await updatePod(event.server, 'STOPPED');
-    }
-
-    public async shutdown() {
-        if (this.subscriber) {
-            await this.subscriber.unsubscribe('server-status');
-            await redisPool.release(this.subscriber);
-            this.subscriber = null;
-        }
-        this.isInitialized = false;
     }
 }
+
+export default RedisManager.getInstance();

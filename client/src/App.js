@@ -11,17 +11,17 @@ function App() {
     const ref = useRef(null);
 
     useLayoutEffect(() => {
-        axiosInstance.get('/api/instances')
+        axiosInstance.get('/api/network/instances')
             .then(res => {
-                setInstances(res.data);
+                setInstances(res.data.data.instances);
             })
             .catch(err => {
                 console.error(err);
             });
 
-        axiosInstance.get('/api/proxies')
+        axiosInstance.get('/api/network/proxies')
             .then(res => {
-                setProxies(res.data);
+                setProxies(res.data.data.proxies);
             })
             .catch(err => {
                 console.error(err);

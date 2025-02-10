@@ -20,7 +20,7 @@ const CPUChart = ({podName}) => {
             try {
                 setLoading(true);
                 const response = await axiosInstance.get(`/api/metrics/cpu?pod=${podName}`);
-                const formattedData = response.data.map(point => ({
+                const formattedData = response.data.data.map(point => ({
                     timestamp: new Date(point.timestamp).toLocaleTimeString(),
                     value: parseFloat(point.value)
                 }));

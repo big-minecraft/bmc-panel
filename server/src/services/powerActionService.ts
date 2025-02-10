@@ -1,10 +1,10 @@
 import WebSocket from 'ws';
 import {User, Cluster, getPodConnections} from "./podService";
 import {executeCommand} from "./commandService";
-import kubernetesClient from "../controllers/k8s";
-import {setPodStatus} from "../controllers/redis";
-import {DeploymentYaml, getDeploymentContent} from "../controllers/deployments";
 import yaml from 'js-yaml';
+import deploymentService, {DeploymentYaml} from "./deploymentService";
+import kubernetesService from "./kubernetesService";
+import redisService from "./redisService";
 
 const podStatusMap = new Map<string, string>();
 
@@ -25,7 +25,7 @@ async function  determineStartStatus(
 ): Promise<string> {
     if (isProxy) return 'RUNNING';
 
-    const content = await getDeploymentContent(deployment);
+    const content = await deploymentService.getDeploymentContent(deployment);
     const yamlContent = yaml.load(content) as DeploymentYaml;
     const requireStartupConfirmation = yamlContent.queuing.requireStartupConfirmation;
 
@@ -53,7 +53,7 @@ async function startPod(
 async function killPod(
     podName: string
 ): Promise<void> {
-    await kubernetesClient.killPod(podName);
+    await kubernetesService.killPod(podName);
     await updatePod(podName, 'STOPPED');
 }
 
@@ -139,7 +139,7 @@ async function executePowerAction(
 async function updatePod(podName: string, action: string) {
     podStatusMap.set(podName, action);
 
-    await setPodStatus(podName, action);
+    await redisService.setPodStatus(podName, action);
 
     getPodConnections(podName).forEach(connection => {
         if (connection.ws.readyState === WebSocket.OPEN) {

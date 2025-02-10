@@ -1,29 +1,57 @@
+import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
-import config from '../config';
-import {getUser} from "../controllers/database";
-import kubernetesClient from "../controllers/k8s";
+import {ApiRequest} from "../controllers/api/apiManager";
+import {ApiResponse} from "../api/types";
+import config from "../config";
+import databaseService from "../services/databaseService";
+import kubernetesService from "../services/kubernetesService";
 
-const verifyToken = async (req, res, next) => {
-    const authHeader = req.headers['authorization'];
+export enum AuthType {
+    None = 'none',
+    Basic = 'basic',
+    Admin = 'admin',
+}
 
-    if (!authHeader) return res.status(403).send({message: 'No token provided.'});
+export const handleBasicAuth: RequestHandler = async (
+    req: ApiRequest<any>,
+    res: ApiResponse<any>,
+    next
+): Promise<void> => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+        res.status(403).json({
+            success: false,
+            error: 'No token provided'
+        });
+        return;
+    }
 
     const token = authHeader.split(' ')[1];
-    if (!token) return res.status(403).send({message: 'Invalid token format.'});
+    if (!token) {
+        res.status(403).json({
+            success: false,
+            error: 'Invalid token format'
+        });
+        return;
+    }
 
     try {
         const decoded = jwt.verify(token, config["token-secret"]);
-        let user = decoded.username;
+        const user = decoded.username;
 
-        const dbUser = await getUser(user);
+        const dbUser = await databaseService.getUser(user);
         const last_logout = dbUser.last_logout;
 
         if (last_logout) {
             const lastLogoutTimestamp = new Date(last_logout).getTime() / 1000;
-            const currentTime = Date.now() / 1000;
 
-            if (decoded.iat < lastLogoutTimestamp && kubernetesClient.isRunningInCluster()) {
-                return res.status(401).send({message: 'Token has expired.'});
+            if (decoded.iat < lastLogoutTimestamp && kubernetesService.isRunningInCluster()) {
+                res.status(401).json({
+                    success: false,
+                    error: 'Token has expired'
+                });
+                return;
             }
         }
 
@@ -32,55 +60,84 @@ const verifyToken = async (req, res, next) => {
     } catch (err) {
         console.error('Token verification error:', err.message);
         if (err.name === 'TokenExpiredError') {
-            return res.status(401).send({message: 'Token has expired.'});
+            res.status(401).json({
+                success: false,
+                error: 'Token has expired'
+            });
+            return;
         }
-        return res.status(401).send({
-            message: 'Failed to authenticate token.',
-            error: err.message
+        res.status(401).json({
+            success: false,
+            error: 'Failed to authenticate token',
         });
     }
 };
 
-const verifyAdminToken = async (req, res, next) => {
-    const authHeader = req.headers['authorization'];
+export const handleAdminAuth: RequestHandler = async (
+    req: ApiRequest<any>,
+    res: ApiResponse<any>,
+    next
+): Promise<void> => {
+    const authHeader = req.headers.authorization;
 
-    if (!authHeader) return res.status(403).send({message: 'No token provided.'});
+    if (!authHeader) {
+        res.status(403).json({
+            success: false,
+            error: 'No token provided'
+        });
+        return;
+    }
 
     const token = authHeader.split(' ')[1];
-    if (!token) return res.status(403).send({message: 'Invalid token format.'});
+    if (!token) {
+        res.status(403).json({
+            success: false,
+            error: 'Invalid token format'
+        });
+        return;
+    }
 
     try {
         const decoded = jwt.verify(token, config["token-secret"]);
-        let user = decoded.username;
+        const user = decoded.username;
 
-        const dbUser = await getUser(user);
+        const dbUser = await databaseService.getUser(user);
         const last_logout = dbUser.last_logout;
 
         if (last_logout) {
             const lastLogoutTimestamp = new Date(last_logout).getTime() / 1000;
 
-            if (decoded.iat < lastLogoutTimestamp && kubernetesClient.isRunningInCluster()) {
-                return res.status(401).send({message: 'Token has expired.'});
+            if (decoded.iat < lastLogoutTimestamp && kubernetesService.isRunningInCluster()) {
+                res.status(401).json({
+                    success: false,
+                    error: 'Token has expired'
+                });
+                return;
             }
         }
 
-        if (!dbUser.is_admin) return res.status(403).send({message: 'Unauthorized.'});
+        if (!dbUser.is_admin) {
+            res.status(403).json({
+                success: false,
+                error: 'Unauthorized'
+            });
+            return;
+        }
 
         req.user = decoded;
         next();
     } catch (err) {
         console.error('Token verification error:', err.message);
         if (err.name === 'TokenExpiredError') {
-            return res.status(401).send({message: 'Token has expired.'});
+            res.status(401).json({
+                success: false,
+                error: 'Token has expired'
+            });
+            return;
         }
-        return res.status(401).send({
-            message: 'Failed to authenticate token.',
-            error: err.message
+        res.status(401).json({
+            success: false,
+            error: 'Failed to authenticate token',
         });
     }
-};
-
-export {
-    verifyToken,
-    verifyAdminToken
 };
