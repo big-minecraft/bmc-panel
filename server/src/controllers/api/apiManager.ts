@@ -57,6 +57,7 @@ import {getDeploymentsEndpoint} from "../../api/deployments/endpoints/getDeploym
 import {toggleProxyEndpoint} from "../../api/proxy/endpoints/toggleProxy";
 import {AuthType} from "../../api/types";
 import {handleAdminAuth, handleBasicAuth} from "../../middleware/auth";
+import {getK8sDashboardHostEndpoint} from "../../api/admin/endpoints/getK8sDashboardHost";
 
 export interface MulterFile {
     fieldname: string;
@@ -122,6 +123,7 @@ export default class ApiManager {
         //Admin
         this.addEndpoint(createK8sTokenEndpoint);
         this.addEndpoint(deleteK8sTokenEndpoint);
+        this.addEndpoint(getK8sDashboardHostEndpoint);
         this.addEndpoint(getK8sTokenEndpoint);
 
         //Database

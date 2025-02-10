@@ -22,7 +22,7 @@ const K8sDashboardTab = () => {
         try {
             setIsLoading(true);
 
-            const hostResponse = await axiosInstance.get('/api/admin/k8sdashboard/token');
+            const hostResponse = await axiosInstance.get('/api/admin/k8sdashboard/host');
             setHost(hostResponse.data.data.host || null);
 
             const tokenResponse = await axiosInstance.get('/api/admin/k8sdashboard/token');

@@ -1,6 +1,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import databaseService from "./databaseService";
+import config from "../config";
 
 const execAsync = promisify(exec);
 
@@ -87,6 +88,10 @@ class K8sDashboardTokenManager {
         } finally {
             if (conn) await conn.end();
         }
+    }
+
+    public getK8sDashboardHost() {
+        return config["k8s-dashboard-host"];
     }
 }
 

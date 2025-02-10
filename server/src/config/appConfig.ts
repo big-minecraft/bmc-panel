@@ -38,6 +38,7 @@ interface PrometheusConfig {
 export default interface AppConfig extends Record<string, unknown> {
     'environment': string;
     'panel-host': string;
+    'k8s-dashboard-host': string;
     'bmc-path': string;
     'token-secret': string;
     'invite-code-expiry-days': number;
