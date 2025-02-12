@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
-import deploymentService from "../../services/deploymentService";
 import {z} from "zod";
+import DeploymentManager from "../../features/deployments/controllers/deploymentManager";
 
 const updateDeploymentContentSchema = z.object({
     content: z.string().min(1),
@@ -22,7 +22,7 @@ export const updateDeploymentContentEndpoint: ApiEndpoint<UpdateDeploymentConten
             const data: UpdateDeploymentContentRequest = updateDeploymentContentSchema.parse(req.body);
             const name = req.params.name as string;
 
-            await deploymentService.updateDeploymentContent(name, data.content);
+            await DeploymentManager.get().updateDeploymentContent(name, data.content);
 
             res.json({
                 success: true,

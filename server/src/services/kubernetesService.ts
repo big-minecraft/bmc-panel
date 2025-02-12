@@ -109,7 +109,7 @@ class KubernetesClient {
             typeof process.env.KUBERNETES_SERVICE_PORT === 'string';
     }
 
-    private ensureInitialized(): void | never {
+    private ensureInitialized(): void {
         if (!this.initialized || !this.appsV1Api) {
             this.initialize();
 
@@ -119,15 +119,16 @@ class KubernetesClient {
         }
     }
 
-    public async scaleDeployment(deploymentName: string, replicas: number, namespace: string = 'default'): Promise<K8s.V1Deployment> {
+    public async scaleDeployment(deploymentName: string, replicas: number): Promise<K8s.V1Deployment> {
         this.ensureInitialized();
+        let namespace = 'default';
 
         if (!this.appsV1Api) {
             throw new Error('AppsV1Api is not initialized');
         }
 
         try {
-            console.log(`Scaling deployment ${deploymentName} in namespace ${namespace} to ${replicas} replicas`);
+            console.log(`Scaling deployment ${deploymentName} to ${replicas} replicas`);
 
             const res = await this.appsV1Api.readNamespacedDeployment(deploymentName, namespace);
             const deployment = res.body;
@@ -148,7 +149,7 @@ class KubernetesClient {
                 throw new Error('Response body is undefined');
             }
 
-            console.log('Deployment scaled successfully:', response.body);
+            console.log(`Deployment ${deploymentName} scaled successfully`);
             return response.body;
         } catch (error) {
             const err = error instanceof Error ? error : new Error('Unknown error occurred');

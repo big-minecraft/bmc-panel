@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from 'zod';
-import deploymentService from "../../services/deploymentService";
+import DeploymentManager from "../../features/deployments/controllers/deploymentManager";
 
 const createDeploymentSchema = z.object({
     name: z.string().min(1),
@@ -21,7 +21,7 @@ export const createDeploymentEndpoint: ApiEndpoint<CreateDeploymentRequest, Crea
     handler: async (req, res) => {
         try {
             const data: CreateDeploymentRequest = createDeploymentSchema.parse(req.body);
-            await deploymentService.createDeployment(data.name, data.type, data.node);
+            await DeploymentManager.get().createDeployment(data.name, data.type, data.node);
             res.json({
                 success: true,
                 data: {

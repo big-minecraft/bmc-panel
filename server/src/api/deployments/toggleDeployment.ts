@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from 'zod';
-import deploymentService from "../../services/deploymentService";
+import DeploymentManager from "../../features/deployments/controllers/deploymentManager";
 
 const toggleDeploymentSchema = z.object({
     enabled: z.boolean(),
@@ -21,7 +21,7 @@ export const toggleDeploymentEndpoint: ApiEndpoint<ToggleDeploymentRequest, Togg
             const data: ToggleDeploymentRequest = toggleDeploymentSchema.parse(req.body);
             const name = req.params.name as string;
             
-            await deploymentService.toggleDeployment(name, data.enabled);
+            await DeploymentManager.get().setDeploymentState(name, data.enabled);
             
             res.json({
                 success: true,

@@ -1,5 +1,5 @@
 import {ApiEndpoint, AuthType} from '../types';
-import deploymentService from "../../services/deploymentService";
+import DeploymentManager from "../../features/deployments/controllers/deploymentManager";
 
 export interface RestartDeploymentResponse {
     message: string;
@@ -13,7 +13,7 @@ export const restartDeploymentEndpoint: ApiEndpoint<unknown, RestartDeploymentRe
         try {
             const name = req.params.name as string;
 
-            await deploymentService.restartDeployment(name);
+            await DeploymentManager.get().restartDeployment(name);
             res.json({
                 success: true,
                 data: {

@@ -1,5 +1,5 @@
 import {ApiEndpoint, AuthType} from '../types';
-import deploymentService from "../../services/deploymentService";
+import DeploymentManager from "../../features/deployments/controllers/deploymentManager";
 
 export interface GetDeploymentContentResponse {
     content: string;
@@ -13,7 +13,7 @@ export const getDeploymentContentEndpoint: ApiEndpoint<unknown, GetDeploymentCon
         try {
             const name = req.params.name as string;
 
-            const content = await deploymentService.getDeploymentContent(name);
+            const content = await DeploymentManager.get().getDeploymentContent(name);
 
             res.json({
                 success: true,

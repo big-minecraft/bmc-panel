@@ -1,5 +1,5 @@
 import {ApiEndpoint, AuthType} from '../types';
-import deploymentService from "../../services/deploymentService";
+import DeploymentManager from "../../features/deployments/controllers/deploymentManager";
 
 export interface DeleteDeploymentResponse {
     message: string;
@@ -13,7 +13,7 @@ export const deleteDeploymentEndpoint: ApiEndpoint<unknown, DeleteDeploymentResp
         try {
             const name = req.params.name as string;
 
-            await deploymentService.deleteDeployment(name);
+            await DeploymentManager.get().deleteDeployment(name);
             res.json({
                 success: true,
                 data: {

@@ -1,6 +1,7 @@
 import {ApiEndpoint, AuthType} from '../types';
-import deploymentsService from "../../services/deploymentService";
-import {Deployment} from "../../services/deploymentService";
+
+import {Deployment} from "../../features/deployments/models/deployment";
+import DeploymentManager from "../../features/deployments/controllers/deploymentManager";
 
 export interface GetDeploymentsResponse {
     deployments: Deployment[];
@@ -12,7 +13,7 @@ export const getDeploymentsEndpoint: ApiEndpoint<unknown, GetDeploymentsResponse
     auth: AuthType.Basic,
     handler: async (req, res) => {
         try {
-            const deployments = await deploymentsService.getDeployments();
+            const deployments = await DeploymentManager.get().getDeployments();
             res.json({
                 success: true,
                 data: {

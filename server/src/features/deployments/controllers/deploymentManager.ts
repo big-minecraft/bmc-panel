@@ -1,106 +1,29 @@
-import config from '../config';
+import config from '../../../config';
 import path from 'path';
-import { readdirSync, unlinkSync, promises as fs } from 'fs';
+import {promises as fs, readdirSync, unlinkSync} from 'fs';
 import yaml from 'js-yaml';
-import { promisify } from 'util';
-import { exec as execCallback } from 'child_process';
-import kubernetesService from "./kubernetesService";
-import redisService from "./redisService";
-import databaseService from "./databaseService";
-import sftpService from "./sftpService";
+import kubernetesService from "../../../services/kubernetesService";
+import redisService from "../../../services/redisService";
+import sftpService from "../../../services/sftpService";
+import {Deployment, DeploymentPaths, DeploymentYaml} from "../models/deployment";
+import Util from "../../../misc/util";
 
-const exec = promisify(execCallback);
-
-interface DeploymentPaths {
-    persistent: {
-        enabled: string;
-        disabled: string;
-    };
-    nonPersistent: {
-        enabled: string;
-        disabled: string;
-    };
-}
-
-export interface Deployment {
-    name: string;
-    path: string;
-    enabled: boolean;
-    dataDirectory: string;
-    type: 'persistent' | 'scalable';
-}
-
-export interface DeploymentYaml {
-    volume: {
-        dataDirectory?: string;
-    };
-    dedicatedNode?: string;
-    scaling: {
-        minInstances?: number;
-    };
-    queuing: {
-        requireStartupConfirmation?: string;
-    };
-}
-
-class DeploymentManager {
+export default class DeploymentManager {
     private static instance: DeploymentManager;
+    private readonly baseDir: string;
 
-    private constructor() {}
-
-    public static getInstance(): DeploymentManager {
-        if (!DeploymentManager.instance) {
-            DeploymentManager.instance = new DeploymentManager();
-        }
-        return DeploymentManager.instance;
-    }
-
-    private getDeploymentFilePaths(name: string): DeploymentPaths {
-        const baseDir = `${config["bmc-path"]}/local/deployments`;
-        return {
-            persistent: {
-                enabled: path.join(baseDir, "persistent", `${name}.yaml`),
-                disabled: path.join(baseDir, "persistent", `disabled-${name}.yaml`)
-            },
-            nonPersistent: {
-                enabled: path.join(baseDir, "scalable", `${name}.yaml`),
-                disabled: path.join(baseDir, "scalable", `disabled-${name}.yaml`)
-            }
-        };
-    }
-
-    private async findDeploymentFile(name: string): Promise<string> {
-        const paths = this.getDeploymentFilePaths(name);
-        const allPaths = [
-            ...Object.values(paths.persistent),
-            ...Object.values(paths.nonPersistent)
-        ];
-
-        for (const filePath of allPaths) {
-            try {
-                await fs.readFile(filePath);
-                return filePath;
-            } catch {
-                // Ignore and continue to the next path
-            }
-        }
-
-        throw new Error('Deployment file not found');
-    }
-
-    private getDeploymentType(filePath: string): 'persistent' | 'scalable' {
-        return filePath.includes('/persistent/') ? 'persistent' : 'scalable';
+    private constructor() {
+        this.baseDir = path.join(config["bmc-path"], "local/deployments");
     }
 
     public async getDeployments(): Promise<Deployment[]> {
-        const baseDir = path.join(config["bmc-path"], "local/deployments");
         const types: Array<'persistent' | 'scalable'> = ['persistent', 'scalable'];
         const deployments: Deployment[] = [];
 
         await kubernetesService.listNodeNames();
 
         for (const type of types) {
-            const dirPath = path.join(baseDir, type);
+            const dirPath = path.join(this.baseDir, type);
 
             try {
                 const files = readdirSync(dirPath);
@@ -159,7 +82,7 @@ class DeploymentManager {
         await redisService.sendDeploymentUpdate();
     }
 
-    public async toggleDeployment(name: string, enabled: boolean): Promise<void> {
+    public async setDeploymentState(name: string, enabled: boolean): Promise<void> {
         const filePath = await this.findDeploymentFile(name);
         const type = this.getDeploymentType(filePath);
 
@@ -205,72 +128,6 @@ class DeploymentManager {
         }
     }
 
-    public async deleteDeployment(name: string): Promise<void> {
-        const filePath = await this.findDeploymentFile(name);
-        const type = this.getDeploymentType(filePath);
-
-        const config = await this.getDeploymentContent(name);
-        const yamlContent = yaml.load(config) as DeploymentYaml;
-
-        try {
-            unlinkSync(filePath);
-
-            let directoryPath = `/deployments/${name}`;
-            if (type === 'persistent') directoryPath = `/nodes/${yamlContent.dedicatedNode}/deployments/${name}`;
-
-            try {
-                await sftpService.deleteSFTPDirectory(`nfsshare${directoryPath}`);
-            } catch (sftpError) {
-                console.error('Failed to delete SFTP directory:', sftpError);
-            }
-        } catch (error) {
-            console.error(error);
-            throw new Error('Failed to delete deployment');
-        }
-
-        await this.runApplyScript();
-        await redisService.sendDeploymentUpdate();
-    }
-
-    public async restartDeployment(name: string): Promise<void> {
-        try {
-            await kubernetesService.scaleDeployment(name, 0);
-
-            const deployment = await this.getDeploymentContent(name);
-            const yamlContent = yaml.load(deployment) as DeploymentYaml;
-            const minimumInstances = yamlContent.scaling.minInstances || 1;
-
-            let retries = 3;
-            while (retries > 0) {
-                try {
-                    await this.toggleDeployment(name, false);
-                    break;
-                } catch (err) {
-                    retries--;
-                    if (retries === 0) throw err;
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                }
-            }
-
-            await new Promise(resolve => setTimeout(resolve, 3000));
-
-            retries = 3;
-            while (retries > 0) {
-                try {
-                    await this.toggleDeployment(name, true);
-                    break;
-                } catch (err) {
-                    retries--;
-                    if (retries === 0) throw err;
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                }
-            }
-        } catch (error) {
-            console.error('Error during restart:', error);
-            throw error;
-        }
-    }
-
     public async createDeployment(
         name: string,
         type: 'persistent' | 'scalable' = 'scalable',
@@ -281,7 +138,7 @@ class DeploymentManager {
         const sourceFile = path.join(defaultsDir, `${type}-deployment.yaml`);
         const destinationFile = path.join(workingDir, `${name}.yaml`);
 
-        if (await this.fileExists(destinationFile)) {
+        if (await Util.fileExists(destinationFile)) {
             throw new Error('Deployment already exists');
         }
 
@@ -326,27 +183,61 @@ class DeploymentManager {
         await this.sendProxyUpdate();
     }
 
-    private async fileExists(filePath: string): Promise<boolean> {
+    public async restartDeployment(name: string): Promise<void> {
+        const retryOperation = async (operation: () => Promise<void>) => {
+            let retries = 3;
+            while (retries > 0) {
+                try {
+                    await operation();
+                    break;
+                } catch (err) {
+                    retries--;
+                    if (retries === 0) throw err;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+        };
+
         try {
-            await fs.readFile(filePath);
-            return true;
-        } catch {
-            return false;
+            await retryOperation(() => this.setDeploymentState(name, false));
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            await retryOperation(() => this.setDeploymentState(name, true));
+        } catch (error) {
+            console.error('error during restart:', error);
+            throw error;
         }
+    }
+
+    public async deleteDeployment(name: string): Promise<void> {
+        const filePath = await this.findDeploymentFile(name);
+        const type = this.getDeploymentType(filePath);
+
+        const config = await this.getDeploymentContent(name);
+        const yamlContent = yaml.load(config) as DeploymentYaml;
+
+        try {
+            unlinkSync(filePath);
+
+            let directoryPath = `/deployments/${name}`;
+            if (type === 'persistent') directoryPath = `/nodes/${yamlContent.dedicatedNode}/deployments/${name}`;
+
+            try {
+                await sftpService.deleteSFTPDirectory(`nfsshare${directoryPath}`);
+            } catch (sftpError) {
+                console.error('Failed to delete SFTP directory:', sftpError);
+            }
+        } catch (error) {
+            console.error(error);
+            throw new Error('Failed to delete deployment');
+        }
+
+        await this.runApplyScript();
+        await redisService.sendDeploymentUpdate();
     }
 
     private async runApplyScript(): Promise<void> {
         const scriptDir = path.join(config["bmc-path"], "scripts");
-
-        try {
-            const { stdout, stderr } = await exec(`cd "${scriptDir}" && ls && ./apply-deployments.sh`);
-            if (stderr) {
-                console.error(`Script stderr: ${stderr}`);
-            }
-        } catch (error) {
-            console.error(`Script execution error:`, error);
-            throw error;
-        }
+        await Util.safelyExecuteShellCommand(`cd "${scriptDir}" && ls && ./apply-deployments.sh`);
     }
 
     private async sendProxyUpdate(): Promise<void> {
@@ -354,6 +245,47 @@ class DeploymentManager {
         client.publish('proxy-modified', 'update');
         await redisService.redisPool.release(client);
     }
-}
 
-export default DeploymentManager.getInstance();
+    private getDeploymentFilePaths(name: string): DeploymentPaths {
+        return {
+            persistent: {
+                enabled: path.join(this.baseDir, "persistent", `${name}.yaml`),
+                disabled: path.join(this.baseDir, "persistent", `disabled-${name}.yaml`)
+            },
+            nonPersistent: {
+                enabled: path.join(this.baseDir, "scalable", `${name}.yaml`),
+                disabled: path.join(this.baseDir, "scalable", `disabled-${name}.yaml`)
+            }
+        };
+    }
+
+    private async findDeploymentFile(name: string): Promise<string> {
+        const paths = this.getDeploymentFilePaths(name);
+        const allPaths = [
+            ...Object.values(paths.persistent),
+            ...Object.values(paths.nonPersistent)
+        ];
+
+        for (const filePath of allPaths) {
+            try {
+                await fs.readFile(filePath);
+                return filePath;
+            } catch {
+                // Ignore and continue to the next path
+            }
+        }
+
+        throw new Error('Deployment file not found');
+    }
+
+    private getDeploymentType(filePath: string): 'persistent' | 'scalable' {
+        return filePath.includes('/persistent/') ? 'persistent' : 'scalable';
+    }
+
+    public static get(): DeploymentManager {
+        if (!DeploymentManager.instance) {
+            DeploymentManager.instance = new DeploymentManager();
+        }
+        return DeploymentManager.instance;
+    }
+}
