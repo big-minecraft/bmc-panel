@@ -22,7 +22,8 @@ export const updateDeploymentContentEndpoint: ApiEndpoint<UpdateDeploymentConten
             const data: UpdateDeploymentContentRequest = updateDeploymentContentSchema.parse(req.body);
             const name = req.params.name as string;
 
-            await DeploymentManager.get().updateDeploymentContent(name, data.content);
+            const deploymentInstance = await DeploymentManager.getDeploymentByName(name);
+            await deploymentInstance.updateContent(data.content);
 
             res.json({
                 success: true,

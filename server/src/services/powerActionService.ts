@@ -4,8 +4,8 @@ import {executeCommand} from "./commandService";
 import yaml from 'js-yaml';
 import kubernetesService from "./kubernetesService";
 import redisService from "./redisService";
-import {DeploymentYaml} from "../features/deployments/models/deployment";
 import DeploymentManager from "../features/deployments/controllers/deploymentManager";
+import {DeploymentYaml} from "../features/deployments/models/types";
 
 const podStatusMap = new Map<string, string>();
 
@@ -26,8 +26,8 @@ async function  determineStartStatus(
 ): Promise<string> {
     if (isProxy) return 'RUNNING';
 
-    const content = await DeploymentManager.get().getDeploymentContent(deployment);
-    const yamlContent = yaml.load(content) as DeploymentYaml;
+    const deploymentInstance = await DeploymentManager.getDeploymentByName(deployment);
+    const yamlContent = yaml.load(deploymentInstance.getContent()) as DeploymentYaml;
     const requireStartupConfirmation = yamlContent.queuing.requireStartupConfirmation;
 
     console.log(yamlContent);

@@ -13,7 +13,8 @@ export const deleteDeploymentEndpoint: ApiEndpoint<unknown, DeleteDeploymentResp
         try {
             const name = req.params.name as string;
 
-            await DeploymentManager.get().deleteDeployment(name);
+            const deploymentInstance = await DeploymentManager.getDeploymentByName(name);
+            await deploymentInstance.delete();
             res.json({
                 success: true,
                 data: {

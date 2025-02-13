@@ -13,7 +13,8 @@ export const restartDeploymentEndpoint: ApiEndpoint<unknown, RestartDeploymentRe
         try {
             const name = req.params.name as string;
 
-            await DeploymentManager.get().restartDeployment(name);
+            const deploymentInstance = await DeploymentManager.getDeploymentByName(name);
+            await deploymentInstance.restart();
             res.json({
                 success: true,
                 data: {

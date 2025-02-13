@@ -2,8 +2,8 @@ import path from 'path';
 import config from '../../../config';
 import {promises as fs, readdirSync, unlinkSync} from 'fs';
 import yaml from 'js-yaml';
-import {DeploymentPaths, DeploymentYaml} from "../models/deployment";
 import Util from "../../../misc/util";
+import {DeploymentPaths, DeploymentYaml} from "../models/types";
 
 export const DEPLOYMENT_TYPES = ['persistent', 'scalable'] as const;
 export type DeploymentType = typeof DEPLOYMENT_TYPES[number];

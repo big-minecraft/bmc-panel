@@ -13,7 +13,8 @@ export const getDeploymentContentEndpoint: ApiEndpoint<unknown, GetDeploymentCon
         try {
             const name = req.params.name as string;
 
-            const content = await DeploymentManager.get().getDeploymentContent(name);
+            const deploymentInstance = await DeploymentManager.getDeploymentByName(name);
+            const content = await deploymentInstance.getContent();
 
             res.json({
                 success: true,

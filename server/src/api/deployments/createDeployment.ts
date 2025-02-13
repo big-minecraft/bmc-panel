@@ -21,7 +21,7 @@ export const createDeploymentEndpoint: ApiEndpoint<CreateDeploymentRequest, Crea
     handler: async (req, res) => {
         try {
             const data: CreateDeploymentRequest = createDeploymentSchema.parse(req.body);
-            await DeploymentManager.get().createDeployment(data.name, data.type, data.node);
+            await DeploymentManager.create(data.name, data.type, data.node);
             res.json({
                 success: true,
                 data: {
