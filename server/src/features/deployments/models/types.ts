@@ -1,22 +1,3 @@
-export interface DeploymentData {
-    name: string;
-    path: string;
-    enabled: boolean;
-    dataDirectory: string;
-    type: DeploymentType;
-}
-
-export interface DeploymentPaths {
-    persistent: {
-        enabled: string;
-        disabled: string;
-    };
-    nonPersistent: {
-        enabled: string;
-        disabled: string;
-    };
-}
-
 export interface DeploymentValues {
     volume: {
         dataDirectory?: string;
@@ -32,10 +13,6 @@ export interface DeploymentValues {
 
 export const DEPLOYMENT_TYPES = ['persistent', 'scalable'] as const;
 export type DeploymentType = typeof DEPLOYMENT_TYPES[number];
-
-export const isDeploymentType = (type: string): type is DeploymentType => {
-    return DEPLOYMENT_TYPES.includes(type as DeploymentType);
-};
 
 export interface Manifest {
     name: string;

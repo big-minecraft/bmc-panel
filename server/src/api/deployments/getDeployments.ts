@@ -1,10 +1,16 @@
 import {ApiEndpoint, AuthType} from '../types';
 
 import DeploymentManager from "../../features/deployments/controllers/deploymentManager";
-import {DeploymentData} from "../../features/deployments/models/types";
+import {DeploymentType} from "../../features/deployments/models/types";
 
 export interface GetDeploymentsResponse {
-    deployments: DeploymentData[];
+    deployments: {
+        name: string;
+        path: string;
+        enabled: boolean;
+        dataDirectory: string;
+        type: DeploymentType;
+    }[];
 }
 
 export const getDeploymentsEndpoint: ApiEndpoint<unknown, GetDeploymentsResponse> = {

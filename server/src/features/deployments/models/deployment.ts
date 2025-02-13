@@ -78,10 +78,10 @@ export default class Deployment {
     public toJSON() {
         return {
             name: this.name,
-            path: this.manifest.path,
             enabled: this.isEnabled,
             dataDirectory: this.dataDirectory,
-            type: this.type
+            type: this.type,
+            path: this.manifest.path,
         };
     }
 }
