@@ -21,8 +21,7 @@ export const toggleDeploymentEndpoint: ApiEndpoint<ToggleDeploymentRequest, Togg
             const data: ToggleDeploymentRequest = toggleDeploymentSchema.parse(req.body);
             const name = req.params.name as string;
 
-            const deploymentInstance = await DeploymentManager.getDeploymentByName(name);
-            await deploymentInstance.setEnabled(data.enabled);
+            await DeploymentManager.getDeploymentByName(name).setEnabled(data.enabled);
             
             res.json({
                 success: true,

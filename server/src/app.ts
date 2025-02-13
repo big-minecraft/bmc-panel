@@ -11,6 +11,7 @@ import ApiManager from "./controllers/api/apiManager";
 import databaseService from "./services/databaseService";
 import authService from "./services/authService";
 import kubernetesService from "./services/kubernetesService";
+import DeploymentManager from "./features/deployments/controllers/deploymentManager";
 
 class AppServer {
     private app: Application;
@@ -67,7 +68,8 @@ class AppServer {
         });
     }
 
-    public start(): void {
+    public async start() {
+        await DeploymentManager.init();
         this.server.listen(3001, () => {
             console.log('Server is listening on port 3001');
         });

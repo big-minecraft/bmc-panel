@@ -13,7 +13,7 @@ export const getDeploymentsEndpoint: ApiEndpoint<unknown, GetDeploymentsResponse
     auth: AuthType.Basic,
     handler: async (req, res) => {
         try {
-            const deployments = await DeploymentManager.getDeployments();
+            const deployments = DeploymentManager.getDeployments();
             res.json({
                 success: true,
                 data: {

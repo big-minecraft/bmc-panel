@@ -1,39 +1,39 @@
 import kubernetesService from "../../../services/kubernetesService";
-import sftpService from "../../../services/sftpService";
-import DeploymentManifestManager, { DeploymentType } from '../controllers/deploymentManifestManager';
+import DeploymentManifestManager from '../controllers/deploymentManifestManager';
+import {DeploymentType, Manifest} from "./types";
+import DeploymentManager from "../controllers/deploymentManager";
 
 export default class Deployment {
     public readonly name: string;
-    public readonly path: string;
+    public readonly manifest: Manifest;
     public readonly type: DeploymentType;
-    private enabled: boolean;
-    private dataDirectory: string;
+    private isEnabled: boolean;
+    public dataDirectory: string;
 
-    constructor(
-        name: string,
-        path: string,
-        type: DeploymentType,
-        enabled: boolean,
-        dataDirectory: string
-    ) {
-        this.name = name;
-        this.path = path;
-        this.type = type;
-        this.enabled = enabled;
-        this.dataDirectory = dataDirectory;
+    constructor(manifest: Manifest) {
+        this.name = manifest.name;
+        this.manifest = manifest;
+        this.type = manifest.type;
+        this.isEnabled = manifest.isEnabled;
+
+        this.dataDirectory = `/deployments/${manifest.content.volume.dataDirectory}`;
+        if (manifest.type === 'persistent') {
+            const node = manifest.content.dedicatedNode;
+            this.dataDirectory = `/nodes/${node}/deployments/${manifest.content.volume.dataDirectory}`;
+        }
     }
 
     public async setEnabled(enabled: boolean): Promise<void> {
         try {
-            const { yamlContent } = await DeploymentManifestManager.updateDeploymentState(this.name, enabled);
+            await DeploymentManifestManager.updateDeploymentState(this, enabled);
 
             if (enabled) {
-                const minimumInstances = yamlContent.scaling.minInstances || 1;
+                const minimumInstances = this.manifest.content.scaling.minInstances || 1;
                 await kubernetesService.scaleDeployment(this.name, minimumInstances);
             } else {
                 await kubernetesService.scaleDeployment(this.name, 0);
             }
-            this.enabled = enabled;
+            this.isEnabled = enabled;
         } catch (error) {
             console.error('error in setEnabled:', error)
             throw new Error('failed to set deployment state')
@@ -65,33 +65,21 @@ export default class Deployment {
         }
     }
 
-    public async delete(): Promise<void> {
-        try {
-            await DeploymentManifestManager.deleteDeploymentManifest(this.name);
-            try {
-                await sftpService.deleteSFTPDirectory(`nfsshare${this.dataDirectory}`);
-            } catch (sftpError) {
-                console.error('failed to delete sftp directory:', sftpError)
-            }
-        } catch (error) {
-            console.error(error)
-            throw new Error('failed to delete deployment')
-        }
-    }
-
     public async getContent(): Promise<string> {
-        return await DeploymentManifestManager.getDeploymentContent(this.name);
+        return await DeploymentManifestManager.getDeploymentContent(this);
     }
 
     public async updateContent(content: string): Promise<void> {
-        await DeploymentManifestManager.updateDeploymentContent(this.name, content);
+        await DeploymentManifestManager.updateDeploymentContent(this, content);
+        await DeploymentManager.runApplyScript();
+        await DeploymentManager.sendProxyUpdate();
     }
 
     public toJSON() {
         return {
             name: this.name,
-            path: this.path,
-            enabled: this.enabled,
+            path: this.manifest.path,
+            enabled: this.isEnabled,
             dataDirectory: this.dataDirectory,
             type: this.type
         };

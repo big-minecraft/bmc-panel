@@ -1,5 +1,3 @@
-import {DeploymentType} from "../controllers/deploymentManifestManager";
-
 export interface DeploymentData {
     name: string;
     path: string;
@@ -19,7 +17,7 @@ export interface DeploymentPaths {
     };
 }
 
-export interface DeploymentYaml {
+export interface DeploymentValues {
     volume: {
         dataDirectory?: string;
     };
@@ -30,4 +28,19 @@ export interface DeploymentYaml {
     queuing: {
         requireStartupConfirmation?: string;
     };
+}
+
+export const DEPLOYMENT_TYPES = ['persistent', 'scalable'] as const;
+export type DeploymentType = typeof DEPLOYMENT_TYPES[number];
+
+export const isDeploymentType = (type: string): type is DeploymentType => {
+    return DEPLOYMENT_TYPES.includes(type as DeploymentType);
+};
+
+export interface Manifest {
+    name: string;
+    path: string;
+    content: DeploymentValues;
+    isEnabled: boolean;
+    type: DeploymentType;
 }
