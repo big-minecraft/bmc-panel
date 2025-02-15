@@ -5,8 +5,9 @@ import kubernetesService from "../../../services/kubernetesService";
 import Util from "../../../misc/util";
 import DeploymentManifestManager from './deploymentManifestManager';
 import Deployment from '../models/deployment';
-import {DeploymentType} from "../models/types";
 import sftpService from "../../../services/sftpService";
+import {DeploymentType} from "../../../../../shared/enum/enums/deployment-type";
+import {Enum} from "../../../../../shared/enum/enum";
 
 export default class DeploymentManager {
     private static deployments: Deployment[] = [];
@@ -28,9 +29,7 @@ export default class DeploymentManager {
         type: DeploymentType,
         node?: string
     ): Promise<Deployment> {
-        if (type === "persistent" && !node) {
-            throw new Error('dedicated node required for persistent deployment');
-        }
+        if (type == Enum.DeploymentType.PERSISTENT && !node) throw new Error('dedicated node required for persistent deployment');
 
         const manifestPath = await DeploymentManifestManager.createDeploymentManifest(name, type, node);
         const manifest = await DeploymentManifestManager.getManifest(manifestPath);

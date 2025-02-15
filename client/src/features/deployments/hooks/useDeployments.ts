@@ -17,6 +17,9 @@ export const useDeployments = () => {
         try {
             setIsLoading(true);
             const response = await axiosInstance.get('/api/deployments');
+            // console.log("hello")
+            // console.log(response.data.data)
+            // console.log(Enum.DeploymentType)
             setDeployments(response.data.data.deployments);
             setError(null);
         } catch (err) {

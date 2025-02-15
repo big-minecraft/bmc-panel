@@ -1,7 +1,9 @@
 import kubernetesService from "../../../services/kubernetesService";
 import DeploymentManifestManager from '../controllers/deploymentManifestManager';
-import {DeploymentType, Manifest} from "./types";
+import {Manifest} from "./types";
 import DeploymentManager from "../controllers/deploymentManager";
+import {DeploymentType} from "../../../../../shared/enum/enums/deployment-type";
+import {Enum} from "../../../../../shared/enum/enum";
 
 export default class Deployment {
     public readonly name: string;
@@ -17,7 +19,7 @@ export default class Deployment {
         this.isEnabled = manifest.isEnabled;
 
         this.dataDirectory = `/deployments/${manifest.content.volume.dataDirectory}`;
-        if (manifest.type === 'persistent') {
+        if (manifest.type == Enum.DeploymentType.PERSISTENT) {
             const node = manifest.content.dedicatedNode;
             this.dataDirectory = `/nodes/${node}/deployments/${manifest.content.volume.dataDirectory}`;
         }
@@ -80,7 +82,7 @@ export default class Deployment {
             name: this.name,
             enabled: this.isEnabled,
             dataDirectory: this.dataDirectory,
-            type: this.type,
+            typeIndex: this.type.getIndex(),
             path: this.manifest.path,
         };
     }

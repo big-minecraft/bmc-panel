@@ -3,8 +3,10 @@ import config from '../../../config';
 import {promises as fs, readdirSync, unlinkSync} from 'fs';
 import yaml from 'js-yaml';
 import Util from "../../../misc/util";
-import {DEPLOYMENT_TYPES, DeploymentType, DeploymentValues, Manifest} from "../models/types";
+import {DeploymentValues, Manifest} from "../models/types";
 import Deployment from "../models/deployment";
+import {DeploymentType} from "../../../../../shared/enum/enums/deployment-type";
+import {Enum} from "../../../../../shared/enum/enum";
 
 export default class DeploymentManifestManager {
     private static readonly baseDir: string = path.join(config["bmc-path"], "local/deployments");
@@ -14,7 +16,7 @@ export default class DeploymentManifestManager {
         type: DeploymentType,
         node?: string
     ): Promise<string> {
-        const workingDir = path.join(this.baseDir, type);
+        const workingDir = path.join(this.baseDir, type.identifier);
         const defaultsDir = `${config["bmc-path"]}/defaults`;
         const defaultFile = path.join(defaultsDir, `${type}-deployment.yaml`);
         const filePath = path.join(workingDir, `${name}.yaml`);
@@ -31,7 +33,7 @@ export default class DeploymentManifestManager {
             } else if (line.trim().startsWith('dataDirectory:')) {
                 const indent = line.match(/^\s*/)[0];
                 return `${indent}dataDirectory: "${name}"`;
-            } else if (type === "persistent" && line.trim().startsWith('dedicatedNode:')) {
+            } else if (type == Enum.DeploymentType.PERSISTENT && line.trim().startsWith('dedicatedNode:')) {
                 const indent = line.match(/^\s*/)[0];
                 return `${indent}dedicatedNode: "${node}"`;
             }
@@ -55,8 +57,8 @@ export default class DeploymentManifestManager {
     public static async getAllManifests(): Promise<Manifest[]> {
         const manifests: Manifest[] = [];
 
-        for (const type of DEPLOYMENT_TYPES) {
-            const dirPath = path.join(this.baseDir, type);
+        for (const deploymentType of Enum.DeploymentType.values()) {
+            const dirPath = path.join(this.baseDir, deploymentType.identifier);
 
             try {
                 const files = readdirSync(dirPath);
@@ -69,7 +71,7 @@ export default class DeploymentManifestManager {
                     }
                 }
             } catch (error) {
-                console.error(`error reading ${type} manifests:`, error);
+                console.error(`error reading ${deploymentType} manifests:`, error);
             }
         }
 
@@ -124,6 +126,6 @@ export default class DeploymentManifestManager {
     }
 
     public static getDeploymentType(filePath: string): DeploymentType {
-        return filePath.includes('/persistent/') ? 'persistent' : 'scalable';
+        return filePath.includes('/persistent/') ? Enum.DeploymentType.PERSISTENT : Enum.DeploymentType.SCALABLE;
     }
 }

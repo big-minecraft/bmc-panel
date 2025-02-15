@@ -1,3 +1,5 @@
+import {DeploymentType} from "../../../../../shared/enum/enums/deployment-type";
+
 export interface DeploymentValues {
     volume: {
         dataDirectory?: string;
@@ -10,9 +12,6 @@ export interface DeploymentValues {
         requireStartupConfirmation?: string;
     };
 }
-
-export const DEPLOYMENT_TYPES = ['persistent', 'scalable'] as const;
-export type DeploymentType = typeof DEPLOYMENT_TYPES[number];
 
 export interface Manifest {
     name: string;

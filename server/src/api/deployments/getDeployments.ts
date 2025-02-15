@@ -1,7 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 
 import DeploymentManager from "../../features/deployments/controllers/deploymentManager";
-import {DeploymentType} from "../../features/deployments/models/types";
 
 export interface GetDeploymentsResponse {
     deployments: {
@@ -9,7 +8,7 @@ export interface GetDeploymentsResponse {
         path: string;
         enabled: boolean;
         dataDirectory: string;
-        type: DeploymentType;
+        typeIndex: number;
     }[];
 }
 
