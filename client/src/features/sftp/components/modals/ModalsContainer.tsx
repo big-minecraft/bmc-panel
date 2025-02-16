@@ -1,4 +1,3 @@
-import React from 'react';
 import DeleteModal from './DeleteModal';
 import MoveModal from './MoveModal';
 import RenameModal from './RenameModal';

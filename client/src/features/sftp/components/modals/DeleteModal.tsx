@@ -1,4 +1,3 @@
-import React from 'react';
 import {Trash2, Loader2, FolderIcon, FileIcon} from 'lucide-react';
 import {useFileOperations} from '../../hooks/useFileOperations';
 import {useSFTPState, useSFTPDispatch} from '../../context/SFTPContext';

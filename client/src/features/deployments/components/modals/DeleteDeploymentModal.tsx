@@ -1,4 +1,3 @@
-import React from 'react';
 import {motion} from 'framer-motion';
 import {X, AlertTriangle} from 'lucide-react';
 import {useDeployments} from '../../hooks/useDeployments';

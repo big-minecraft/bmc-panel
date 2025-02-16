@@ -16,7 +16,7 @@ export const useSelect = ({
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const containerRef = useRef<HTMLDivElement>(null!);
     const listRef = useRef<HTMLDivElement>(null!);
-    const {registerField, unregisterField, setFieldValue, getFieldError} = useFormContext();
+    const {setFieldValue, getFieldError} = useFormContext();
 
     const filteredOptions = options.filter(option =>
         option.label.toLowerCase().includes(searchQuery.toLowerCase())

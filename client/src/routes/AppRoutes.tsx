@@ -1,4 +1,3 @@
-import React from 'react';
 import {Routes, Route} from 'react-router-dom';
 import NetworkOverview from '../features/overview/pages/NetworkOverview';
 import Deployments from '../features/deployments/pages/Deployments';

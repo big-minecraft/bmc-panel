@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import {useState, useEffect, useRef} from 'react';
 import {Send, Terminal} from 'lucide-react';
 
 const Console = ({instance, onWebSocketReady, onStateUpdate}) => {

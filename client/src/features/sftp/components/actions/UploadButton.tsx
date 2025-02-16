@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import {useRef} from 'react';
 import {Upload, Loader2} from 'lucide-react';
 import {useSFTPState} from '../../context/SFTPContext';
 import {useFileOperations} from '../../hooks/useFileOperations';

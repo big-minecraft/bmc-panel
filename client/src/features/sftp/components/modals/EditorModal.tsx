@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import {useState, useEffect} from 'react';
 import Editor from '@monaco-editor/react';
 import {Loader2, X, Save} from 'lucide-react';
 import {useFileOperations} from '../../hooks/useFileOperations';

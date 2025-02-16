@@ -1,4 +1,3 @@
-import React from 'react';
 import {useFileOperations} from '../../hooks/useFileOperations';
 import FileIcon from './FileIcon';
 import FileActions from './FileActions';

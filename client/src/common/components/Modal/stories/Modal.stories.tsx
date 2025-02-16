@@ -1,5 +1,4 @@
 import type {Meta, StoryObj} from '@storybook/react';
-import {useState} from 'react';
 import Modal from '../index';
 import {ModalProvider, useModalContext} from '../context/ModalContext';
 

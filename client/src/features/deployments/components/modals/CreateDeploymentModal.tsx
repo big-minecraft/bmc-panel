@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import {motion, AnimatePresence} from 'framer-motion';
+import {useState} from 'react';
+import {motion} from 'framer-motion';
 import {X, Server, AlertCircle} from 'lucide-react';
 import {useDeployments} from '../../hooks/useDeployments';
 import {useNotifications} from '../../hooks/useNotifications';

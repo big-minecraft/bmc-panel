@@ -1,4 +1,3 @@
-import React from 'react';
 import {Check, Trash2, MoveVertical, Download, Archive, X} from 'lucide-react';
 import {useSFTPState} from '../../context/SFTPContext';
 import {useFileOperations} from '../../hooks/useFileOperations';

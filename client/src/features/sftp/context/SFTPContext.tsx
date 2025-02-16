@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useReducer} from 'react';
+import {createContext, useContext, useReducer} from 'react';
 
 const SFTPContext = createContext(null);
 const SFTPDispatchContext = createContext(null);

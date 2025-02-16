@@ -1,6 +1,5 @@
 import {useCallback} from 'react';
 import {UseButtonProps, ButtonVariantClasses, ButtonSizeClasses} from '../types';
-import {useTheme} from '../../../context/theme/ThemeContext';
 
 export const useButton = ({
     disabled = false,

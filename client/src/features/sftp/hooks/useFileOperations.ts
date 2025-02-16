@@ -1,13 +1,11 @@
 import {useCallback} from 'react';
 import axiosInstance from '../../../utils/auth';
 import {useSFTPState, useSFTPDispatch} from '../context/SFTPContext';
-import {useModalControls} from './useModalControls';
 import {useFileNavigation} from "./useFileNavigation";
 
 export function useFileOperations() {
     const state = useSFTPState();
     const dispatch = useSFTPDispatch();
-    const {openEditorModal} = useModalControls();
     const {handleDirectoryChange} = useFileNavigation();
 
     const fetchFiles = useCallback(async () => {

@@ -1,4 +1,3 @@
-import React from 'react';
 import CreateNewButton from '../actions/CreateNewButton';
 import UploadButton from '../actions/UploadButton';
 

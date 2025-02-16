@@ -1,4 +1,3 @@
-import React from 'react';
 import CPUChart from './CPUChart';
 import MemoryChart from './MemoryChart';
 

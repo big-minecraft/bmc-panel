@@ -1,5 +1,5 @@
 import {useState, useCallback, useRef} from 'react';
-import {Toast, ToastType, ToastContextValue, UseToastOptions} from '../types';
+import {Toast, ToastType, ToastContextValue} from '../types';
 
 export const useToast = (timeout: number = 5000): ToastContextValue => {
     const [toasts, setToasts] = useState<Toast[]>([]);

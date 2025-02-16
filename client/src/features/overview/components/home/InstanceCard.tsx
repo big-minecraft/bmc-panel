@@ -1,4 +1,3 @@
-import React from 'react';
 import {Link} from 'react-router-dom';
 import {Users, Activity} from 'lucide-react';
 import {getInstanceStateDetails} from '../../constants/instanceState';

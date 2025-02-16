@@ -1,4 +1,4 @@
-import React, {useState, forwardRef} from 'react';
+import {useState, forwardRef} from 'react';
 import {motion, AnimatePresence} from 'framer-motion';
 import {KeySquare, Trash2, ChevronRight, Database, Copy, Check, Terminal, Link2} from 'lucide-react';
 import {DatabaseCardProps} from "../types/types";

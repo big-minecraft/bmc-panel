@@ -1,5 +1,4 @@
 import {motion} from 'framer-motion';
-import React from 'react';
 import {AlertTriangle} from 'lucide-react';
 
 export const Alert = ({message}) => {

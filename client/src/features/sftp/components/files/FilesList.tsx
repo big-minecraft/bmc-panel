@@ -1,4 +1,3 @@
-import React from 'react';
 import {useSFTPState} from '../../context/SFTPContext';
 import {useFileSelection} from '../../hooks/useFileSelection';
 import FileRow from './FileRow';

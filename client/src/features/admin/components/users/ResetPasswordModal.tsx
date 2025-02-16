@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import {useState} from 'react';
 import {motion} from 'framer-motion';
 import {Eye, EyeOff, Key} from 'lucide-react';
 import Modal from '../../../../common/zold/Modal';

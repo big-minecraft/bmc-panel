@@ -12,8 +12,10 @@ export function useCreateOperations() {
     const [newDirName, setNewDirName] = useState('');
     const [fileError, setFileError] = useState('');
     const [dirError, setDirError] = useState('');
+    const [loading, setLocalLoading] = useState(false);
 
-    const setLoading = useCallback((value) => {
+    const setLoading = useCallback((value: boolean) => {
+        setLocalLoading(value);
         dispatch({
             type: 'SET_LOADING',
             payload: {key: 'creating', value}
@@ -86,6 +88,7 @@ export function useCreateOperations() {
     return {
         newFileName,
         newDirName,
+        loading,
         fileError,
         dirError,
         setNewFileName,

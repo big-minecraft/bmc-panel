@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import {useState, useEffect} from 'react';
 import {useLocation} from 'react-router-dom';
 import {Server, Shield} from 'lucide-react';
 import axiosInstance from '../../../utils/auth';
@@ -8,7 +8,6 @@ const NetworkOverview = ({instances: initialInstances, proxies: initialProxies})
     const [instances, setInstances] = useState(initialInstances);
     const [proxies, setProxies] = useState(initialProxies);
     const [isLoading, setIsLoading] = useState(false);
-    const location = useLocation();
 
     useEffect(() => {
         setInstances(initialInstances);

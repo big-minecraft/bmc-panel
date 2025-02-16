@@ -1,4 +1,3 @@
-import React from 'react';
 import {motion, AnimatePresence} from 'framer-motion';
 import UserCard from './UserCard';
 import {UserX} from 'lucide-react';

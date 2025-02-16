@@ -8,14 +8,12 @@ import {exec} from 'child_process';
 import config from './config';
 import {setupWebSocket} from './services/websocketService';
 import ApiManager from "./controllers/api/apiManager";
-import databaseService from "./services/databaseService";
-import authService from "./services/authService";
 import kubernetesService from "./services/kubernetesService";
 import DeploymentManager from "./features/deployments/controllers/deploymentManager";
 
 class AppServer {
-    private app: Application;
-    private server: HttpServer;
+    private readonly app: Application;
+    private readonly server: HttpServer;
 
     constructor() {
         this.app = express();
@@ -37,9 +35,6 @@ class AppServer {
 
     private async initializeServices(): Promise<void> {
         setupWebSocket(this.server);
-
-        await databaseService;
-        await authService;
         if (kubernetesService.isRunningInCluster()) await this.installDependencies();
     }
 
@@ -79,9 +74,9 @@ class AppServer {
                 ws: true
             }));
         } else if (process.env.NODE_ENV === 'production') {
-            this.app.use(express.static(resolve(__dirname, '../../client/build')));
-            this.app.get('*', (req, res) => {
-                res.sendFile(resolve(__dirname, '../../client/build/index.html'));
+            this.app.use(express.static(resolve(__dirname, '../../client/dist')));
+            this.app.get('*', (_req, res) => {
+                res.sendFile(resolve(__dirname, '../../client/dist/index.html'));
             });
         }
 

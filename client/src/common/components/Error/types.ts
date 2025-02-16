@@ -1,5 +1,3 @@
-import {LucideIcon} from 'lucide-react';
-
 export type MessageType = 'success' | 'error' | 'info' | 'warning';
 
 export interface MessageAlertProps {

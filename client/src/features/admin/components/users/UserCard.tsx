@@ -1,4 +1,3 @@
-import React from 'react';
 import {motion} from 'framer-motion';
 import {Trash2, Key, Shield, ShieldOff} from 'lucide-react';
 

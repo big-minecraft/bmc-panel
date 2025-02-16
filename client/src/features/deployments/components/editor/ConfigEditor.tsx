@@ -1,4 +1,3 @@
-import React from 'react';
 import Editor from '@monaco-editor/react';
 import {motion} from 'framer-motion';
 

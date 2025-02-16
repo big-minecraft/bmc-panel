@@ -1,4 +1,4 @@
-import React, {useEffect, useCallback, useState} from 'react';
+import {useEffect, useCallback} from 'react';
 import {useParams, useNavigate, useLocation} from 'react-router-dom';
 import {useConfig} from '../hooks/useConfig';
 import ConfigEditor from '../components/editor/ConfigEditor';

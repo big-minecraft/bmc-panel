@@ -1,4 +1,3 @@
-import React from 'react';
 import {Upload} from 'lucide-react';
 import {useFileOperations} from '../../hooks/useFileOperations';
 import useDragAndDrop from '../../hooks/useDragAndDrop';

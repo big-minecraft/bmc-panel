@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import {useState, useEffect} from 'react';
 import {useSFTPState, useSFTPDispatch} from '../../context/SFTPContext';
 import {useFileOperations} from '../../hooks/useFileOperations';
 import {Pencil, Loader2, X} from 'lucide-react';

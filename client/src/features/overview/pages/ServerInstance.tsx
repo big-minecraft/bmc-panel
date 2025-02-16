@@ -1,5 +1,5 @@
 import {useParams, useNavigate} from "react-router-dom";
-import React, {useState} from "react";
+import {useState} from "react";
 import {ArrowLeft, Activity, Server, Users, Play, RotateCw, Square, XCircle} from 'lucide-react';
 import Console from "../components/Console";
 import InstanceDetails from "../components/InstanceDetails";

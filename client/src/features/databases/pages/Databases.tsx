@@ -1,10 +1,9 @@
 import React, {useState, useEffect} from 'react';
-import {motion, AnimatePresence} from 'framer-motion';
+import {motion} from 'framer-motion';
 import {Plus, Database as DatabaseIcon, Loader2} from 'lucide-react';
 import {DatabasesProvider, useDatabases} from '../context/DatabasesContext';
 import {useNotifications} from '../hooks/useNotifications';
 import {useDatabaseName} from '../hooks/useDatabaseName';
-import {DatabaseCard} from '../components/DatabaseCard';
 import {Notifications} from '../components/Notifications';
 import {CreateDatabaseModal} from '../modals/CreateDatabaseModal';
 import {DeleteDatabaseModal} from '../modals/DeleteDatabaseModal';

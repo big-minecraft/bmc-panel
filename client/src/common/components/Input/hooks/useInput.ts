@@ -11,7 +11,7 @@ export const useInput = ({
 }: UseInputProps): UseInputReturn => {
     const [isFocused, setIsFocused] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
-    const {registerField, unregisterField, setFieldValue, getFieldError} = useFormContext();
+    const {setFieldValue, getFieldError} = useFormContext();
 
     const validateValue = useCallback((value: string): string => {
         if (validation.required && !value) {

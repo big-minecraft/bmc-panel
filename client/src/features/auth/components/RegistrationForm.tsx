@@ -1,4 +1,3 @@
-import React from 'react';
 import {motion} from 'framer-motion';
 import {LoadingButton} from './LoadingButton';
 import {Check, User, Lock, Key} from 'lucide-react';

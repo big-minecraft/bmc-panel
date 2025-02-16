@@ -1,8 +1,6 @@
-import React from 'react';
 import {motion} from 'framer-motion';
 import {AlertTriangle} from 'lucide-react';
 import Modal from '../../../../common/zold/Modal';
-import {li} from 'framer-motion/client';
 
 const CreateTokenModal = ({show, onClose, onCreate}) => {
     if (!show) return null;

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import {useState} from 'react';
 import {motion, AnimatePresence} from 'framer-motion';
 import UsersTab from "../components/users/UserTab";
 import InviteCodesTab from "../components/invite-codes/InviteCodesTab";

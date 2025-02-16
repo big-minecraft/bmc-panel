@@ -1,12 +1,8 @@
-import React from 'react';
 import {motion} from 'framer-motion';
-import {Link, useNavigate} from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import {Home, MoveLeft, XCircle} from 'lucide-react';
-import Button from '../components/Button';
 
 const NotFound = () => {
-    const navigate = useNavigate();
-
     const containerVariants = {
         hidden: {opacity: 0},
         visible: {

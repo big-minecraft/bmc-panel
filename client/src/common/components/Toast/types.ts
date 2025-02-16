@@ -1,4 +1,3 @@
-import {ReactNode} from 'react';
 import {HTMLMotionProps} from 'framer-motion';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';

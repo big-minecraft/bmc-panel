@@ -1,6 +1,6 @@
 import React from 'react';
 import {motion} from 'framer-motion';
-import {ChevronDown, Check, X, Search} from 'lucide-react';
+import {ChevronDown, X} from 'lucide-react';
 import {SelectProps} from './types';
 import {useSelect} from './hooks/useSelect';
 import SelectMenu from './SelectMenu';
