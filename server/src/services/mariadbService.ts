@@ -1,6 +1,8 @@
 import config from '../config';
 import { PoolConnection } from 'mariadb';
 import databaseService from "./databaseService";
+import {createReadStream, createWriteStream} from "node:fs";
+import * as readline from "node:readline";
 
 interface DatabaseCredentials {
     username: string;
@@ -36,7 +38,7 @@ class MariadbService {
         let databaseCreated = false;
         let userCreated = false;
         let credentialsInserted = false;
-        const username = `${name}_user`; // Define username here for cleanup
+        const username = `${name}_user`;
 
         try {
             if (!this.isValidDatabaseName(name)) {
@@ -45,7 +47,7 @@ class MariadbService {
 
             conn = await databaseService.pool.getConnection();
 
-            const [existingDatabases] = await conn.query(
+            const existingDatabases = await conn.query(
                 'SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = ?',
                 [name]
             );
@@ -224,7 +226,7 @@ class MariadbService {
 
     private generatePassword(): string {
         const length = 16;
-        const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+        const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let password = '';
         for (let i = 0; i < length; i++) {
             const randomIndex = Math.floor(Math.random() * charset.length);
@@ -237,6 +239,147 @@ class MariadbService {
         if (!name || typeof name !== 'string') return false;
         if (name.length === 0 || name.length > 64) return false;
         return /^[a-zA-Z0-9_]+$/.test(name);
+    }
+
+    async backup(databaseName: string): Promise<string> {
+        let connection: PoolConnection | null = null;
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const backupPath = `backup-${databaseName}-${timestamp}.sql`;
+        const writeStream = createWriteStream(backupPath);
+
+        try {
+            connection = await databaseService.pool.getConnection();
+
+            const tables = await connection.query(
+                'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ?',
+                [databaseName]
+            );
+
+            if (!Array.isArray(tables) || tables.length === 0) {
+                throw new Error(`Database '${databaseName}' has no tables`);
+            }
+
+            writeStream.write(`USE \`${databaseName}\`;\n\n`);
+
+            for (const table of tables) {
+                const tableName = table.TABLE_NAME;
+
+                if (!tableName) {
+                    console.warn('Skipping invalid table entry:', table);
+                    continue;
+                }
+
+                const createTableResult = await connection.query(
+                    `SHOW CREATE TABLE \`${databaseName}\`.\`${tableName}\``
+                );
+
+                if (!createTableResult?.[0]?.['Create Table']) {
+                    console.warn(`Could not get creation SQL for table: ${tableName}`);
+                    continue;
+                }
+
+                writeStream.write(`DROP TABLE IF EXISTS \`${tableName}\`;\n`);
+                writeStream.write(`${createTableResult[0]['Create Table']};\n\n`);
+
+                const rows = await connection.query(
+                    `SELECT * FROM \`${databaseName}\`.\`${tableName}\``
+                );
+
+                if (Array.isArray(rows) && rows.length > 0) {
+                    const chunkSize = 1000;
+                    for (let i = 0; i < rows.length; i += chunkSize) {
+                        const chunk = rows.slice(i, i + chunkSize);
+                        const columns = Object.keys(chunk[0]);
+
+                        const values = chunk.map(row =>
+                            `(${columns.map(col => {
+                                const value = row[col];
+                                return connection!.escape(value);
+                            }).join(', ')})`
+                        ).join(',\n');
+
+                        writeStream.write(
+                            `INSERT INTO \`${tableName}\` ` +
+                            `(\`${columns.join('`, `')}\`) VALUES\n` +
+                            `${values};\n`
+                        );
+                    }
+                    writeStream.write('\n');
+                }
+            }
+
+            await new Promise<void>((resolve) => writeStream.end(resolve));
+            console.log(`Backup created: ${backupPath}`);
+            return backupPath;
+
+        } catch (error) {
+            console.error('Backup failed:', error);
+            writeStream.end();
+            throw error;
+        } finally {
+            if (connection) {
+                await connection.release();
+            }
+        }
+    }
+
+    async restore(backupPath: string): Promise<void> {
+        let connection: PoolConnection | null = null;
+        try {
+            connection = await databaseService.pool.getConnection();
+
+            const match = backupPath.match(/backup-(.+?)-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z\.sql/);
+            if (!match) {
+                throw new Error('Could not determine database name from backup file.');
+            }
+            const databaseName = match[1];
+
+            const dbExists = await connection.query(
+                'SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?',
+                [databaseName]
+            );
+
+            if (!Array.isArray(dbExists) || dbExists.length === 0) {
+                await this.createSqlDatabase(databaseName);
+                console.log(`Database '${databaseName}' created.`);
+            }
+
+            await connection.query(`USE \`${databaseName}\``);
+
+            const fileStream = createReadStream(backupPath);
+            const rl = readline.createInterface({
+                input: fileStream,
+                crlfDelay: Infinity
+            });
+
+            let currentStatement = '';
+
+            for await (const line of rl) {
+                if (!line || line.startsWith('--')) continue;
+
+                currentStatement += line;
+
+                if (line.trim().endsWith(';')) {
+                    try {
+                        await connection.query(currentStatement);
+                        currentStatement = '';
+                    } catch (error) {
+                        console.error('Error executing statement:', currentStatement);
+                        throw error;
+                    }
+                }
+            }
+
+            console.log('Database restore completed successfully');
+
+        } catch (error) {
+            console.error('Restore failed:', error);
+            throw error;
+        } finally {
+            if (connection) {
+                await connection.release();
+            }
+        }
     }
 }
 

@@ -162,7 +162,7 @@ const initializeConfig = (): AppConfig => {
             config.sftp.password = process.env.SFTP_PASSWORD;
         }
 
-        if(process.env.ENVIRONMENT) {
+        if (process.env.ENVIRONMENT) {
             config.environment = process.env.ENVIRONMENT;
         }
     };
