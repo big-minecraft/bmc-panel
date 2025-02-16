@@ -41,25 +41,26 @@ class AppServer {
     private async installDependencies(): Promise<void> {
         const scriptDir: string = path.join(config["bmc-path"], "scripts");
 
-        console.log('Installing dependencies...');
+        console.log('running install-dependents script');
 
         return new Promise((resolve, reject) => {
-            exec(
-                `cd ${scriptDir} && ls && ./install-dependents.sh`,
-                (error: Error | null, stdout: string, stderr: string) => {
-                    if (error) {
-                        console.error(`exec error: ${error}`);
-                        reject(error);
-                        return;
-                    }
-
-                    if (stderr) {
-                        console.error(`Failed to install dependencies: ${stderr}`);
-                    }
-
-                    resolve();
-                }
+            const process = exec(
+                `cd ${scriptDir} && ls && ./install-dependents.sh`
             );
+
+            process.stdout?.on('data', (data) => console.log(data.toString().trim()));
+            process.stderr?.on('data', (data) => console.log(data.toString().trim()));
+
+            process.on('close', (code) => {
+                if (code !== 0) {
+                    const error = new Error(`process exited with code ${code}`);
+                    console.log(`install-dependents failed: ${error}`);
+                    reject(error);
+                    return
+                }
+                console.log('install-dependents succeeded');
+                resolve();
+            });
         });
     }
 
