@@ -1,7 +1,7 @@
 import express, {Application} from 'express';
 import {Server as HttpServer} from 'http';
 import cors from 'cors';
-import path from 'path';
+import path, {resolve} from 'path';
 import {exec} from 'child_process';
 
 // Import local modules
@@ -70,8 +70,23 @@ class AppServer {
 
     public async start() {
         await DeploymentManager.init();
-        this.server.listen(3001, () => {
-            console.log('Server is listening on port 3001');
+
+        if (process.env.NODE_ENV === 'development') {
+            const { createProxyMiddleware } = require('http-proxy-middleware');
+            this.app.use(createProxyMiddleware({
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+                ws: true
+            }));
+        } else if (process.env.NODE_ENV === 'production') {
+            this.app.use(express.static(resolve(__dirname, '../../client/build')));
+            this.app.get('*', (req, res) => {
+                res.sendFile(resolve(__dirname, '../../client/build/index.html'));
+            });
+        }
+
+        this.server.listen(3000, () => {
+            console.log('Server is listening on port 3000');
         });
     }
 }

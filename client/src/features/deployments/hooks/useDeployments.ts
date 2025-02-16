@@ -1,6 +1,7 @@
 import {useState} from 'react';
 import {useDeploymentsContext} from '../context/DeploymentsContext';
 import axiosInstance from '../../../utils/auth';
+import {Enum} from "../../../../../shared/enum/enum.ts";
 
 export const useDeployments = () => {
     const {
@@ -17,9 +18,9 @@ export const useDeployments = () => {
         try {
             setIsLoading(true);
             const response = await axiosInstance.get('/api/deployments');
-            // console.log("hello")
-            // console.log(response.data.data)
-            // console.log(Enum.DeploymentType)
+            console.log("hello")
+            console.log(response.data.data)
+            console.log(Enum.DeploymentType);
             setDeployments(response.data.data.deployments);
             setError(null);
         } catch (err) {

@@ -1,4 +1,4 @@
-import React, {useLayoutEffect, useState, useRef} from 'react';
+import {useLayoutEffect, useState, useRef} from 'react';
 import {BrowserRouter as Router} from 'react-router-dom';
 import NavigationBar from "./features/navbar/components/NavigationBar";
 import AppRoutes from "./routes/AppRoutes";

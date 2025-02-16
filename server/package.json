@@ -5,8 +5,8 @@
   "main": "src/app.ts",
   "type": "commonjs",
   "scripts": {
-    "start": "ts-node src/app.ts",
-    "dev": "nodemon src/app.ts"
+    "start": "cross-env NODE_ENV=production ts-node src/app.ts",
+    "dev": "cross-env NODE_ENV=development nodemon src/app.ts"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
@@ -25,6 +25,7 @@
     "express": "^4.17.1",
     "express-fileupload": "^1.5.1",
     "generic-pool": "^3.9.0",
+    "http-proxy-middleware": "^3.0.3",
     "ioredis": "^5.4.1",
     "istextorbinary": "^9.5.0",
     "js-yaml": "^4.1.0",

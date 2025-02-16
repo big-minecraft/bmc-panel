@@ -59,7 +59,7 @@ const ActionOverlay = () => {
                                 variant="danger"
                             />
                             <ActionButton
-                                onClick={() => openMoveModal(selectedFiles)}
+                                onClick={() => openMoveModal()}
                                 disabled={loading.moving}
                                 icon={MoveVertical}
                                 label="Move"
