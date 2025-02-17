@@ -10,23 +10,23 @@ export const getProxyContentEndpoint: ApiEndpoint<unknown, GetProxyContentRespon
     method: 'get',
     auth: AuthType.Basic,
     handler: async (req, res) => {
-        try {
-            const content = await proxyService.getProxyContent();
-
-            res.json({
-                success: true,
-                data: {
-                    content
-                }
-            });
-        } catch (error) {
-            console.error('Failed to fetch proxy content:', error);
-            let message: string = 'Failed to fetch proxy content';
-
-            res.status(500).json({
-                success: false,
-                error: message
-            });
-        }
+        // try {
+        //     const content = await proxyService.getProxyContent();
+        //
+        //     res.json({
+        //         success: true,
+        //         data: {
+        //             content
+        //         }
+        //     });
+        // } catch (error) {
+        //     console.error('Failed to fetch proxy content:', error);
+        //     let message: string = 'Failed to fetch proxy content';
+        //
+        //     res.status(500).json({
+        //         success: false,
+        //         error: message
+        //     });
+        // }
     }
 };

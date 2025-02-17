@@ -7,6 +7,9 @@ export const useDeployments = () => {
     const {
         deployments,
         setDeployments,
+        getDeploymentsByType,
+        games,
+        proxy,
         restartingDeployments,
         setRestartingDeployments
     } = useDeploymentsContext();
@@ -18,7 +21,14 @@ export const useDeployments = () => {
         try {
             setIsLoading(true);
             const response = await axiosInstance.get('/api/deployments');
-            setDeployments(response.data.data.deployments);
+            const deployments = response.data.data.deployments.map(deployment => {
+                const { typeIndex, ...rest } = deployment;
+                return {
+                    ...rest,
+                    type: Enum.DeploymentType.fromIndex(typeIndex)
+                };
+            });
+            setDeployments(deployments);
             setError(null);
         } catch (err) {
             setError('Failed to load deployments');
@@ -90,6 +100,9 @@ export const useDeployments = () => {
 
     return {
         deployments,
+        getDeploymentsByType,
+        games,
+        proxy,
         isLoading,
         error,
         fetchDeployments,

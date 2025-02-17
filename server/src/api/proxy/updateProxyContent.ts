@@ -18,24 +18,24 @@ export const updateProxyContentEndpoint: ApiEndpoint<UpdateProxyContentRequest, 
     method: 'patch',
     auth: AuthType.Basic,
     handler: async (req, res) => {
-        try {
-            const data: UpdateProxyContentRequest = updateProxyContentSchema.parse(req.body);
-            await proxyService.updateProxyContent(data.content);
-
-            res.json({
-                success: true,
-                data: {
-                    message: 'Proxy updated successfully',
-                }
-            });
-        } catch (error) {
-            console.error('Failed to update proxy content:', error);
-            let message: string = 'Failed to update proxy content';
-
-            res.status(500).json({
-                success: false,
-                error: message
-            });
-        }
+        // try {
+        //     const data: UpdateProxyContentRequest = updateProxyContentSchema.parse(req.body);
+        //     await proxyService.updateProxyContent(data.content);
+        //
+        //     res.json({
+        //         success: true,
+        //         data: {
+        //             message: 'Proxy updated successfully',
+        //         }
+        //     });
+        // } catch (error) {
+        //     console.error('Failed to update proxy content:', error);
+        //     let message: string = 'Failed to update proxy content';
+        //
+        //     res.status(500).json({
+        //         success: false,
+        //         error: message
+        //     });
+        // }
     }
 };

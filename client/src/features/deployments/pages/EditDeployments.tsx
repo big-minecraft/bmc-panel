@@ -8,9 +8,7 @@ import {CloseIcon} from '../icons/DeploymentIcons';
 
 const ConfigEditContent = () => {
     const {name} = useParams();
-    const location = useLocation();
     const navigate = useNavigate();
-    const isProxy = location.pathname.startsWith('/proxy');
 
     const {
         content,
@@ -23,7 +21,7 @@ const ConfigEditContent = () => {
         setSavedSuccessfully,
         fetchContent,
         saveContent
-    } = useConfig(isProxy, name);
+    } = useConfig(name);
 
     const handleSave = async () => {
         if (isSaving) return;
@@ -50,7 +48,7 @@ const ConfigEditContent = () => {
 
     useEffect(() => {
         fetchContent();
-    }, [isProxy, name]);
+    }, [name]);
 
     if (isLoading) {
         return (
@@ -66,7 +64,7 @@ const ConfigEditContent = () => {
                 <div className="max-w-7xl w-full mx-auto flex-1 flex flex-col min-h-0">
                     <div className="p-6">
                         <ConfigHeader
-                            title={isProxy ? 'Proxy Configuration' : name}
+                            title={name}
                             onBack={() => navigate('/deployments')}
                             onSave={handleSave}
                             isSaving={isSaving}

@@ -96,10 +96,10 @@ const ProxyCard = () => {
                         className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors"
                         onClick={() => navigate('/proxy/edit')}
                     >
-            <span className="flex items-center space-x-2">
-              <Edit size={16}/>
-              <span>Edit Configuration</span>
-            </span>
+                        <span className="flex items-center space-x-2">
+                            <Edit size={16}/>
+                            <span>Edit Configuration</span>
+                        </span>
                     </motion.button>
 
                     <label className="relative inline-flex items-center cursor-pointer">

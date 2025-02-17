@@ -7,6 +7,7 @@ import {DeploymentValues, Manifest} from "../models/types";
 import Deployment from "../models/deployment";
 import {DeploymentType} from "../../../../../shared/enum/enums/deployment-type";
 import {Enum} from "../../../../../shared/enum/enum";
+import {EnumValue} from "../../../../../shared/enum/custom-enum";
 
 export default class DeploymentManifestManager {
     private static readonly baseDir: string = path.join(config["bmc-path"], "local/deployments");
@@ -17,9 +18,9 @@ export default class DeploymentManifestManager {
         node?: string
     ): Promise<string> {
         const workingDir = path.join(this.baseDir, type.identifier);
-        const defaultsDir = `${config["bmc-path"]}/defaults`;
-        const defaultFile = path.join(defaultsDir, `${type}-deployment.yaml`);
         const filePath = path.join(workingDir, `${name}.yaml`);
+        const defaultsDir = `${config["bmc-path"]}/defaults`;
+        const defaultFile = path.join(defaultsDir, `${type.identifier}.yaml`);
 
         if (await Util.fileExists(filePath)) throw new Error('Deployment already exists');
 
@@ -85,7 +86,7 @@ export default class DeploymentManifestManager {
             }
 
             const name = path.basename(filePath).split(".")[0].replace(/^disabled-/, '');
-            const type = this.getDeploymentType(filePath);
+            const type = Enum.DeploymentType.fromPath(filePath);
             const isEnabled = !path.basename(filePath).startsWith('disabled-');
 
             const fileContent = await fs.readFile(filePath, 'utf8');
@@ -123,9 +124,5 @@ export default class DeploymentManifestManager {
             : path.join(path.dirname(filePath), `disabled-${path.basename(filePath)}`);
         await fs.rename(filePath, newFilePath);
         deployment.manifest.path = newFilePath;
-    }
-
-    public static getDeploymentType(filePath: string): DeploymentType {
-        return filePath.includes('/persistent/') ? Enum.DeploymentType.PERSISTENT : Enum.DeploymentType.SCALABLE;
     }
 }

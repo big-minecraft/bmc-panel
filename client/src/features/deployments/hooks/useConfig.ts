@@ -1,20 +1,18 @@
 import {useState} from 'react';
 import axiosInstance from '../../../utils/auth';
 
-export const useConfig = (isProxy, name) => {
+export const useConfig = (name) => {
     const [content, setContent] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
     const [savedSuccessfully, setSavedSuccessfully] = useState(false);
-
-    const endpoint = isProxy ? '/api/proxy/content' : `/api/deployments/${name}`;
-    const displayType = isProxy ? 'Proxy Configuration' : 'Game Configuration';
+    const displayType = 'Deployment Configuration';
 
     const fetchContent = async () => {
         try {
             setIsLoading(true);
-            const response = await axiosInstance.get(endpoint);
+            const response = await axiosInstance.get(`/api/deployments/${name}`);
             setContent(response.data.data.content);
             setError(null);
         } catch (err) {
@@ -28,7 +26,7 @@ export const useConfig = (isProxy, name) => {
     const saveContent = async (newContent) => {
         try {
             setIsSaving(true);
-            await axiosInstance.patch(endpoint, {
+            await axiosInstance.patch(`/api/deployments/${name}`, {
                 content: newContent
             });
             setSavedSuccessfully(true);

@@ -22,7 +22,6 @@ const AppRoutes = ({instances, proxies}) => (
         <Route path="/files/*" element={<PrivateRoute><SftpInterface/></PrivateRoute>}/>
         <Route path="/databases" element={<PrivateRoute><Databases/></PrivateRoute>}/>
         <Route path="/deployments/:name/edit" element={<PrivateRoute><EditDeployments/></PrivateRoute>}/>
-        <Route path="/proxy/edit" element={<PrivateRoute><EditDeployments/></PrivateRoute>}/>
         <Route path="/instance/:instanceName"
                element={<PrivateRoute><ServerInstance instances={instances} proxies={proxies}/></PrivateRoute>}/>
         <Route path="/proxy/:instanceName"

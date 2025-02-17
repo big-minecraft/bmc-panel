@@ -1,4 +1,6 @@
-import {createContext, useContext, useState} from 'react';
+import {createContext, useCallback, useContext, useMemo, useState} from 'react';
+import {Enum} from "../../../../../shared/enum/enum.ts";
+import {DeploymentType} from "../../../../../shared/enum/enums/deployment-type.ts";
 
 const DeploymentsContext = createContext(null);
 
@@ -13,9 +15,28 @@ export const DeploymentsProvider = ({children}) => {
     const [isLoadingNodes, setIsLoadingNodes] = useState(false);
     const [deploymentToDelete, setDeploymentToDelete] = useState(null);
 
+    const getDeploymentsByType = useCallback((type: DeploymentType) => {
+        if (!type) return deployments;
+        return deployments.filter(deployment => deployment.type === type);
+    }, [deployments]);
+
+    const games = useMemo(() => {
+        return deployments.filter(deployment =>
+            deployment.type === Enum.DeploymentType.PERSISTENT ||
+            deployment.type === Enum.DeploymentType.SCALABLE
+        );
+    }, [deployments]);
+
+    const proxy = useMemo(() => {
+        return getDeploymentsByType(Enum.DeploymentType.PROXY)[0]!;
+    }, [deployments]);
+
     const value = {
         deployments,
         setDeployments,
+        getDeploymentsByType,
+        games,
+        proxy,
         proxyConfig,
         setProxyConfig,
         restartingDeployments,
