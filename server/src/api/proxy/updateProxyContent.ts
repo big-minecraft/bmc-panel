@@ -1,5 +1,4 @@
 import {ApiEndpoint, AuthType} from '../types';
-import proxyService from "../../services/proxyService";
 import {z} from "zod";
 
 const updateProxyContentSchema = z.object({

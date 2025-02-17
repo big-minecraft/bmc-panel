@@ -1,5 +1,5 @@
 import {ApiEndpoint, AuthType} from '../types';
-import proxyService, {ProxyConfig} from "../../services/proxyService";
+import {ProxyConfig} from "../../services/proxyService";
 
 export interface GetProxyResponse {
     proxy: ProxyConfig;

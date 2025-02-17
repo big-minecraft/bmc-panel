@@ -1,6 +1,5 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from 'zod';
-import proxyService from "../../services/proxyService";
 
 const toggleProxySchema = z.object({
     enabled: z.boolean(),

@@ -43,8 +43,6 @@ const NetworkOverview = ({instances: initialInstances, proxies: initialProxies})
         return acc;
     }, {});
 
-    const sortedDeployments = Object.keys(instancesByDeployment).sort();
-
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -64,7 +62,7 @@ const NetworkOverview = ({instances: initialInstances, proxies: initialProxies})
                             icon={Shield}
                         />
 
-                        {sortedDeployments.map((deployment) => (
+                        {Object.keys(instancesByDeployment).sort().map((deployment) => (
                             <DeploymentCard
                                 key={deployment}
                                 title={deployment.charAt(0).toUpperCase() + deployment.slice(1)}

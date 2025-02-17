@@ -15,6 +15,12 @@ export interface Proxy {
     [key: string]: any;
 }
 
+export interface Process {
+    uid: string;
+    podName: string;
+    [key: string]: any;
+}
+
 interface RedisPool extends genericPool.Pool<Redis> {
     acquire: () => Promise<Redis>;
     release: (client: Redis) => Promise<void>;
@@ -95,19 +101,21 @@ export class RedisManager {
         }
     }
 
-    public async sendDeploymentUpdate(): Promise<void> {
+    public async getProcesses(): Promise<Process[]> {
         const client: Redis = await this.redisPool.acquire();
         try {
-            await client.publish('deployment-modified', 'update');
-        } finally {
-            await this.redisPool.release(client);
-        }
-    }
+            const processData: { [key: string]: string } = await client.hgetall('processes');
 
-    public async sendProxyUpdate(): Promise<void> {
-        const client: Redis = await this.redisPool.acquire();
-        try {
-            await client.publish('proxy-modified', 'update');
+            return Object.entries(processData).map(([uid, jsonString]: [string, string]): Proxy => {
+                const process = JSON.parse(jsonString);
+                return {
+                    uid,
+                    ...process
+                };
+            });
+        } catch (error) {
+            console.error('Failed to fetch process:', error);
+            throw error;
         } finally {
             await this.redisPool.release(client);
         }

@@ -1,5 +1,4 @@
 import {ApiEndpoint, AuthType} from '../types';
-import proxyService from "../../services/proxyService";
 
 export interface RestartProxyResponse {
     message: string;
