@@ -1,8 +1,10 @@
 import config from '../config';
 import { PoolConnection } from 'mariadb';
 import databaseService from "./databaseService";
-import {createReadStream, createWriteStream} from "node:fs";
+import {createReadStream, createWriteStream, mkdirSync} from "node:fs";
 import * as readline from "node:readline";
+import {BackupService} from "./backupService";
+import {existsSync} from "fs";
 
 interface DatabaseCredentials {
     username: string;
@@ -244,8 +246,13 @@ class MariadbService {
     async backup(databaseName: string): Promise<string> {
         let connection: PoolConnection | null = null;
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const backupPath = `backup-${databaseName}-${timestamp}.sql`;
+        const backupFolder = BackupService.getInstance().getBackupFolder() + "/mariadb";
+        const backupPath = backupFolder + `/backup-${databaseName}-${timestamp}.sql`;
         const writeStream = createWriteStream(backupPath);
+
+        if (!existsSync(backupFolder)) {
+            mkdirSync(backupFolder, { recursive: true });
+        }
 
         try {
             connection = await databaseService.pool.getConnection();
@@ -255,56 +262,54 @@ class MariadbService {
                 [databaseName]
             );
 
-            if (!Array.isArray(tables) || tables.length === 0) {
-                throw new Error(`Database '${databaseName}' has no tables`);
-            }
+            if (Array.isArray(tables) && tables.length > 0) {
+                writeStream.write(`USE \`${databaseName}\`;\n\n`);
 
-            writeStream.write(`USE \`${databaseName}\`;\n\n`);
+                for (const table of tables) {
+                    const tableName = table.TABLE_NAME;
 
-            for (const table of tables) {
-                const tableName = table.TABLE_NAME;
-
-                if (!tableName) {
-                    console.warn('Skipping invalid table entry:', table);
-                    continue;
-                }
-
-                const createTableResult = await connection.query(
-                    `SHOW CREATE TABLE \`${databaseName}\`.\`${tableName}\``
-                );
-
-                if (!createTableResult?.[0]?.['Create Table']) {
-                    console.warn(`Could not get creation SQL for table: ${tableName}`);
-                    continue;
-                }
-
-                writeStream.write(`DROP TABLE IF EXISTS \`${tableName}\`;\n`);
-                writeStream.write(`${createTableResult[0]['Create Table']};\n\n`);
-
-                const rows = await connection.query(
-                    `SELECT * FROM \`${databaseName}\`.\`${tableName}\``
-                );
-
-                if (Array.isArray(rows) && rows.length > 0) {
-                    const chunkSize = 1000;
-                    for (let i = 0; i < rows.length; i += chunkSize) {
-                        const chunk = rows.slice(i, i + chunkSize);
-                        const columns = Object.keys(chunk[0]);
-
-                        const values = chunk.map(row =>
-                            `(${columns.map(col => {
-                                const value = row[col];
-                                return connection!.escape(value);
-                            }).join(', ')})`
-                        ).join(',\n');
-
-                        writeStream.write(
-                            `INSERT INTO \`${tableName}\` ` +
-                            `(\`${columns.join('`, `')}\`) VALUES\n` +
-                            `${values};\n`
-                        );
+                    if (!tableName) {
+                        console.warn('Skipping invalid table entry:', table);
+                        continue;
                     }
-                    writeStream.write('\n');
+
+                    const createTableResult = await connection.query(
+                        `SHOW CREATE TABLE \`${databaseName}\`.\`${tableName}\``
+                    );
+
+                    if (!createTableResult?.[0]?.['Create Table']) {
+                        console.warn(`Could not get creation SQL for table: ${tableName}`);
+                        continue;
+                    }
+
+                    writeStream.write(`DROP TABLE IF EXISTS \`${tableName}\`;\n`);
+                    writeStream.write(`${createTableResult[0]['Create Table']};\n\n`);
+
+                    const rows = await connection.query(
+                        `SELECT * FROM \`${databaseName}\`.\`${tableName}\``
+                    );
+
+                    if (Array.isArray(rows) && rows.length > 0) {
+                        const chunkSize = 1000;
+                        for (let i = 0; i < rows.length; i += chunkSize) {
+                            const chunk = rows.slice(i, i + chunkSize);
+                            const columns = Object.keys(chunk[0]);
+
+                            const values = chunk.map(row =>
+                                `(${columns.map(col => {
+                                    const value = row[col];
+                                    return connection!.escape(value);
+                                }).join(', ')})`
+                            ).join(',\n');
+
+                            writeStream.write(
+                                `INSERT INTO \`${tableName}\` ` +
+                                `(\`${columns.join('`, `')}\`) VALUES\n` +
+                                `${values};\n`
+                            );
+                        }
+                        writeStream.write('\n');
+                    }
                 }
             }
 
