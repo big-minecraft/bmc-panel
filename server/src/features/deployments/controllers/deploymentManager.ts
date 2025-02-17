@@ -8,6 +8,7 @@ import Deployment from '../models/deployment';
 import sftpService from "../../../services/sftpService";
 import {DeploymentType} from "../../../../../shared/enum/enums/deployment-type";
 import {Enum} from "../../../../../shared/enum/enum";
+import Redis from "ioredis";
 
 export default class DeploymentManager {
     private static deployments: Deployment[] = [];
@@ -42,7 +43,7 @@ export default class DeploymentManager {
         }
 
         await DeploymentManager.runApplyScript();
-        await DeploymentManager.sendProxyUpdate();
+        await DeploymentManager.sendRedisUpdates();
         DeploymentManager.deployments.push(deployment);
 
         return deployment;
@@ -64,7 +65,7 @@ export default class DeploymentManager {
         }
         DeploymentManager.deployments = DeploymentManager.deployments.filter(testDeployment => testDeployment !== deployment);
         await DeploymentManager.runApplyScript();
-        await DeploymentManager.sendProxyUpdate();
+        await DeploymentManager.sendRedisUpdates();
     }
 
     public static getDeploymentByName(name: string) {
@@ -75,14 +76,18 @@ export default class DeploymentManager {
         return DeploymentManager.deployments;
     }
 
-    static async runApplyScript(): Promise<void> {
+    public static async runApplyScript(): Promise<void> {
         const scriptDir = path.join(config["bmc-path"], "scripts");
         await Util.safelyExecuteShellCommand(`cd "${scriptDir}" && ls && ./apply-deployments.sh`);
     }
 
-    static async sendProxyUpdate(): Promise<void> {
-        const client = await redisService.redisPool.acquire();
-        client.publish('proxy-modified', 'update');
-        await redisService.redisPool.release(client);
+    public static async sendRedisUpdates(): Promise<void> {
+        const client: Redis = await redisService.redisPool.acquire();
+        try {
+            await client.publish('deployment-modified', 'update');
+            await client.publish('proxy-modified', 'update');
+        } finally {
+            await redisService.redisPool.release(client);
+        }
     }
 }

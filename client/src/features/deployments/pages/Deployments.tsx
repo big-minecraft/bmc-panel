@@ -2,7 +2,6 @@ import {useState, useEffect} from 'react';
 import {motion} from 'framer-motion';
 import {Plus} from 'lucide-react';
 import {useDeployments} from '../hooks/useDeployments';
-import {useProxy} from '../hooks/useProxy';
 import {useNotifications} from '../hooks/useNotifications';
 import {DeploymentsProvider, useDeploymentsContext} from '../context/DeploymentsContext';
 import ProxyCard from '../components/cards/ProxyCard';
@@ -17,12 +16,7 @@ const DeploymentsContent = () => {
     const {setNodes, setIsLoadingNodes} = useDeploymentsContext();
 
     const {deployments, isLoading, error, fetchDeployments, getDeploymentsByType, games, proxy} = useDeployments();
-    const {fetchProxyConfig} = useProxy();
     const {notifications, removeNotification} = useNotifications();
-
-    useEffect(() => {
-        Promise.all([fetchDeployments(), fetchProxyConfig()]);
-    }, []);
 
     const handleOpenCreateModal = async () => {
         setIsLoadingNodes(true);
