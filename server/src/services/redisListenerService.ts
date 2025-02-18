@@ -1,9 +1,11 @@
 import Redis from 'ioredis';
 import {updatePod} from "./powerActionService";
 import {RedisManager} from "./redisService";
+import {Enum} from "../../../shared/enum/enum";
 
 interface ServerShutdownEvent {
     server: string;
+    deployment: string;
     event: 'shutdown';
     timestamp: string;
 }
@@ -57,8 +59,8 @@ export class RedisListenerService {
     private async handleServerShutdown(event: ServerShutdownEvent) {
         console.log(`Server ${event.server} shutdown at ${event.timestamp}`);
 
-        await this.redisService.setPodStatus(event.server, 'STOPPED');
-        await updatePod(event.server, 'STOPPED');
+        await this.redisService.setPodState(event.deployment, event.server, Enum.InstanceState.STOPPED);
+        await updatePod(event.deployment, event.server, Enum.InstanceState.STOPPED);
     }
 
     public async shutdown() {

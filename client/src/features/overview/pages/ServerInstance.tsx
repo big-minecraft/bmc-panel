@@ -1,24 +1,30 @@
 import {useParams, useNavigate} from "react-router-dom";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {ArrowLeft, Activity, Server, Users, Play, RotateCw, Square, XCircle} from 'lucide-react';
 import Console from "../components/Console";
 import InstanceDetails from "../components/InstanceDetails";
 import MetricsSection from "../components/MetricsSection";
-import { getInstanceStateDetails } from "../constants/instanceState";
+import axiosInstance from "../../../utils/auth.ts";
+import {InstanceState} from "../../../../../shared/enum/enums/instance-state.ts";
+import {Enum} from "../../../../../shared/enum/enum.ts";
 
-function ServerInstance({instances, proxies}) {
-    const {instanceName} = useParams();
+function ServerInstance() {
+    const {deploymentName, instanceUid} = useParams();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('console');
     const [websocket, setWebsocket] = useState(null);
-    const instance = [...instances, ...proxies].find(inst => inst.name === instanceName);
+    const [instance, setInstance] = useState(null);
     const [instanceState, setInstanceState] = useState(instance?.state);
+
+    useEffect(() => {
+        fetchInstance();
+    }, []);
 
     const handleStateUpdate = (newState) => {
         setInstanceState(newState);
     };
 
-    const stateDetails = getInstanceStateDetails(instanceState || instance?.state);
+    const state: InstanceState = Enum.InstanceState.fromString(instanceState || instance?.state);
 
     const handleWebSocketReady = (ws) => {
         setWebsocket(ws);
@@ -35,13 +41,25 @@ function ServerInstance({instances, proxies}) {
         }
     };
 
+    const fetchInstance = async () => {
+        try {
+            const res = await axiosInstance.get(`/api/deployments/${deploymentName}/instances`);
+            const instances = res.data.data.instances;
+
+            const instance = instances.find((instance: { uid: string; }) => instance.uid === instanceUid);
+            setInstance(instance);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
     const handleStart = () => sendCommand('start');
     const handleStop = () => sendCommand('stop');
     const handleRestart = () => sendCommand('restart');
     const handleKill = () => {
         sendCommand('kill');
         setTimeout(() => {
-            navigate('/');
+            navigate('/`');
         }, 1000);
     };
 
@@ -101,7 +119,7 @@ function ServerInstance({instances, proxies}) {
                     >
                         <ArrowLeft size={20}/>
                     </button>
-                    <h1 className="text-2xl font-bold text-gray-900 ml-4">{instanceName}</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 ml-4">{instance.name}</h1>
                 </div>
 
                 {/* Quick Stats */}
@@ -115,9 +133,9 @@ function ServerInstance({instances, proxies}) {
                         </div>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center">
-                                <div className={`w-2.5 h-2.5 rounded-full ${stateDetails.color.replace('text-', 'bg-')} mr-2`}></div>
-                                <p className={`text-2xl font-semibold ${stateDetails.color}`}>
-                                    {stateDetails.display}
+                                <div className={`w-2.5 h-2.5 rounded-full ${state.color.replace('text-', 'bg-')} mr-2`}></div>
+                                <p className={`text-2xl font-semibold ${state.color}`}>
+                                    {state.displayName}
                                 </p>
                             </div>
                             <div className="flex items-center text-gray-600">
@@ -172,28 +190,28 @@ function ServerInstance({instances, proxies}) {
                                 label="Start"
                                 variant="start"
                                 onClick={handleStart}
-                                disabled={stateDetails.key === 'RUNNING' || stateDetails.key === 'STARTING'}
+                                disabled={state.identifier === 'RUNNING' || state.identifier === 'STARTING'}
                             />
                             <ActionButton
                                 icon={RotateCw}
                                 label="Restart"
                                 variant="restart"
                                 onClick={handleRestart}
-                                disabled={stateDetails.key === 'STOPPED' || stateDetails.key === 'STOPPING'}
+                                disabled={state.identifier === 'STOPPED' || state.identifier === 'STOPPING'}
                             />
                             <ActionButton
                                 icon={Square}
                                 label="Stop"
                                 variant="stop"
                                 onClick={handleStop}
-                                disabled={stateDetails.key === 'STOPPED' || stateDetails.key === 'STOPPING'}
+                                disabled={state.identifier === 'STOPPED' || state.identifier === 'STOPPING'}
                             />
                             <ActionButton
                                 icon={XCircle}
                                 label="Kill"
                                 variant="kill"
                                 onClick={handleKill}
-                                disabled={stateDetails.key === 'STOPPED'}
+                                disabled={state.identifier === 'STOPPED'}
                             />
                         </div>
                     </div>

@@ -1,27 +1,30 @@
 import {useState, useEffect} from 'react';
-import {Server, Shield} from 'lucide-react';
+import {Server} from 'lucide-react';
 import axiosInstance from '../../../utils/auth';
 import DeploymentCard from "../components/home/DeploymentCard";
 
-const NetworkOverview = ({instances: initialInstances, proxies: initialProxies}) => {
-    const [instances, setInstances] = useState(initialInstances);
-    const [proxies, setProxies] = useState(initialProxies);
+const NetworkOverview = () => {
+    const [instances, setInstances] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-
-    useEffect(() => {
-        setInstances(initialInstances);
-        setProxies(initialProxies);
-    }, [initialInstances, initialProxies]);
 
     const fetchData = async () => {
         try {
             setIsLoading(true);
-            const [instancesRes, proxiesRes] = await Promise.all([
-                axiosInstance.get('/api/network/instances'),
-                axiosInstance.get('/api/network/proxies')
-            ]);
-            setInstances(instancesRes.data.data.instances);
-            setProxies(proxiesRes.data.data.proxies);
+            const deploymentsRes = await axiosInstance.get('/api/deployments');
+            const fetchedDeployments = deploymentsRes.data.data.deployments;
+
+            const instanceRequests = fetchedDeployments.map(deployment =>
+                axiosInstance.get(`/api/deployments/${deployment.name}/instances`)
+            );
+            const instancesResponses = await Promise.all(instanceRequests);
+            const allInstances = instancesResponses.flatMap(res => res.data.data.instances);
+
+            const deploymentsWithInstances = fetchedDeployments.map(deployment => ({
+                ...deployment,
+                instances: allInstances.filter(instance => instance.deployment === deployment.name)
+            }));
+
+            setInstances(deploymentsWithInstances);
         } catch (err) {
             console.error(err);
         } finally {
@@ -30,18 +33,10 @@ const NetworkOverview = ({instances: initialInstances, proxies: initialProxies})
     };
 
     useEffect(() => {
+        fetchData();
         const intervalId = setInterval(fetchData, 3000);
         return () => clearInterval(intervalId);
     }, []);
-
-    const instancesByDeployment = instances.reduce((acc, instance) => {
-        const deployment = instance.deployment || 'Unknown';
-        if (!acc[deployment]) {
-            acc[deployment] = [];
-        }
-        acc[deployment].push(instance);
-        return acc;
-    }, {});
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -56,17 +51,12 @@ const NetworkOverview = ({instances: initialInstances, proxies: initialProxies})
                     </div>
 
                     <div className="space-y-6">
-                        <DeploymentCard
-                            title="Proxy Servers"
-                            instances={proxies}
-                            icon={Shield}
-                        />
-
-                        {Object.keys(instancesByDeployment).sort().map((deployment) => (
+                        {instances.sort((a, b) => a.name.localeCompare(b.name)).map((deployment) => (
                             <DeploymentCard
-                                key={deployment}
-                                title={deployment.charAt(0).toUpperCase() + deployment.slice(1)}
-                                instances={instancesByDeployment[deployment]}
+                                key={deployment.name}
+                                deployment={deployment.name}
+                                title={deployment.name.charAt(0).toUpperCase() + deployment.name.slice(1)}
+                                instances={deployment.instances}
                                 icon={Server}
                             />
                         ))}

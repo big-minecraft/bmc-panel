@@ -30,7 +30,7 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
         setIsConnecting(true);
         const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
         const wsHost = window.location.host;
-        const wsUrl = `${wsProtocol}://${wsHost.replace('3000', '3001')}/api/logs/${instance.deployment}/${instance.podName}`;
+        const wsUrl = `${wsProtocol}://${wsHost.replace('3000', '3000')}/api/logs/${instance.deployment}/${instance.podName}`;
 
         const socket = new WebSocket(wsUrl);
 

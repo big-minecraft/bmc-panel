@@ -2,25 +2,11 @@ import Redis from 'ioredis';
 import * as genericPool from 'generic-pool';
 import config from '../config';
 import {RedisListenerService} from "./redisListenerService";
+import Deployment from "../features/deployments/models/deployment";
+import {MinecraftInstance} from "../../../shared/model/minecraft-instance";
+import {Instance} from "../../../shared/model/instance";
 import DeploymentManager from "../features/deployments/controllers/deploymentManager";
-
-export interface Instance {
-    uid: string;
-    podName: string;
-    [key: string]: any;
-}
-
-export interface Proxy {
-    uid: string;
-    podName: string;
-    [key: string]: any;
-}
-
-export interface Process {
-    uid: string;
-    podName: string;
-    [key: string]: any;
-}
+import {InstanceState} from "../../../shared/enum/enums/instance-state";
 
 interface RedisPool extends genericPool.Pool<Redis> {
     acquire: () => Promise<Redis>;
@@ -62,32 +48,47 @@ export class RedisManager {
         return RedisManager.instance;
     }
 
-    public async getInstances(): Promise<Instance[]> {
-
+    public async getInstances(deployment: Deployment): Promise<Instance[]> {
         const client: Redis = await this.redisPool.acquire();
         try {
+            let instances: Instance[] = [];
 
-            let instances = [];
+            const instancesData: { [key: string]: string } = await client.hgetall(deployment.name);
 
-            for (const deployment of DeploymentManager.getDeployments()) {
-                console.log('Deployment:', deployment.name);
-                const instancesData: { [key: string]: string } = await client.hgetall(deployment.name);
-                console.log('Instances:', instancesData);
+            let deploymentInstances = Object.entries(instancesData).map(([uid, jsonString]: [string, string]): Instance => {
+                const instanceData = JSON.parse(jsonString);
 
-                let deploymentInstances =  Object.entries(instancesData).map(([uid, jsonString]: [string, string]): Instance => {
-                    const instance = JSON.parse(jsonString);
-                    return {
+                if (instanceData.players !== undefined) {
+                    const minecraftInstance = new MinecraftInstance(
                         uid,
-                        ...instance
-                    };
-                });
+                        instanceData.name,
+                        instanceData.podName,
+                        instanceData.ip,
+                        instanceData.state,
+                        deployment.name
+                    );
 
-                instances.concat(deploymentInstances);
-            }
+                    if (typeof instanceData.players === 'object') {
+                        Object.entries(instanceData.players).forEach(([playerUuid, playerName]) => {
+                            minecraftInstance.addPlayer(playerUuid, playerName as string);
+                        });
+                    }
 
+                    return minecraftInstance;
+                } else {
+                    return new Instance(
+                        uid,
+                        instanceData.name,
+                        instanceData.podName,
+                        instanceData.ip,
+                        instanceData.state,
+                        deployment.name
+                    );
+                }
+            });
+
+            instances = instances.concat(deploymentInstances);
             return instances;
-
-
         } catch (error) {
             console.error('Failed to fetch instances:', error);
             throw error;
@@ -96,61 +97,17 @@ export class RedisManager {
         }
     }
 
-    public async getProxies(): Promise<Proxy[]> {
-        const client: Redis = await this.redisPool.acquire();
-        try {
-            const proxiesData: { [key: string]: string } = await client.hgetall('proxy');
+    public async setPodState(deploymentName: string, podName: string, state: InstanceState): Promise<void> {
+        let deployment: Deployment = DeploymentManager.getDeploymentByName(deploymentName);
+        let instances: Instance[] = await this.getInstances(deployment);
 
-            return Object.entries(proxiesData).map(([uid, jsonString]: [string, string]): Proxy => {
-                const proxy = JSON.parse(jsonString);
-                return {
-                    uid,
-                    ...proxy
-                };
-            });
-        } catch (error) {
-            console.error('Failed to fetch proxies:', error);
-            throw error;
-        } finally {
-            await this.redisPool.release(client);
-        }
-    }
+        let instance: Instance = instances.find(instance => instance.podName === podName);
+        instance.state = state;
 
-    public async getProcesses(): Promise<Process[]> {
-        const client: Redis = await this.redisPool.acquire();
-        try {
-            const processData: { [key: string]: string } = await client.hgetall('processes');
-
-            return Object.entries(processData).map(([uid, jsonString]: [string, string]): Proxy => {
-                const process = JSON.parse(jsonString);
-                return {
-                    uid,
-                    ...process
-                };
-            });
-        } catch (error) {
-            console.error('Failed to fetch process:', error);
-            throw error;
-        } finally {
-            await this.redisPool.release(client);
-        }
-    }
-
-    public async setPodStatus(podName: string, status: string): Promise<void> {
-        let podType: string = podName.includes('proxy') ? 'proxies' : 'instances';
         const client: Redis = await this.redisPool.acquire();
 
         try {
-            const instancesData: { [key: string]: string } = await client.hgetall(podType);
-            const uid = Object.keys(instancesData).find(key => {
-                return JSON.parse(instancesData[key]).podName === podName;
-            });
-
-            if (uid) {
-                const instance = JSON.parse(instancesData[uid]);
-                instance.state = status;
-                await client.hset(podType, uid, JSON.stringify(instance));
-            }
+            await client.hset(deploymentName, instance.uid, JSON.stringify(instance));
         } catch (error) {
             console.error('Failed to set pod status:', error);
             throw error;

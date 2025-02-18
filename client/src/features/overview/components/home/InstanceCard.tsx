@@ -1,14 +1,16 @@
 import {Link} from 'react-router-dom';
 import {Users, Activity} from 'lucide-react';
-import {getInstanceStateDetails} from '../../constants/instanceState';
+import {InstanceState} from "../../../../../../shared/enum/enums/instance-state.ts";
+import {Enum} from "../../../../../../shared/enum/enum.ts";
 
-const InstanceCard = ({instance, linkPrefix = "/instance"}) => {
+
+const InstanceCard = ({instance, deploymentName, linkPrefix = "/instance"}) => {
     const playerCount = Object.keys(instance.players).length;
-    const stateDetails = getInstanceStateDetails(instance.state);
+    const state: InstanceState = Enum.InstanceState.fromString(instance.state);
 
     return (
         <Link
-            to={`${linkPrefix}/${instance.name}`}
+            to={`${linkPrefix}/${deploymentName}/${instance.uid}`}
             state={{instance}}
             className="block group"
         >
@@ -35,8 +37,8 @@ const InstanceCard = ({instance, linkPrefix = "/instance"}) => {
 
                     <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2">
-                            <Activity size={14} className={stateDetails.color}/>
-                            <span className={`text-sm ${stateDetails.color}`}>{stateDetails.display}</span>
+                            <Activity size={14} className={state.color}/>
+                            <span className={`text-sm ${state.color}`}>{state.displayName}</span>
                         </div>
                         <div className="text-sm text-gray-400">
                             ID: {instance.name.split('-')[0]}

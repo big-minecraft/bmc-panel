@@ -4,6 +4,8 @@ import {Manifest} from "./types";
 import DeploymentManager from "../controllers/deploymentManager";
 import {DeploymentType} from "../../../../../shared/enum/enums/deployment-type";
 import {Enum} from "../../../../../shared/enum/enum";
+import {Instance} from "../../../../../shared/model/instance";
+import redisService from "../../../services/redisService";
 
 export default class Deployment {
     public readonly name: string;
@@ -75,6 +77,10 @@ export default class Deployment {
         await DeploymentManifestManager.updateDeploymentContent(this, content);
         await DeploymentManager.runApplyScript();
         await DeploymentManager.sendRedisUpdates();
+    }
+
+    public async getInstances(): Promise<Instance[]> {
+        return await redisService.getInstances(this);
     }
 
     public toJSON() {

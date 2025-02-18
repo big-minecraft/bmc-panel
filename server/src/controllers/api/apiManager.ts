@@ -34,9 +34,6 @@ import {getUsersEndpoint} from "../../api/users/getUsers";
 import {setAdminEndpoint} from "../../api/users/setAdmin";
 import {resetPasswordEndpoint} from "../../api/users/resetPassword";
 import {deleteUserEndpoint} from "../../api/users/deleteUser";
-import {getInstancesEndpoint} from "../../api/network/getInstances";
-import {getProxiesEndpoint} from "../../api/network/getProxies";
-import {getNodesEndpoint} from "../../api/network/getNodes";
 import {getCpuMetricsEndpoint} from "../../api/metrics/getCpuMetrics";
 import {getMemoryMetricsEndpoint} from "../../api/metrics/getMemoryMetrics";
 import {archiveFileEndpoint} from "../../api/sftp/archiveFile";
@@ -58,6 +55,8 @@ import {toggleProxyEndpoint} from "../../api/proxy/toggleProxy";
 import {AuthType} from "../../api/types";
 import {handleAdminAuth, handleBasicAuth} from "../../middleware/auth";
 import {getK8sDashboardHostEndpoint} from "../../api/admin/getK8sDashboardHost";
+import {getNodesEndpoint} from "../../api/deployments/getNodes";
+import {getDeploymentInstancesEndpoint} from "../../api/deployments/getDeploymentInstances";
 
 export interface MulterFile {
     fieldname: string;
@@ -145,6 +144,8 @@ export default class ApiManager {
         this.addEndpoint(updateDeploymentContentEndpoint);
         this.addEndpoint(getDeploymentContentEndpoint);
         this.addEndpoint(updateDeploymentContentEndpoint);
+        this.addEndpoint(getDeploymentInstancesEndpoint);
+        this.addEndpoint(getNodesEndpoint);
 
         //Proxy
         this.addEndpoint(getProxyEndpoint);
@@ -163,11 +164,6 @@ export default class ApiManager {
         this.addEndpoint(setAdminEndpoint);
         this.addEndpoint(resetPasswordEndpoint);
         this.addEndpoint(deleteUserEndpoint);
-
-        //Network
-        this.addEndpoint(getInstancesEndpoint);
-        this.addEndpoint(getProxiesEndpoint);
-        this.addEndpoint(getNodesEndpoint);
 
         //Metrics
         this.addEndpoint(getCpuMetricsEndpoint);

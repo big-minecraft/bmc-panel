@@ -101,7 +101,6 @@ const Registration = () => {
                 animate={{opacity: 1, y: 0}}
                 transition={{delay: 0.5}}
             >
-                <p>By creating an account, you agree to our terms of service and privacy policy</p>
             </motion.div>
         </motion.div>
     );

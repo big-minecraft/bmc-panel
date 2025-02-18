@@ -1,8 +1,8 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {ChevronDown, ChevronRight} from 'lucide-react';
 import InstanceCard from './InstanceCard';
 
-const DeploymentCard = ({title, instances, icon: Icon}) => {
+const DeploymentCard = ({deployment: deploymentName, title, instances, icon: Icon}) => {
     const [isExpanded, setIsExpanded] = useState(true);
 
     return (
@@ -30,7 +30,7 @@ const DeploymentCard = ({title, instances, icon: Icon}) => {
                     {instances.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {instances.map((instance, index) => (
-                                <InstanceCard key={index} instance={instance}/>
+                                <InstanceCard key={index} instance={instance} deploymentName={deploymentName}/>
                             ))}
                         </div>
                     ) : (

@@ -6,7 +6,7 @@ export interface GetNodesResponse {
 }
 
 export const getNodesEndpoint: ApiEndpoint<unknown, GetNodesResponse> = {
-    path: '/api/network/nodes',
+    path: '/api/deployments/nodes',
     method: 'get',
     auth: AuthType.None,
     handler: async (req, res) => {

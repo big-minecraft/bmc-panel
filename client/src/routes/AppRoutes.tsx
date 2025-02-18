@@ -11,21 +11,19 @@ import Databases from "../features/databases/pages/Databases";
 import Login from "../features/auth/pages/Login";
 import Registration from "../features/auth/pages/Registration";
 
-const AppRoutes = ({instances, proxies}) => (
+const AppRoutes = () => (
     <Routes>
         <Route path="/login" element={<Login/>}/>
         <Route path="/register" element={<Registration/>}/>
         <Route path="/"
-               element={<PrivateRoute><NetworkOverview instances={instances} proxies={proxies}/></PrivateRoute>}/>
+               element={<PrivateRoute><NetworkOverview/></PrivateRoute>}/>
         <Route path="/deployments" element={<PrivateRoute><Deployments/></PrivateRoute>}/>
         <Route path="/admin" element={<PrivateRoute><Admin/></PrivateRoute>}/>
         <Route path="/files/*" element={<PrivateRoute><SftpInterface/></PrivateRoute>}/>
         <Route path="/databases" element={<PrivateRoute><Databases/></PrivateRoute>}/>
         <Route path="/deployments/:name/edit" element={<PrivateRoute><EditDeployments/></PrivateRoute>}/>
-        <Route path="/instance/:instanceName"
-               element={<PrivateRoute><ServerInstance instances={instances} proxies={proxies}/></PrivateRoute>}/>
-        <Route path="/proxy/:instanceName"
-               element={<PrivateRoute><ServerInstance instances={instances} proxies={proxies}/></PrivateRoute>}/>
+        <Route path="/instance/:deploymentName/:instanceUid"
+               element={<PrivateRoute><ServerInstance/></PrivateRoute>}/>
         <Route path="*" element={<PrivateRoute><NotFound/></PrivateRoute>}/>
     </Routes>
 );

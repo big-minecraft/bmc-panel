@@ -6,56 +6,57 @@ import kubernetesService from "./kubernetesService";
 import redisService from "./redisService";
 import DeploymentManager from "../features/deployments/controllers/deploymentManager";
 import {DeploymentValues} from "../features/deployments/models/types";
+import {InstanceState} from "../../../shared/enum/enums/instance-state";
+import {Enum} from "../../../shared/enum/enum";
+import {Instance} from "../../../shared/model/instance";
 
 const podStatusMap = new Map<string, string>();
 
 async function stopPod(
     ws: WebSocket,
     podName: string,
+    deploymentName: string,
     cluster: Cluster,
     user: User
 ): Promise<void> {
     await executeCommand(ws, 'stop', podName, cluster, user, true);
     await executeCommand(ws, 'rm /tmp/should_run', podName, cluster, user, false);
-    await updatePod(podName, 'STOPPING');
+    await updatePod(deploymentName, podName, Enum.InstanceState.STOPPING);
 }
 
-async function  determineStartStatus(
+async function determineStartState(
     deployment: string,
-    isProxy: boolean
-): Promise<string> {
-    if (isProxy) return 'RUNNING';
-
-    const deploymentInstance = await DeploymentManager.getDeploymentByName(deployment);
+): Promise<InstanceState> {
+    const deploymentInstance = DeploymentManager.getDeploymentByName(deployment);
     const yamlContent = yaml.load(deploymentInstance.getContent()) as DeploymentValues;
     const requireStartupConfirmation = yamlContent.queuing.requireStartupConfirmation;
 
     console.log(yamlContent);
     console.log(`Deployment ${deployment} requires startup confirmation: ${requireStartupConfirmation}`);
 
-    return requireStartupConfirmation === 'true' ? 'STARTING' : 'RUNNING';
+    return requireStartupConfirmation === 'true' ? Enum.InstanceState.STARTING : Enum.InstanceState.RUNNING;
 }
 
 async function startPod(
     ws: WebSocket,
-    deployment: string,
     podName: string,
+    deploymentName: string,
     cluster: Cluster,
     user: User
 ): Promise<void> {
     await executeCommand(ws, 'touch /tmp/should_run', podName, cluster, user, false);
 
-    const isProxy = podName.includes('proxy');
-    const status = await determineStartStatus(deployment, isProxy);
+    const state = await determineStartState(deploymentName);
 
-    await updatePod(podName, status);
+    await updatePod(deploymentName, podName, state);
 }
 
 async function killPod(
-    podName: string
+    podName: string,
+    deploymentName: string
 ): Promise<void> {
     await kubernetesService.killPod(podName);
-    await updatePod(podName, 'STOPPED');
+    await updatePod(deploymentName, podName, Enum.InstanceState.STOPPED);
 }
 
 async function waitForPodStop(
@@ -69,8 +70,8 @@ async function waitForPodStop(
         }, timeoutMs);
 
         const checkStatus = () => {
-            const currentStatus = podStatusMap.get(podName);
-            if (currentStatus === 'STOPPED') {
+            const currentState = podStatusMap.get(podName);
+            if (currentState === 'STOPPED') {
                 cleanup();
                 resolve();
             }
@@ -89,40 +90,40 @@ async function waitForPodStop(
 
 async function restartPod(
     ws: WebSocket,
-    deployment: string,
     podName: string,
+    deploymentName: string,
     cluster: Cluster,
     user: User
 ): Promise<void> {
-    await stopPod(ws, podName, cluster, user);
+    await stopPod(ws, deploymentName, podName, cluster, user);
     await waitForPodStop(podName);
-    await startPod(ws, deployment, podName, cluster, user);
+    await startPod(ws, deploymentName, podName, cluster, user);
 }
 
 async function executePowerAction(
     ws: WebSocket,
     action: 'start' | 'stop' | 'restart' | 'kill',
-    deployment: string,
     podName: string,
+    deploymentName: string,
     cluster: Cluster,
     user: User
 ): Promise<void> {
     try {
         switch (action) {
             case 'stop':
-                await stopPod(ws, podName, cluster, user);
+                await stopPod(ws, deploymentName, podName, cluster, user);
                 break;
 
             case 'start':
-                await startPod(ws, deployment, podName, cluster, user);
+                await startPod(ws, deploymentName, podName, cluster, user);
                 break;
 
             case 'restart':
-                await restartPod(ws, deployment, podName, cluster, user);
+                await restartPod(ws, deploymentName, podName, cluster, user);
                 break;
 
             case 'kill':
-                await killPod(podName);
+                await killPod(deploymentName, podName);
                 break;
 
             default:
@@ -137,14 +138,14 @@ async function executePowerAction(
     }
 }
 
-async function updatePod(podName: string, action: string) {
-    podStatusMap.set(podName, action);
+async function updatePod(deploymentName: string, podName: string, state: InstanceState) {
+    podStatusMap.set(podName, state.identifier);
 
-    await redisService.setPodStatus(podName, action);
+    await redisService.setPodState(deploymentName, podName, state);
 
     getPodConnections(podName).forEach(connection => {
         if (connection.ws.readyState === WebSocket.OPEN) {
-            connection.ws.send(JSON.stringify({type: "power", content: action}));
+            connection.ws.send(JSON.stringify({type: "power", content: state.identifier}));
         }
     });
 }
