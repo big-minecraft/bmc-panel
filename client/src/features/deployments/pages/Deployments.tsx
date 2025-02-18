@@ -18,6 +18,10 @@ const DeploymentsContent = () => {
     const {deployments, isLoading, error, fetchDeployments, getDeploymentsByType, games, proxy} = useDeployments();
     const {notifications, removeNotification} = useNotifications();
 
+    useEffect(() => {
+        Promise.all([fetchDeployments()]);
+    }, []);
+
     const handleOpenCreateModal = async () => {
         setIsLoadingNodes(true);
         try {

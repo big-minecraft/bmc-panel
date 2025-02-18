@@ -70,7 +70,9 @@ export class RedisManager {
             let instances = [];
 
             for (const deployment of DeploymentManager.getDeployments()) {
+                console.log('Deployment:', deployment.name);
                 const instancesData: { [key: string]: string } = await client.hgetall(deployment.name);
+                console.log('Instances:', instancesData);
 
                 let deploymentInstances =  Object.entries(instancesData).map(([uid, jsonString]: [string, string]): Instance => {
                     const instance = JSON.parse(jsonString);
