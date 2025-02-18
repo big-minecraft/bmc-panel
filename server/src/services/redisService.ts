@@ -2,6 +2,7 @@ import Redis from 'ioredis';
 import * as genericPool from 'generic-pool';
 import config from '../config';
 import {RedisListenerService} from "./redisListenerService";
+import DeploymentManager from "../features/deployments/controllers/deploymentManager";
 
 export interface Instance {
     uid: string;
@@ -62,17 +63,29 @@ export class RedisManager {
     }
 
     public async getInstances(): Promise<Instance[]> {
+
         const client: Redis = await this.redisPool.acquire();
         try {
-            const instancesData: { [key: string]: string } = await client.hgetall('instances');
 
-            return Object.entries(instancesData).map(([uid, jsonString]: [string, string]): Instance => {
-                const instance = JSON.parse(jsonString);
-                return {
-                    uid,
-                    ...instance
-                };
-            });
+            let instances = [];
+
+            for (const deployment of DeploymentManager.getDeployments()) {
+                const instancesData: { [key: string]: string } = await client.hgetall(deployment.name);
+
+                let deploymentInstances =  Object.entries(instancesData).map(([uid, jsonString]: [string, string]): Instance => {
+                    const instance = JSON.parse(jsonString);
+                    return {
+                        uid,
+                        ...instance
+                    };
+                });
+
+                instances.concat(deploymentInstances);
+            }
+
+            return instances;
+
+
         } catch (error) {
             console.error('Failed to fetch instances:', error);
             throw error;
@@ -84,7 +97,7 @@ export class RedisManager {
     public async getProxies(): Promise<Proxy[]> {
         const client: Redis = await this.redisPool.acquire();
         try {
-            const proxiesData: { [key: string]: string } = await client.hgetall('proxies');
+            const proxiesData: { [key: string]: string } = await client.hgetall('proxy');
 
             return Object.entries(proxiesData).map(([uid, jsonString]: [string, string]): Proxy => {
                 const proxy = JSON.parse(jsonString);

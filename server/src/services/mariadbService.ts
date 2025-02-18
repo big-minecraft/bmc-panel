@@ -246,8 +246,8 @@ class MariadbService {
     async backup(databaseName: string): Promise<string> {
         let connection: PoolConnection | null = null;
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const backupFolder = BackupService.getInstance().getBackupFolder() + "/mariadb";
-        const backupPath = backupFolder + `/backup-${databaseName}-${timestamp}.sql`;
+        const backupFolder = BackupService.getInstance().getBackupFolder() + "/mariadb/";
+        const backupPath = backupFolder + `backup-${databaseName}-${timestamp}.sql`;
         const writeStream = createWriteStream(backupPath);
 
         if (!existsSync(backupFolder)) {

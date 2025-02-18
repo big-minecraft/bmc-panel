@@ -1,5 +1,11 @@
 import { MongoClient } from 'mongodb';
 import config from '../config';
+import path from "path";
+import {BackupService} from "./backupService";
+import {createReadStream, createWriteStream, mkdirSync} from "node:fs";
+import {existsSync} from "fs";
+import {pipeline, Readable, Transform} from "node:stream";
+import {readFile, writeFile} from "node:fs/promises";
 
 interface DatabaseCredentials {
     username: string;
@@ -72,16 +78,17 @@ class MongodbService {
             const username = `${name}_user`;
 
             try {
-                const users = await this.adminDb.command({ usersInfo: { user: username } });
+                const users = await this.adminDb.command({usersInfo: {user: username}});
                 if (users.users.length > 0) {
                     throw new Error(`User '${username}' already exists`);
                 }
-            } catch (error) { }
+            } catch (error) {
+            }
 
             const credentialsDb = this.client.db('admin');
             const existingCreds = await credentialsDb
                 .collection('database_credentials')
-                .findOne({ database_name: name });
+                .findOne({database_name: name});
 
             if (existingCreds) {
                 throw new Error(`Credentials for database '${name}' already exist`);
@@ -94,7 +101,7 @@ class MongodbService {
             await this.adminDb.command({
                 createUser: username,
                 pwd: password,
-                roles: [{ role: 'dbOwner', db: name }]
+                roles: [{role: 'dbOwner', db: name}]
             });
 
             await credentialsDb.collection('database_credentials').insertOne({
@@ -113,10 +120,10 @@ class MongodbService {
             };
         } catch (error) {
             try {
-                await this.adminDb.command({ dropUser: `${name}_user` });
+                await this.adminDb.command({dropUser: `${name}_user`});
                 await this.client.db(name).dropDatabase();
                 await this.client.db('admin').collection('database_credentials')
-                    .deleteOne({ database_name: name });
+                    .deleteOne({database_name: name});
             } catch (cleanupError) {
                 console.error('Cleanup failed:', cleanupError);
             }
@@ -178,10 +185,10 @@ class MongodbService {
         try {
             await this.connect();
 
-            await this.adminDb.command({ dropUser: `${name}_user` });
+            await this.adminDb.command({dropUser: `${name}_user`});
             await this.client.db(name).dropDatabase();
             await this.client.db('admin').collection('database_credentials')
-                .deleteOne({ database_name: name });
+                .deleteOne({database_name: name});
 
         } catch (error) {
             throw new Error(`Failed to delete database: ${error.message}`);
@@ -191,6 +198,7 @@ class MongodbService {
     }
 
     async resetMongoDatabasePassword(name: string): Promise<DatabaseCredentials> {
+
         if (!isValidDatabaseName(name)) {
             throw new Error('Invalid database name');
         }
@@ -208,8 +216,8 @@ class MongodbService {
 
             await this.client.db('admin').collection('database_credentials')
                 .updateOne(
-                    { database_name: name },
-                    { $set: { password: newPassword } }
+                    {database_name: name},
+                    {$set: {password: newPassword}}
                 );
 
             return {
@@ -218,6 +226,147 @@ class MongodbService {
             };
         } catch (error) {
             throw new Error(`Failed to reset password: ${error.message}`);
+        } finally {
+            await this.disconnect();
+        }
+    }
+
+    private createTransformStream(): Transform {
+        return new Transform({
+            objectMode: true,
+            transform(chunk: any, encoding: string, callback: (error?: Error | null, data?: any) => void) {
+                const jsonString = JSON.stringify(chunk) + '\n';
+                callback(null, jsonString);
+            }
+        });
+    }
+
+    async backup(databaseName: string): Promise<string> {
+        try {
+            await this.connect();
+            const db = this.client.db(databaseName);
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const backupFolder = BackupService.getInstance().getBackupFolder() + "/mongodb/";
+            const backupDir = path.join(backupFolder, `backup-${databaseName}-${timestamp}`);
+
+            if (!existsSync(backupDir)) {
+                mkdirSync(backupDir, {recursive: true});
+            }
+
+            const collections = await db.listCollections().toArray();
+
+            const metadata = {
+                database: databaseName,
+                collections: collections.map(col => ({
+                    name: col.name
+                })),
+                timestamp: timestamp,
+                version: '1.0'
+            };
+
+            await writeFile(
+                path.join(backupDir, 'metadata.json'),
+                JSON.stringify(metadata, null, 2)
+            );
+
+            await Promise.all(collections.map(async (collection) => {
+                const collectionName = collection.name;
+                const cursor = db.collection(collectionName).find({});
+
+                const writeStream = createWriteStream(
+                    path.join(backupDir, `${collectionName}.json`)
+                );
+
+                const transformStream = this.createTransformStream();
+                const readableStream = Readable.from(cursor);
+
+                return new Promise((resolve, reject) => {
+                    pipeline(
+                        readableStream,
+                        transformStream,
+                        writeStream,
+                        (err) => {
+                            if (err) reject(err);
+                            else resolve(undefined);
+                        }
+                    );
+                });
+            }));
+
+            console.log(`Backup created at: ${backupDir}`);
+            return backupDir;
+
+        } catch (error) {
+            console.error('Backup failed:', error);
+            throw error;
+        } finally {
+            await this.disconnect();
+        }
+    }
+
+
+    async restore(backupPath: string) {
+        try {
+            await this.connect();
+            const metadata = JSON.parse(
+                await readFile(path.join(backupPath, 'metadata.json'), 'utf-8')
+            );
+
+            const existingDatabases = await this.client.db().admin().listDatabases();
+            const databaseExists = existingDatabases.databases.some(db => db.name === metadata.database);
+
+            if (!databaseExists) {
+                await this.createMongoDatabase(metadata.database);
+            }
+
+            const db = this.client.db(metadata.database);
+
+            for (const collectionMeta of metadata.collections) {
+                const collectionName = collectionMeta.name;
+
+                try {
+                    await db.collection(collectionName).drop();
+                } catch (error) { }
+
+                const collection = await db.createCollection(
+                    collectionName,
+                    collectionMeta.options
+                );
+
+                const collectionFilePath = path.join(backupPath, `${collectionName}.json`);
+                const fileStream = createReadStream(collectionFilePath, {encoding: 'utf-8'});
+                const documents: any[] = [];
+
+                let buffer = '';
+
+                for await (const chunk of fileStream) {
+                    buffer += chunk;
+                    const lines = buffer.split('\n');
+
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (line.trim()) {
+                            documents.push(JSON.parse(line));
+
+                            if (documents.length >= 1000) {
+                                await collection.insertMany(documents);
+                                documents.length = 0;
+                            }
+                        }
+                    }
+                }
+
+                if (documents.length > 0) {
+                    await collection.insertMany(documents);
+                }
+            }
+
+            console.log(`Restored database ${metadata.database} from ${backupPath}`);
+
+        } catch (error) {
+            console.error('Restore failed:', error);
+            throw error;
         } finally {
             await this.disconnect();
         }
