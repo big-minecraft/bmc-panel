@@ -77,7 +77,7 @@ export async function setupPodLogs(ws: WebSocket, deployment: string, podName: s
                 cert: cert,
                 key: key,
                 ca: ca,
-                rejectUnauthorized: true
+                rejectUnauthorized: false
             });
         }
 
