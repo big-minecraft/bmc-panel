@@ -74,7 +74,7 @@ export default class Deployment {
     public async updateContent(content: string): Promise<void> {
         await DeploymentManifestManager.updateDeploymentContent(this, content);
         await DeploymentManager.runApplyScript();
-        await DeploymentManager.sendProxyUpdate();
+        await DeploymentManager.sendRedisUpdates();
     }
 
     public toJSON() {

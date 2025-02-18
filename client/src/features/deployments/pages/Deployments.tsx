@@ -2,7 +2,6 @@ import {useState, useEffect} from 'react';
 import {motion} from 'framer-motion';
 import {Plus} from 'lucide-react';
 import {useDeployments} from '../hooks/useDeployments';
-import {useProxy} from '../hooks/useProxy';
 import {useNotifications} from '../hooks/useNotifications';
 import {DeploymentsProvider, useDeploymentsContext} from '../context/DeploymentsContext';
 import ProxyCard from '../components/cards/ProxyCard';
@@ -16,13 +15,8 @@ const DeploymentsContent = () => {
     const [deploymentToDelete, setDeploymentToDelete] = useState(null);
     const {setNodes, setIsLoadingNodes} = useDeploymentsContext();
 
-    const {deployments, isLoading, error, fetchDeployments} = useDeployments();
-    const {fetchProxyConfig} = useProxy();
+    const {deployments, isLoading, error, fetchDeployments, getDeploymentsByType, games, proxy} = useDeployments();
     const {notifications, removeNotification} = useNotifications();
-
-    useEffect(() => {
-        Promise.all([fetchDeployments(), fetchProxyConfig()]);
-    }, []);
 
     const handleOpenCreateModal = async () => {
         setIsLoadingNodes(true);
@@ -99,20 +93,31 @@ const DeploymentsContent = () => {
                 <div className="space-y-8">
                     <div>
                         <h2 className="text-xl font-semibold text-gray-900 mb-4">Proxy</h2>
-                        <ProxyCard/>
+                        {proxy == null ? (
+                            <div className="bg-white rounded-xl border border-gray-200 p-8">
+                                <div className="text-center text-gray-500">
+                                    <h5 className="text-lg font-medium">No Proxy Found</h5>
+                                </div>
+                            </div>
+                        ) : (
+                            <DeploymentCard
+                                key={proxy.name}
+                                deployment={proxy}
+                            />
+                        )}
                     </div>
 
                     <div>
                         <h2 className="text-xl font-semibold text-gray-900 mb-4">Games</h2>
                         <div className="space-y-4">
-                            {deployments.length === 0 ? (
+                            {games.length === 0 ? (
                                 <div className="bg-white rounded-xl border border-gray-200 p-8">
                                     <div className="text-center text-gray-500">
                                         <h5 className="text-lg font-medium">No Deployments Found</h5>
                                     </div>
                                 </div>
                             ) : (
-                                deployments.map((deployment) => (
+                                games.map((deployment) => (
                                     <DeploymentCard
                                         key={deployment.name}
                                         deployment={deployment}

@@ -7,9 +7,15 @@ export class DeploymentTypeEnum extends CustomEnum<DeploymentType> {
 
     public PERSISTENT = this.addValue(new DeploymentType('Persistent', 'persistent'));
     public SCALABLE = this.addValue(new DeploymentType('Scalable', 'scalable'));
+    public PROXY = this.addValue(new DeploymentType('Proxy', 'proxy'));
 
-    public getFromString(identifier: string) {
+    public fromString(identifier: string) {
         for (let deploymentType of this.values()) if (deploymentType.identifier === identifier) return deploymentType;
+        return null;
+    }
+
+    public fromPath(path: string) {
+        for (let deploymentType of this.values()) if (path.includes(`/${deploymentType.identifier}/`)) return deploymentType;
         return null;
     }
 }

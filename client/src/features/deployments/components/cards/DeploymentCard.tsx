@@ -5,6 +5,7 @@ import {useDeployments} from '../../hooks/useDeployments';
 import {useNotifications} from '../../hooks/useNotifications';
 import {useDeploymentsContext} from '../../context/DeploymentsContext';
 import DeleteDeploymentModal from "../modals/DeleteDeploymentModal";
+import {Enum} from "../../../../../../shared/enum/enum.ts";
 
 const DeploymentCard = ({deployment}) => {
     const navigate = useNavigate();
@@ -35,13 +36,17 @@ const DeploymentCard = ({deployment}) => {
             <motion.div
                 initial={{opacity: 0, y: 20}}
                 animate={{opacity: 1, y: 0}}
-                className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
+                className={deployment.type == Enum.DeploymentType.PROXY ? (
+                    "bg-gradient-to-br from-indigo-50 to-white rounded-2xl border border-indigo-100 shadow-sm"
+                ) : (
+                    "bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
+                )}
             >
                 <div className="p-6">
                     {/* Status Indicator */}
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center space-x-2">
-                            <div className={`w-3 h-3 rounded-full ${deployment.enabled ? 'bg-green-500' : 'bg-gray-300'}`}/>
+                            <div className={`w-3 h-3 rounded-full ${deployment.enabled ? 'bg-green-500' : 'bg-gray-300'}`} />
                             <span className="text-sm font-medium text-gray-500">
                                 {deployment.enabled ? 'Active' : 'Inactive'}
                             </span>
@@ -55,10 +60,9 @@ const DeploymentCard = ({deployment}) => {
                                 disabled={restartingDeployments.has(deployment.name)}
                             >
                                 {restartingDeployments.has(deployment.name) ? (
-                                    <div
-                                        className="w-5 h-5 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin"/>
+                                    <div className="w-5 h-5 border-2 border-yellow-600 border-t-transparent rounded-full animate-spin" />
                                 ) : (
-                                    <RotateCcw size={18}/>
+                                    <RotateCcw size={18} />
                                 )}
                             </motion.button>
                             <motion.button
@@ -67,7 +71,7 @@ const DeploymentCard = ({deployment}) => {
                                 className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
                                 onClick={() => navigate(`/files${deployment.dataDirectory}`)}
                             >
-                                <Folder size={18}/>
+                                <Folder size={18} />
                             </motion.button>
                         </div>
                     </div>
@@ -84,25 +88,29 @@ const DeploymentCard = ({deployment}) => {
                             <motion.button
                                 whileHover={{scale: 1.05}}
                                 whileTap={{scale: 0.95}}
-                                className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                                className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-colors"
                                 onClick={() => navigate(`/deployments/${deployment.name}/edit`)}
                             >
-                <span className="flex items-center space-x-2">
-                  <Edit size={16}/>
-                  <span>Edit</span>
-                </span>
+                                    <span className="flex items-center space-x-2">
+                                        <Edit size={16}/>
+                                        <span>Edit</span>
+                                    </span>
                             </motion.button>
-                            <motion.button
-                                whileHover={{scale: 1.05}}
-                                whileTap={{scale: 0.95}}
-                                className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-                                onClick={() => setDeploymentToDelete(deployment.name)}
-                            >
-                <span className="flex items-center space-x-2">
-                  <Trash size={16}/>
-                  <span>Delete</span>
-                </span>
-                            </motion.button>
+                            {deployment.type != Enum.DeploymentType.PROXY && (
+                                <>
+                                    <motion.button
+                                        whileHover={{scale: 1.05}}
+                                        whileTap={{scale: 0.95}}
+                                        className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                                        onClick={() => setDeploymentToDelete(deployment.name)}
+                                    >
+                                        <span className="flex items-center space-x-2">
+                                            <Trash size={16}/>
+                                            <span>Delete</span>
+                                        </span>
+                                    </motion.button>
+                                </>
+                                )}
                         </div>
 
                         <label className="relative inline-flex items-center cursor-pointer">
@@ -112,13 +120,14 @@ const DeploymentCard = ({deployment}) => {
                                 checked={deployment.enabled}
                                 onChange={handleToggle}
                             />
-                            <div className="w-11 h-6 bg-gray-200 rounded-full peer
-                            peer-focus:ring-4 peer-focus:ring-blue-300
-                            peer-checked:after:translate-x-full peer-checked:bg-blue-600
-                            after:content-[''] after:absolute after:top-0.5 after:left-[2px]
-                            after:bg-white after:rounded-full after:h-5 after:w-5
-                            after:transition-all border-2 border-transparent">
-                            </div>
+                            <div
+                                className="w-11 h-6 bg-gray-200 rounded-full peer
+                                peer-focus:ring-4 peer-focus:ring-blue-300
+                                peer-checked:after:translate-x-full peer-checked:bg-blue-600
+                                after:content-[''] after:absolute after:top-0.5 after:left-[2px]
+                                after:bg-white after:rounded-full after:h-5 after:w-5
+                                after:transition-all border-2 border-transparent"
+                            />
                         </label>
                     </div>
                 </div>

@@ -7,7 +7,7 @@ export abstract class CustomEnum<T extends EnumValue> {
         return [...this.enumValues];
     }
 
-    public getFromIndex(index: number) {
+    public fromIndex(index: number) {
         return this.enumValues[index];
     }
 
