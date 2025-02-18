@@ -59,7 +59,7 @@ function ServerInstance() {
     const handleKill = () => {
         sendCommand('kill');
         setTimeout(() => {
-            navigate('/`');
+            navigate('/');
         }, 1000);
     };
 

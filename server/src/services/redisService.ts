@@ -102,7 +102,7 @@ export class RedisManager {
         let instances: Instance[] = await this.getInstances(deployment);
 
         let instance: Instance = instances.find(instance => instance.podName === podName);
-        instance.state = state;
+        instance.state = state.identifier;
 
         const client: Redis = await this.redisPool.acquire();
 

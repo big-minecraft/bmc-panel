@@ -6,7 +6,8 @@ import {Enum} from "../../../../../../shared/enum/enum.ts";
 
 const InstanceCard = ({instance, deploymentName, linkPrefix = "/instance"}) => {
     const playerCount = Object.keys(instance.players).length;
-    const state: InstanceState = Enum.InstanceState.fromString(instance.state);
+    const instanceState: InstanceState = Enum.InstanceState.fromString(instance.state);
+    //TODO: the above instance state is sometimes returning as an object and sometimes as an identifier
 
     return (
         <Link
@@ -37,8 +38,8 @@ const InstanceCard = ({instance, deploymentName, linkPrefix = "/instance"}) => {
 
                     <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2">
-                            <Activity size={14} className={state.color}/>
-                            <span className={`text-sm ${state.color}`}>{state.displayName}</span>
+                            <Activity size={14} className={instanceState.color}/>
+                            <span className={`text-sm ${instanceState.color}`}>{instanceState.displayName}</span>
                         </div>
                         <div className="text-sm text-gray-400">
                             ID: {instance.name.split('-')[0]}

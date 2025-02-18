@@ -13,7 +13,12 @@ export class InstanceStateEnum extends CustomEnum<InstanceState> {
 
     public fromString(identifier: string) {
         for (let deploymentType of this.values()) if (deploymentType.identifier === identifier) return deploymentType;
-        return null;
+        console.error(`Unknown instance state: ${identifier}`);
+        return {
+            identifier: identifier,
+            displayName: "Unknown",
+            color: 'text-gray-600'
+        };
     }
 }
 

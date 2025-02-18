@@ -14,8 +14,8 @@ const podStatusMap = new Map<string, string>();
 
 async function stopPod(
     ws: WebSocket,
-    podName: string,
     deploymentName: string,
+    podName: string,
     cluster: Cluster,
     user: User
 ): Promise<void> {
@@ -28,10 +28,10 @@ async function determineStartState(
     deployment: string,
 ): Promise<InstanceState> {
     const deploymentInstance = DeploymentManager.getDeploymentByName(deployment);
-    const yamlContent = yaml.load(deploymentInstance.getContent()) as DeploymentValues;
+    const yamlContent = yaml.load(await deploymentInstance.getContent()) as DeploymentValues;
+
     const requireStartupConfirmation = yamlContent.queuing.requireStartupConfirmation;
 
-    console.log(yamlContent);
     console.log(`Deployment ${deployment} requires startup confirmation: ${requireStartupConfirmation}`);
 
     return requireStartupConfirmation === 'true' ? Enum.InstanceState.STARTING : Enum.InstanceState.RUNNING;
@@ -39,8 +39,8 @@ async function determineStartState(
 
 async function startPod(
     ws: WebSocket,
-    podName: string,
     deploymentName: string,
+    podName: string,
     cluster: Cluster,
     user: User
 ): Promise<void> {
@@ -52,8 +52,8 @@ async function startPod(
 }
 
 async function killPod(
-    podName: string,
-    deploymentName: string
+    deploymentName: string,
+    podName: string
 ): Promise<void> {
     await kubernetesService.killPod(podName);
     await updatePod(deploymentName, podName, Enum.InstanceState.STOPPED);
@@ -90,8 +90,8 @@ async function waitForPodStop(
 
 async function restartPod(
     ws: WebSocket,
-    podName: string,
     deploymentName: string,
+    podName: string,
     cluster: Cluster,
     user: User
 ): Promise<void> {
@@ -103,8 +103,8 @@ async function restartPod(
 async function executePowerAction(
     ws: WebSocket,
     action: 'start' | 'stop' | 'restart' | 'kill',
-    podName: string,
     deploymentName: string,
+    podName: string,
     cluster: Cluster,
     user: User
 ): Promise<void> {
