@@ -45,13 +45,17 @@ const NetworkOverview = () => {
                     <div className="flex items-center justify-between">
                         <h1 className="text-2xl font-bold text-gray-900">Network Overview</h1>
                         <div className={`px-3 py-1 rounded-full text-sm 
-                            ${isLoading ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'}`}>
+                        ${isLoading ? 'bg-blue-50 text-blue-600' : 'bg-green-50 text-green-600'}`}>
                             {isLoading ? 'Updating...' : 'Live'}
                         </div>
                     </div>
 
                     <div className="space-y-6">
-                        {instances.sort((a, b) => a.name.localeCompare(b.name)).map((deployment) => (
+                        {[
+                            ...instances.filter((d) => d.name === "proxy" && d.instances.length > 0),
+                            ...instances.filter((d) => d.name !== "proxy" && d.instances.length > 0)
+                                .sort((a, b) => a.name.localeCompare(b.name))
+                        ].map((deployment) => (
                             <DeploymentCard
                                 key={deployment.name}
                                 deployment={deployment.name}
@@ -65,6 +69,6 @@ const NetworkOverview = () => {
             </div>
         </div>
     );
-};
+}
 
 export default NetworkOverview;

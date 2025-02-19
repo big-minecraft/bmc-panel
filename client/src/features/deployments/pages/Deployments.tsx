@@ -25,7 +25,7 @@ const DeploymentsContent = () => {
     const handleOpenCreateModal = async () => {
         setIsLoadingNodes(true);
         try {
-            const response = await axiosInstance.get('/api/deployments/nodes');
+            const response = await axiosInstance.get('/api/network/nodes');
             setNodes(response.data.data.nodes);
             setShowCreateModal(true);
         } catch (err) {

@@ -55,7 +55,7 @@ import {toggleProxyEndpoint} from "../../api/proxy/toggleProxy";
 import {AuthType} from "../../api/types";
 import {handleAdminAuth, handleBasicAuth} from "../../middleware/auth";
 import {getK8sDashboardHostEndpoint} from "../../api/admin/getK8sDashboardHost";
-import {getNodesEndpoint} from "../../api/deployments/getNodes";
+import {getNodesEndpoint} from "../../api/network/getNodes";
 import {getDeploymentInstancesEndpoint} from "../../api/deployments/getDeploymentInstances";
 
 export interface MulterFile {
@@ -145,6 +145,8 @@ export default class ApiManager {
         this.addEndpoint(getDeploymentContentEndpoint);
         this.addEndpoint(updateDeploymentContentEndpoint);
         this.addEndpoint(getDeploymentInstancesEndpoint);
+
+        //Network
         this.addEndpoint(getNodesEndpoint);
 
         //Proxy
