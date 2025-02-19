@@ -85,7 +85,6 @@ export default class DeploymentManager {
         const client: Redis = await redisService.redisPool.acquire();
         try {
             await client.publish('deployment-modified', 'update');
-            await client.publish('proxy-modified', 'update');
         } finally {
             await redisService.redisPool.release(client);
         }

@@ -23,10 +23,6 @@ import {restartDeploymentEndpoint} from "../../api/deployments/restartDeployment
 import {toggleDeploymentEndpoint} from "../../api/deployments/toggleDeployment";
 import {updateDeploymentContentEndpoint} from "../../api/deployments/updateDeploymentContent";
 import {getDeploymentContentEndpoint} from "../../api/deployments/getDeploymentContent";
-import {getProxyEndpoint} from "../../api/proxy/getProxy";
-import {getProxyContentEndpoint} from "../../api/proxy/getProxyContent";
-import {restartProxyEndpoint} from "../../api/proxy/restartProxy";
-import {updateProxyContentEndpoint} from "../../api/proxy/updateProxyContent";
 import {createInviteCodeEndpoint} from "../../api/invite-codes/createInviteCode";
 import {revokeInviteCodeEndpoint} from "../../api/invite-codes/revokeInviteCode";
 import {getInviteCodesEndpoint} from "../../api/invite-codes/getInviteCodes";
@@ -51,7 +47,6 @@ import {updateFileContentEndpoint} from "../../api/sftp/updateFileContent";
 import {uploadMultipleEndpoint} from "../../api/sftp/uploadFiles";
 import {moveFileEndpoint} from "../../api/sftp/moveFile";
 import {getDeploymentsEndpoint} from "../../api/deployments/getDeployments";
-import {toggleProxyEndpoint} from "../../api/proxy/toggleProxy";
 import {AuthType} from "../../api/types";
 import {handleAdminAuth, handleBasicAuth} from "../../middleware/auth";
 import {getK8sDashboardHostEndpoint} from "../../api/admin/getK8sDashboardHost";
@@ -148,13 +143,6 @@ export default class ApiManager {
 
         //Network
         this.addEndpoint(getNodesEndpoint);
-
-        //Proxy
-        this.addEndpoint(getProxyEndpoint);
-        this.addEndpoint(getProxyContentEndpoint);
-        this.addEndpoint(updateProxyContentEndpoint);
-        this.addEndpoint(restartProxyEndpoint);
-        this.addEndpoint(toggleProxyEndpoint);
 
         //Invite Codes
         this.addEndpoint(createInviteCodeEndpoint);
