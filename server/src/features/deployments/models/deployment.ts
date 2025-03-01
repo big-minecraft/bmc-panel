@@ -76,7 +76,7 @@ export default class Deployment {
     public async updateContent(content: string): Promise<void> {
         await DeploymentManifestManager.updateDeploymentContent(this, content);
         await DeploymentManager.runApplyScript();
-        await DeploymentManager.sendRedisUpdates();
+        await DeploymentManager.sendRedisUpdates(this.name);
     }
 
     public async getInstances(): Promise<Instance[]> {

@@ -43,7 +43,7 @@ export default class DeploymentManager {
         }
 
         await DeploymentManager.runApplyScript();
-        await DeploymentManager.sendRedisUpdates();
+        await DeploymentManager.sendRedisUpdates("create");
         DeploymentManager.deployments.push(deployment);
 
         return deployment;
@@ -65,7 +65,7 @@ export default class DeploymentManager {
         }
         DeploymentManager.deployments = DeploymentManager.deployments.filter(testDeployment => testDeployment !== deployment);
         await DeploymentManager.runApplyScript();
-        await DeploymentManager.sendRedisUpdates();
+        await DeploymentManager.sendRedisUpdates(name);
     }
 
     public static getDeploymentByName(name: string) {
@@ -81,10 +81,10 @@ export default class DeploymentManager {
         await Util.safelyExecuteShellCommand(`cd "${scriptDir}" && ls && ./apply-deployments.sh`);
     }
 
-    public static async sendRedisUpdates(): Promise<void> {
+    public static async sendRedisUpdates(deploymentName: string): Promise<void> {
         const client: Redis = await redisService.redisPool.acquire();
         try {
-            await client.publish('deployment-modified', 'update');
+            await client.publish('deployment-modified', deploymentName);
         } finally {
             await redisService.redisPool.release(client);
         }

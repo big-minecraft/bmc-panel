@@ -1,6 +1,7 @@
 import {ApiEndpoint, AuthType} from '../types';
 import DeploymentManager from "../../features/deployments/controllers/deploymentManager";
 import {Instance} from "../../../../shared/model/instance";
+import {MinecraftInstance} from "../../../../shared/model/minecraft-instance";
 
 export interface GetDeploymentInstancesResponse {
     instances: Instance[];
@@ -17,11 +18,22 @@ export const getDeploymentInstancesEndpoint: ApiEndpoint<unknown, GetDeploymentI
             const deploymentInstance = DeploymentManager.getDeploymentByName(name);
             const instances = await deploymentInstance.getInstances();
 
+            const serializedInstances = instances.map(instance => {
+                if (instance instanceof MinecraftInstance) {
+                    return {
+                        ...instance,
+                        players: Object.fromEntries(instance.players)
+                    };
+                }
+
+                return instance;
+            });
+
             res.json({
                 success: true,
                 data: {
-                    instances
-                }
+                    instances: serializedInstances
+                },
             });
         } catch (error) {
             console.error('Failed to fetch deployment instances:', error);
