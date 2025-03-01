@@ -64,7 +64,7 @@ const CPUChart = ({podName}) => {
                         label={{value: 'Time', position: 'bottom', offset: 20}}
                     />
                     <YAxis
-                        label={{value: 'CPU Usage (mCPU)', angle: -90, position: 'left', offset: 40}}
+                        label={{value: 'CPU Usage (% Cores)', angle: -90, position: 'left', offset: 40}}
                         domain={['auto', 'auto']}
                     />
                     <Tooltip/>

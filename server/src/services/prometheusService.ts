@@ -33,7 +33,7 @@ class PrometheusService {
     }
 
     public async getPodCPUUsageForGraph(podName: string): Promise<TimeSeriesData[]> {
-        const query = `rate(container_cpu_usage_seconds_total{pod="${podName}"}[1m]) * 1000`;
+        const query = `sum(rate(container_cpu_usage_seconds_total{pod="${podName}"}[1m])) / sum(machine_cpu_cores) * 100`;
         const endTime = Math.floor(Date.now() / 1000);
         const startTime = endTime - 60 * 5;
         const step = 15;
@@ -66,7 +66,7 @@ class PrometheusService {
     }
 
     public async getPodMemoryUsageForGraph(podName: string): Promise<TimeSeriesData[]> {
-        const query = `container_memory_working_set_bytes{pod="${podName}"}`;
+        const query = `sum(container_memory_working_set_bytes{pod="${podName}"})`;
         const endTime = Math.floor(Date.now() / 1000);
         const startTime = endTime - 60 * 5;
         const step = 15;
@@ -83,19 +83,22 @@ class PrometheusService {
         results.forEach((result: any) => {
             if (result.values) {
                 result.values.forEach(([timestamp, value]: [number, string]) => {
-                    const ts = timestamp * 1000; // Convert to milliseconds
-                    const currentValue = timeSeriesMap.get(ts) || 0;
-                    timeSeriesMap.set(ts, currentValue + (parseFloat(value) || 0));
+                    const ts = timestamp * 1000;
+                    const memoryBytes = parseFloat(value) || 0;
+                    timeSeriesMap.set(ts, memoryBytes);
                 });
             }
         });
 
         return Array.from(timeSeriesMap.entries())
             .sort(([a], [b]) => a - b)
-            .map(([timestamp, value]) => ({
-                timestamp,
-                value: (value / (1024 * 1024)).toFixed(2),
-            }));
+            .map(([timestamp, bytes]) => {
+                const mbValue = bytes / (1024 * 1024);
+                return {
+                    timestamp,
+                    value: mbValue < 1 ? mbValue.toFixed(3) : mbValue.toFixed(2),
+                };
+            });
     }
 }
 
