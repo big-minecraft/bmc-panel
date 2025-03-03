@@ -5,7 +5,7 @@ import {Enum} from "../../../../shared/enum/enum";
 
 const createDeploymentSchema = z.object({
     name: z.string().min(1),
-    type: z.enum(['persistent', 'scalable']),
+    type: z.enum(Enum.DeploymentType.values().map(type => type.identifier) as [string, ...string[]]),
     node: z.string().min(1).optional(),
 }).strict();
 
