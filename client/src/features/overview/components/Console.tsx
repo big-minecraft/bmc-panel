@@ -7,128 +7,150 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
     const [ws, setWs] = useState(null);
     const [isConnecting, setIsConnecting] = useState(false);
     const consoleRef = useRef(null);
-    const reconnectAttemptsRef = useRef(0);
-    const maxReconnectAttempts = 10;
-    const baseReconnectDelay = 1000;
+    const wsRef = useRef(null);
+    const controllerRef = useRef(null);
 
     const closeWebSocket = (socket, message) => {
-        if (socket) {
-            socket.close();
-            setWs(null);
-            setIsConnecting(false);
-            reconnectAttemptsRef.current = maxReconnectAttempts;
+        if (socket && socket.readyState !== WebSocket.CLOSED && socket.readyState !== WebSocket.CLOSING) {
+            try {
+                socket.close();
+            } catch (err) {
+                console.error('error closing websocket', err);
+            }
+        }
+
+        setWs(null);
+        setIsConnecting(false);
+
+        if (message) {
             setLogs(prevLogs => [...prevLogs, {
                 type: 'error',
-                content: message || '[System] Connection terminated'
+                content: message
             }]);
         }
     };
 
     const connectWebSocket = () => {
-        if (isConnecting) return;
+        if (isConnecting || wsRef.current) return;
+
+        if (controllerRef.current) controllerRef.current.abort();
+        controllerRef.current = new AbortController();
 
         setIsConnecting(true);
         const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
         const wsHost = window.location.host;
         const wsUrl = `${wsProtocol}://${wsHost}/api/logs/${instance.deployment}/${instance.podName}`;
 
-        const socket = new WebSocket(wsUrl);
+        try {
+            const socket = new WebSocket(wsUrl);
+            wsRef.current = socket;
 
-        socket.onopen = () => {
-            console.log('WebSocket connection opened');
-            setIsConnecting(false);
-            reconnectAttemptsRef.current = 0;
-            setLogs(prevLogs => [...prevLogs, {
-                type: 'message',
-                content: '[System] Connected to pod terminal'
-            }]);
-            onWebSocketReady(socket);
-        };
+            socket.onopen = () => {
+                console.log('websocket connection opened');
+                setIsConnecting(false);
+                setLogs(prevLogs => [...prevLogs, {
+                    type: 'message',
+                    content: '[System] Connected to pod terminal.'
+                }]);
+                setWs(socket);
+                onWebSocketReady(socket);
+            };
 
-        socket.onmessage = (event) => {
-            if (event.data === '') return;
+            socket.onmessage = (event) => {
+                // Check if this connection has been aborted
+                if (controllerRef.current?.signal.aborted) return;
+                if (event.data === '') return;
 
-            try {
-                const parsedData = JSON.parse(event.data);
-                if (!parsedData.type || !parsedData.content) return;
+                try {
+                    const parsedData = JSON.parse(event.data);
+                    if (!parsedData.type || !parsedData.content) return;
 
-                if (parsedData.type === 'power') {
-                    onStateUpdate?.(parsedData.content);
-                    setLogs(prevLogs => [...prevLogs, {
-                        type: 'message',
-                        content: `[System] Instance state changed to: ${parsedData.content}`
-                    }]);
-                    return;
-                }
-
-                // Check for "Jar file not found!" message
-                if (parsedData.content.includes('Jar file not found!')) {
-                    closeWebSocket(socket, '[System] Jar file not found. Connection terminated.');
-                    return;
-                }
-
-                const lines = parsedData.content.split('\n').filter(line => line.trim() !== '');
-
-                lines.forEach(line => {
-                    setLogs(prevLogs => [...prevLogs, {
-                        type: parsedData.type,
-                        content: line
-                    }]);
-                });
-
-                if (consoleRef.current) {
-                    const {scrollHeight, clientHeight, scrollTop} = consoleRef.current;
-                    const isScrolledToBottom = scrollHeight - scrollTop === clientHeight;
-                    if (isScrolledToBottom) {
-                        setTimeout(() => {
-                            if (consoleRef.current) {
-                                consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
-                            }
-                        }, 0);
+                    if (parsedData.type === 'power') {
+                        onStateUpdate?.(parsedData.content);
+                        setLogs(prevLogs => [...prevLogs, {
+                            type: 'message',
+                            content: `[System] Instance state changed to: ${parsedData.content}`
+                        }]);
+                        return;
                     }
+
+                    // Check for "Jar file not found!" message
+                    if (parsedData.content.includes('Jar file not found!')) {
+                        closeWebSocket(socket, '[System] Jar file not found. Connection terminated.');
+                        return;
+                    }
+
+                    const lines = parsedData.content.split('\n').filter(line => line.trim() !== '');
+
+                    lines.forEach(line => {
+                        setLogs(prevLogs => [...prevLogs, {
+                            type: parsedData.type,
+                            content: line
+                        }]);
+                    });
+
+                    if (consoleRef.current) {
+                        const {scrollHeight, clientHeight, scrollTop} = consoleRef.current;
+                        const isScrolledToBottom = scrollHeight - scrollTop === clientHeight;
+                        if (isScrolledToBottom) {
+                            setTimeout(() => {
+                                if (consoleRef.current) {
+                                    consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
+                                }
+                            }, 0);
+                        }
+                    }
+                } catch (error) {
+                    console.error('error parsing message:', error);
+                    setLogs(prevLogs => [...prevLogs, {
+                        type: 'error',
+                        content: '[System] Error parsing message'
+                    }]);
                 }
-            } catch (error) {
-                console.error('Error parsing message:', error);
+            };
+
+            socket.onerror = (error) => {
+                console.error('websocket error:', error);
                 setLogs(prevLogs => [...prevLogs, {
                     type: 'error',
-                    content: '[System] Error parsing message'
+                    content: '[System] Connection error occurred.'
                 }]);
-            }
-        };
+            };
 
-        socket.onerror = (error) => {
-            console.error('WebSocket error:', error);
+            socket.onclose = (event) => {
+                console.log('websocket connection closed', event);
+
+                if (wsRef.current === socket) {
+                    wsRef.current = null;
+                    setWs(null);
+                    setIsConnecting(false);
+
+                    setLogs(prevLogs => [...prevLogs, {
+                        type: 'error',
+                        content: '[System] Socket closed unexpectedly.'
+                    }]);
+                }
+            };
+        } catch (error) {
+            console.error('error creating websocket:', error);
+            setIsConnecting(false);
             setLogs(prevLogs => [...prevLogs, {
                 type: 'error',
-                content: '[System] Connection error occurred'
+                content: '[System] Failed to establish connection.'
             }]);
-        };
-
-        socket.onclose = (event) => {
-            console.log('WebSocket connection closed', event);
-            setWs(null);
-            setIsConnecting(false);
-
-            // Only attempt to reconnect if we haven't reached max attempts and haven't received "Jar file not found!"
-            if (reconnectAttemptsRef.current < maxReconnectAttempts) {
-
-            } else {
-                setLogs(prevLogs => [...prevLogs, {
-                    type: 'error',
-                    content: '[System] Maximum reconnection attempts reached. Please refresh the page.'
-                }]);
-            }
-        };
-
-        setWs(socket);
+        }
     };
 
     useEffect(() => {
         connectWebSocket();
 
         return () => {
-            if (ws) {
-                ws.close();
+            if (controllerRef.current) controllerRef.current.abort();
+
+            if (wsRef.current) {
+                console.log('cleaning up websocket connection');
+                closeWebSocket(wsRef.current, '[System] React: Component unmounted. Closing existing connection.');
+                wsRef.current = null;
             }
         };
     }, [instance]);
