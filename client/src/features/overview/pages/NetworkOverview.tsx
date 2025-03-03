@@ -24,7 +24,12 @@ const NetworkOverview = () => {
                 instances: allInstances.filter(instance => instance.deployment === deployment.name)
             }));
 
-            setInstances(deploymentsWithInstances);
+            const sorted = deploymentsWithInstances.sort((a, b) => {
+                if (a.typeIndex !== b.typeIndex) return a.typeIndex - b.typeIndex;
+                return a.name.localeCompare(b.name);
+            });
+
+            setInstances(sorted);
         } catch (err) {
             console.error(err);
         } finally {
@@ -51,15 +56,11 @@ const NetworkOverview = () => {
                     </div>
 
                     <div className="space-y-6">
-                        {[
-                            ...instances.filter((d) => d.name === "proxy" && d.instances.length > 0),
-                            ...instances.filter((d) => d.name !== "proxy" && d.instances.length > 0)
-                                .sort((a, b) => a.name.localeCompare(b.name))
-                        ].map((deployment) => (
+                        {instances.map((deployment) => (
                             <DeploymentCard
                                 key={deployment.name}
                                 deployment={deployment.name}
-                                title={deployment.name.charAt(0).toUpperCase() + deployment.name.slice(1)}
+                                title={deployment.name}
                                 instances={deployment.instances}
                                 icon={Server}
                             />

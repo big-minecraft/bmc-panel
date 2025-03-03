@@ -5,7 +5,7 @@ import {Enum} from "../../../../../../shared/enum/enum.ts";
 
 
 const InstanceCard = ({instance, deploymentName, linkPrefix = "/instance"}) => {
-    const playerCount = Object.keys(instance.players).length;
+    const playerCount = instance.players ? Object.keys(instance.players).length : -1;
     const instanceState: InstanceState = Enum.InstanceState.fromString(instance.state);
     //TODO: the above instance state is sometimes returning as an object and sometimes as an identifier
 
@@ -30,10 +30,13 @@ const InstanceCard = ({instance, deploymentName, linkPrefix = "/instance"}) => {
                                 </p>
                             )}
                         </div>
-                        <div className="flex items-center space-x-1 bg-blue-50 text-blue-600 px-3 py-1 rounded-full">
-                            <Users size={14}/>
-                            <span className="text-sm font-medium">{playerCount}</span>
-                        </div>
+                        {playerCount === -1 && (
+                            <div
+                                className="flex items-center space-x-1 bg-blue-50 text-blue-600 px-3 py-1 rounded-full">
+                                <Users size={14}/>
+                                <span className="text-sm font-medium">{playerCount}</span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex items-center space-x-4">

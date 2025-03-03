@@ -16,7 +16,7 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
             socket.close();
             setWs(null);
             setIsConnecting(false);
-            reconnectAttemptsRef.current = maxReconnectAttempts; // Prevent further reconnection attempts
+            reconnectAttemptsRef.current = maxReconnectAttempts;
             setLogs(prevLogs => [...prevLogs, {
                 type: 'error',
                 content: message || '[System] Connection terminated'
@@ -30,7 +30,7 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
         setIsConnecting(true);
         const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
         const wsHost = window.location.host;
-        const wsUrl = `${wsProtocol}://${wsHost.replace('3000', '3000')}/api/logs/${instance.deployment}/${instance.podName}`;
+        const wsUrl = `${wsProtocol}://${wsHost}/api/logs/${instance.deployment}/${instance.podName}`;
 
         const socket = new WebSocket(wsUrl);
 
