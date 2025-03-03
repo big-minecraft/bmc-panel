@@ -14,7 +14,7 @@ function ServerInstance() {
     const [activeTab, setActiveTab] = useState('console');
     const [websocket, setWebsocket] = useState(null);
     const [instance, setInstance] = useState(null);
-    const [instanceState, setInstanceState] = useState(instance?.state);
+    const [instanceState, setInstanceState] = useState(null);
 
     useEffect(() => {
         fetchInstance();
@@ -23,8 +23,6 @@ function ServerInstance() {
     const handleStateUpdate = (newState) => {
         setInstanceState(newState);
     };
-
-    const state: InstanceState = Enum.InstanceState.fromString(instanceState || instance?.state);
 
     const handleWebSocketReady = (ws) => {
         setWebsocket(ws);
@@ -48,6 +46,7 @@ function ServerInstance() {
 
             const instance = instances.find((instance: { uid: string; }) => instance.uid === instanceUid);
             setInstance(instance);
+            setInstanceState(Enum.InstanceState.fromString(instance.state));
         } catch (err) {
             console.error(err);
         }
@@ -133,9 +132,9 @@ function ServerInstance() {
                         </div>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center">
-                                <div className={`w-2.5 h-2.5 rounded-full ${state.color.replace('text-', 'bg-')} mr-2`}></div>
-                                <p className={`text-2xl font-semibold ${state.color}`}>
-                                    {state.displayName}
+                                <div className={`w-2.5 h-2.5 rounded-full ${instanceState.color.replace('text-', 'bg-')} mr-2`}></div>
+                                <p className={`text-2xl font-semibold ${instanceState.color}`}>
+                                    {instanceState.displayName}
                                 </p>
                             </div>
                             <div className="flex items-center text-gray-600">
@@ -190,28 +189,28 @@ function ServerInstance() {
                                 label="Start"
                                 variant="start"
                                 onClick={handleStart}
-                                disabled={state.identifier === 'RUNNING' || state.identifier === 'STARTING'}
+                                disabled={instanceState.identifier === 'RUNNING' || instanceState.identifier === 'STARTING'}
                             />
                             <ActionButton
                                 icon={RotateCw}
                                 label="Restart"
                                 variant="restart"
                                 onClick={handleRestart}
-                                disabled={state.identifier === 'STOPPED' || state.identifier === 'STOPPING'}
+                                disabled={instanceState.identifier === 'STOPPED' || instanceState.identifier === 'STOPPING'}
                             />
                             <ActionButton
                                 icon={Square}
                                 label="Stop"
                                 variant="stop"
                                 onClick={handleStop}
-                                disabled={state.identifier === 'STOPPED' || state.identifier === 'STOPPING'}
+                                disabled={instanceState.identifier === 'STOPPED' || instanceState.identifier === 'STOPPING'}
                             />
                             <ActionButton
                                 icon={XCircle}
                                 label="Kill"
                                 variant="kill"
                                 onClick={handleKill}
-                                disabled={state.identifier === 'STOPPED'}
+                                disabled={instanceState.identifier === 'STOPPED'}
                             />
                         </div>
                     </div>
