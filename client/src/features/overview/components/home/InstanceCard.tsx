@@ -30,7 +30,7 @@ const InstanceCard = ({instance, deploymentName, linkPrefix = "/instance"}) => {
                                 </p>
                             )}
                         </div>
-                        {playerCount === -1 && (
+                        {playerCount != -1 && (
                             <div
                                 className="flex items-center space-x-1 bg-blue-50 text-blue-600 px-3 py-1 rounded-full">
                                 <Users size={14}/>
