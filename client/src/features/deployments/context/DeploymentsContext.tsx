@@ -31,12 +31,17 @@ export const DeploymentsProvider = ({children}) => {
         return getDeploymentsByType(Enum.DeploymentType.PROXY)[0]!;
     }, [deployments]);
 
+    const processes = useMemo(() => {
+        return getDeploymentsByType(Enum.DeploymentType.PROCESS);
+    }, [deployments]);
+
     const value = {
         deployments,
         setDeployments,
         getDeploymentsByType,
         games,
         proxy,
+        processes,
         proxyConfig,
         setProxyConfig,
         restartingDeployments,

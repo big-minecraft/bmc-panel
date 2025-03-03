@@ -10,6 +10,7 @@ export const useDeployments = () => {
         getDeploymentsByType,
         games,
         proxy,
+        processes,
         restartingDeployments,
         setRestartingDeployments
     } = useDeploymentsContext();
@@ -103,6 +104,7 @@ export const useDeployments = () => {
         getDeploymentsByType,
         games,
         proxy,
+        processes,
         isLoading,
         error,
         fetchDeployments,

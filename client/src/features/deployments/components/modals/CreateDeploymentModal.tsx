@@ -104,6 +104,7 @@ const CreateDeploymentModal = ({show, onClose}) => {
                         />
                     </div>
 
+                    {/*TODO: Make this pull from deployment-type enum somehow eventually*/}
                     <div className="space-y-3">
                         <label className="block text-sm font-medium text-gray-700">
                             Deployment Type
