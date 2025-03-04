@@ -21,7 +21,7 @@ function ServerInstance() {
     }, []);
 
     const handleStateUpdate = (newState) => {
-        setInstanceState(newState);
+        setInstanceState(Enum.InstanceState.fromString(newState));
     };
 
     const handleWebSocketReady = (ws) => {

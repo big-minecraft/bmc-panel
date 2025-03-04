@@ -33,7 +33,6 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
     };
 
     const connectWebSocket = () => {
-        // Don't try to connect if we already have a connection or are in the process of connecting
         if (isConnecting || (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED)) {
             console.log('Connection already in progress or active, skipping');
             return;
@@ -150,7 +149,6 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
         }
     };
 
-    // Initial setup effect - runs only once
     useEffect(() => {
         initializedRef.current = true;
 
@@ -159,22 +157,19 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
         };
     }, []);
 
-    // Connection effect - runs when instance changes or on first load
     useEffect(() => {
-        // Skip if not initialized (protects against React 18 behavior)
         if (!initializedRef.current) return;
 
-        // Clear any existing connection when instance changes
         if (wsRef.current) {
             closeWebSocket(wsRef.current, '[System] Instance changed. Closing connection.');
         }
 
-        // Attempt connection with a delay to handle potential StrictMode double-mounting
         const connectionTimer = setTimeout(() => {
             if (initializedRef.current) {
                 connectWebSocket();
             }
-        }, 50);
+        }, 100);
+        //TODO: This code is bad
 
         return () => {
             clearTimeout(connectionTimer);
