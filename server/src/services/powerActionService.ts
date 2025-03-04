@@ -30,7 +30,8 @@ async function determineStartState(
     const deploymentInstance = DeploymentManager.getDeploymentByName(deployment);
     const yamlContent = yaml.load(await deploymentInstance.getContent()) as DeploymentValues;
 
-    const requireStartupConfirmation = yamlContent.queuing.requireStartupConfirmation;
+    const isProxy = deploymentInstance.type === Enum.DeploymentType.PROXY;
+    const requireStartupConfirmation = isProxy ? "false" : yamlContent.queuing.requireStartupConfirmation;
 
     console.log(`Deployment ${deployment} requires startup confirmation: ${requireStartupConfirmation}`);
 
