@@ -9,7 +9,7 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
     const consoleRef = useRef(null);
     const wsRef = useRef(null);
     const controllerRef = useRef(null);
-    const connectionAttemptedRef = useRef(false); // Track if connection was attempted
+    const mountCountRef = useRef(0); // Track mount count for this instance
 
     const closeWebSocket = (socket, message) => {
         if (socket && socket.readyState !== WebSocket.CLOSED && socket.readyState !== WebSocket.CLOSING) {
@@ -32,11 +32,10 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
     };
 
     const connectWebSocket = () => {
-        console.log('connecting to websocket...');
-        // Only connect if we haven't attempted a connection yet
-        if (isConnecting || wsRef.current || connectionAttemptedRef.current) return;
+        // Don't try to connect if we already have a connection or are in the process of connecting
+        if (isConnecting || (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED)) return;
 
-        connectionAttemptedRef.current = true; // Mark that we've attempted a connection
+        console.log('connecting to websocket...');
 
         if (controllerRef.current) controllerRef.current.abort();
         controllerRef.current = new AbortController();
@@ -58,7 +57,7 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
                     content: '[System] Connected to pod terminal.'
                 }]);
                 setWs(socket);
-                onWebSocketReady(socket);
+                onWebSocketReady?.(socket);
             };
 
             socket.onmessage = (event) => {
@@ -120,6 +119,7 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
                     type: 'error',
                     content: '[System] Connection error occurred.'
                 }]);
+                setIsConnecting(false);
             };
 
             socket.onclose = (event) => {
@@ -147,11 +147,15 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
     };
 
     useEffect(() => {
-        // Reset connection attempt flag when instance changes
-        connectionAttemptedRef.current = false;
-        connectWebSocket();
+        // Use a small timeout to handle React StrictMode's double mounting
+        // This ensures that only one connection attempt is made after any potential double-mount
+        const connectionTimeout = setTimeout(() => {
+            connectWebSocket();
+        }, 10);
 
         return () => {
+            clearTimeout(connectionTimeout);
+
             if (controllerRef.current) controllerRef.current.abort();
 
             if (wsRef.current) {
@@ -159,9 +163,6 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
                 closeWebSocket(wsRef.current, '[System] React: Component unmounted. Closing existing connection.');
                 wsRef.current = null;
             }
-
-            // Reset connection attempt flag on cleanup
-            connectionAttemptedRef.current = false;
         };
     }, [instance]);
 
