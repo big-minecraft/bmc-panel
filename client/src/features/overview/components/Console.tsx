@@ -9,6 +9,7 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
     const consoleRef = useRef(null);
     const wsRef = useRef(null);
     const controllerRef = useRef(null);
+    const connectionAttemptedRef = useRef(false); // Track if connection was attempted
 
     const closeWebSocket = (socket, message) => {
         if (socket && socket.readyState !== WebSocket.CLOSED && socket.readyState !== WebSocket.CLOSING) {
@@ -31,7 +32,11 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
     };
 
     const connectWebSocket = () => {
-        if (isConnecting || wsRef.current) return;
+        console.log('connecting to websocket...');
+        // Only connect if we haven't attempted a connection yet
+        if (isConnecting || wsRef.current || connectionAttemptedRef.current) return;
+
+        connectionAttemptedRef.current = true; // Mark that we've attempted a connection
 
         if (controllerRef.current) controllerRef.current.abort();
         controllerRef.current = new AbortController();
@@ -142,6 +147,8 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
     };
 
     useEffect(() => {
+        // Reset connection attempt flag when instance changes
+        connectionAttemptedRef.current = false;
         connectWebSocket();
 
         return () => {
@@ -152,6 +159,9 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
                 closeWebSocket(wsRef.current, '[System] React: Component unmounted. Closing existing connection.');
                 wsRef.current = null;
             }
+
+            // Reset connection attempt flag on cleanup
+            connectionAttemptedRef.current = false;
         };
     }, [instance]);
 
