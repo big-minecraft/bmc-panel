@@ -9,7 +9,7 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
     const consoleRef = useRef(null);
     const wsRef = useRef(null);
     const controllerRef = useRef(null);
-    const mountCountRef = useRef(0); // Track mount count for this instance
+    const initializedRef = useRef(false);
 
     const closeWebSocket = (socket, message) => {
         if (socket && socket.readyState !== WebSocket.CLOSED && socket.readyState !== WebSocket.CLOSING) {
@@ -22,6 +22,7 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
 
         setWs(null);
         setIsConnecting(false);
+        wsRef.current = null;
 
         if (message) {
             setLogs(prevLogs => [...prevLogs, {
@@ -33,7 +34,10 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
 
     const connectWebSocket = () => {
         // Don't try to connect if we already have a connection or are in the process of connecting
-        if (isConnecting || (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED)) return;
+        if (isConnecting || (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED)) {
+            console.log('Connection already in progress or active, skipping');
+            return;
+        }
 
         console.log('connecting to websocket...');
 
@@ -57,7 +61,7 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
                     content: '[System] Connected to pod terminal.'
                 }]);
                 setWs(socket);
-                onWebSocketReady?.(socket);
+                if (onWebSocketReady) onWebSocketReady(socket);
             };
 
             socket.onmessage = (event) => {
@@ -70,7 +74,7 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
                     if (!parsedData.type || !parsedData.content) return;
 
                     if (parsedData.type === 'power') {
-                        onStateUpdate?.(parsedData.content);
+                        if (onStateUpdate) onStateUpdate(parsedData.content);
                         setLogs(prevLogs => [...prevLogs, {
                             type: 'message',
                             content: `[System] Instance state changed to: ${parsedData.content}`
@@ -146,22 +150,42 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
         }
     };
 
+    // Initial setup effect - runs only once
     useEffect(() => {
-        // Use a small timeout to handle React StrictMode's double mounting
-        // This ensures that only one connection attempt is made after any potential double-mount
-        const connectionTimeout = setTimeout(() => {
-            connectWebSocket();
-        }, 10);
+        initializedRef.current = true;
 
         return () => {
-            clearTimeout(connectionTimeout);
+            initializedRef.current = false;
+        };
+    }, []);
 
-            if (controllerRef.current) controllerRef.current.abort();
+    // Connection effect - runs when instance changes or on first load
+    useEffect(() => {
+        // Skip if not initialized (protects against React 18 behavior)
+        if (!initializedRef.current) return;
+
+        // Clear any existing connection when instance changes
+        if (wsRef.current) {
+            closeWebSocket(wsRef.current, '[System] Instance changed. Closing connection.');
+        }
+
+        // Attempt connection with a delay to handle potential StrictMode double-mounting
+        const connectionTimer = setTimeout(() => {
+            if (initializedRef.current) {
+                connectWebSocket();
+            }
+        }, 50);
+
+        return () => {
+            clearTimeout(connectionTimer);
+
+            if (controllerRef.current) {
+                controllerRef.current.abort();
+            }
 
             if (wsRef.current) {
                 console.log('cleaning up websocket connection');
-                closeWebSocket(wsRef.current, '[System] React: Component unmounted. Closing existing connection.');
-                wsRef.current = null;
+                closeWebSocket(wsRef.current, '[System] Component unmounted. Closing connection.');
             }
         };
     }, [instance]);
@@ -194,6 +218,7 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
             <div className="flex items-center text-gray-500 mb-4">
                 <Terminal size={18} className="mr-2"/>
                 <span className="text-sm">Connected to {instance.podName}</span>
+                {isConnecting && <span className="ml-2 text-xs">(Connecting...)</span>}
             </div>
 
             <div
