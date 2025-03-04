@@ -99,6 +99,9 @@ export class RedisManager {
 
     public async setPodState(deploymentName: string, podName: string, state: InstanceState): Promise<void> {
         let deployment: Deployment = DeploymentManager.getDeploymentByName(deploymentName);
+        if (!deployment) throw new Error('Deployment not found');
+        console.log(deployment);
+
         let instances: Instance[] = await this.getInstances(deployment);
 
         let instance: Instance = instances.find(instance => instance.podName === podName);
