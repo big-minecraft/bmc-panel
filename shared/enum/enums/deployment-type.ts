@@ -5,10 +5,10 @@ export class DeploymentTypeEnum extends CustomEnum<DeploymentType> {
         super();
     }
 
-    public PROXY = this.addValue(new DeploymentType('Proxy', 'proxy'));
-    public PERSISTENT = this.addValue(new DeploymentType('Persistent', 'persistent'));
-    public SCALABLE = this.addValue(new DeploymentType('Scalable', 'scalable'));
-    public PROCESS = this.addValue(new DeploymentType('Process', 'process'));
+    public PROXY = this.addValue(new DeploymentType('Proxy', 'proxy', 'mc'));
+    public PERSISTENT = this.addValue(new DeploymentType('Persistent', 'persistent', 'mc'));
+    public SCALABLE = this.addValue(new DeploymentType('Scalable', 'scalable', 'mc'));
+    public PROCESS = this.addValue(new DeploymentType('Process', 'process', 'process'));
 
     public fromString(identifier: string) {
         for (let deploymentType of this.values()) if (deploymentType.identifier === identifier) return deploymentType;
@@ -24,10 +24,12 @@ export class DeploymentTypeEnum extends CustomEnum<DeploymentType> {
 export class DeploymentType extends EnumValue {
     public displayName: string;
     public identifier: string;
+    public containerName: string;
 
-    constructor(displayName: string, identifier: string) {
+    constructor(displayName: string, identifier: string, containerName: string) {
         super();
         this.displayName = displayName;
         this.identifier = identifier;
+        this.containerName = containerName;
     }
 }

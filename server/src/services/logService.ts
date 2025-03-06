@@ -43,12 +43,9 @@ export async function setupPodLogs(ws: WebSocket, deployment: string, podName: s
     };
 
     let deploymentInstance = DeploymentManager.getDeploymentByName(deployment);
-    let isMinecraft = deploymentInstance.type !== Enum.DeploymentType.PROCESS;
-
-    let containerParam = isMinecraft ? "mc" : 'process';
 
     // Construct log URL
-    const logUrl = `${cluster.server}/api/v1/namespaces/default/pods/${podName}/log?container=${containerParam}&follow=${logOptions.follow}&tailLines=${logOptions.tailLines}&pretty=${logOptions.pretty}`;
+    const logUrl = `${cluster.server}/api/v1/namespaces/default/pods/${podName}/log?container=${deploymentInstance.type.containerName}&follow=${logOptions.follow}&tailLines=${logOptions.tailLines}&pretty=${logOptions.pretty}`;
 
     let httpsAgent: https.Agent | undefined;
     let headers: Record<string, string> = {};
