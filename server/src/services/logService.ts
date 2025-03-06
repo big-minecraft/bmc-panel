@@ -4,6 +4,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as https from 'https';
 import kubernetesService from "./kubernetesService";
+import DeploymentManager from "../features/deployments/controllers/deploymentManager";
+import {Enum} from "../../../shared/enum/enum";
 
 interface LogOptions {
     follow: boolean;
@@ -40,8 +42,13 @@ export async function setupPodLogs(ws: WebSocket, deployment: string, podName: s
         pretty: true,
     };
 
+    let deploymentInstance = DeploymentManager.getDeploymentByName(deployment);
+    let isMinecraft = deploymentInstance.type !== Enum.DeploymentType.PROCESS;
+
+    let podParam = isMinecraft ? "container=mc&" : '';
+
     // Construct log URL
-    const logUrl = `${cluster.server}/api/v1/namespaces/default/pods/${podName}/log?container=mc&follow=${logOptions.follow}&tailLines=${logOptions.tailLines}&pretty=${logOptions.pretty}`;
+    const logUrl = `${cluster.server}/api/v1/namespaces/default/pods/${podName}/log?${podParam}follow=${logOptions.follow}&tailLines=${logOptions.tailLines}&pretty=${logOptions.pretty}`;
 
     let httpsAgent: https.Agent | undefined;
     let headers: Record<string, string> = {};
