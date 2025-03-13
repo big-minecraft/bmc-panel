@@ -5,8 +5,8 @@ import Console from "../components/Console";
 import InstanceDetails from "../components/InstanceDetails";
 import MetricsSection from "../components/MetricsSection";
 import axiosInstance from "../../../utils/auth.ts";
-import {InstanceState} from "../../../../../shared/enum/enums/instance-state.ts";
 import {Enum} from "../../../../../shared/enum/enum.ts";
+import {getInstanceStateDetails} from "../constants/instanceState.ts";
 
 function ServerInstance() {
     const {deploymentName, instanceUid} = useParams();
@@ -184,6 +184,7 @@ function ServerInstance() {
                             <TabButton id="details" icon={Users} label="Details"/>
                         </div>
                         <div className="flex space-x-2">
+                            {instance.type !== 'process' && (
                             <ActionButton
                                 icon={Play}
                                 label="Start"
@@ -191,13 +192,16 @@ function ServerInstance() {
                                 onClick={handleStart}
                                 disabled={instanceState.identifier === 'RUNNING' || instanceState.identifier === 'STARTING'}
                             />
-                            <ActionButton
-                                icon={RotateCw}
-                                label="Restart"
-                                variant="restart"
-                                onClick={handleRestart}
-                                disabled={instanceState.identifier === 'STOPPED' || instanceState.identifier === 'STOPPING'}
-                            />
+                            )}
+                            {instance.type !== 'process' && (
+                                <ActionButton
+                                    icon={RotateCw}
+                                    label="Restart"
+                                    variant="restart"
+                                    onClick={handleRestart}
+                                    disabled={instanceState.identifier === 'STOPPED' || instanceState.identifier === 'STOPPING'}
+                                />
+                            )}
                             <ActionButton
                                 icon={Square}
                                 label="Stop"
