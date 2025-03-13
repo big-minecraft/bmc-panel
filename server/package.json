@@ -8,15 +8,8 @@
     "start": "cross-env NODE_ENV=production ts-node src/app.ts",
     "dev": "cross-env NODE_ENV=development nodemon src/app.ts"
   },
-  "devDependencies": {
-    "@types/express": "^5.0.0",
-    "@types/ws": "^8.5.13",
-    "nodemon": "^3.1.9"
-  },
   "dependencies": {
     "@kubernetes/client-node": "^0.22.1",
-    "@types/node": "^22.10.2",
-    "@types/ssh2-sftp-client": "^9.0.4",
     "7zip-min": "^1.4.5",
     "axios": "^1.7.9",
     "cookie-parser": "^1.4.7",
@@ -44,8 +37,14 @@
     "ssh2-sftp-client": "^11.0.0",
     "tar": "^7.4.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.2",
     "ws": "^8.18.0",
     "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.2",
+    "@types/ssh2-sftp-client": "^9.0.4",
+    "@types/ws": "^8.5.13",
+    "nodemon": "^3.1.9"
   }
 }
