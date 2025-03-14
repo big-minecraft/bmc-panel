@@ -11,6 +11,8 @@ import ApiManager from "./controllers/api/apiManager";
 import kubernetesService from "./services/kubernetesService";
 import DeploymentManager from "./features/deployments/controllers/deploymentManager";
 
+console.log(config);
+
 class AppServer {
     private readonly app: Application;
     private readonly server: HttpServer;
@@ -75,11 +77,6 @@ class AppServer {
                 ws: true
             }));
         } else if (process.env.NODE_ENV === 'production') {
-            console.log(__dirname)
-            console.log(__dirname)
-            console.log(__dirname)
-            console.log(__dirname)
-            console.log(__dirname)
             this.app.use(express.static(resolve(__dirname, '../../client')));
             this.app.get('*', (_req, res) => {
                 console.log(resolve(__dirname, '../../client/index.html'))
@@ -88,7 +85,7 @@ class AppServer {
         }
 
         this.server.listen(3000, () => {
-            console.log('Server is listening on port 3000');
+            console.log('server is listening on port 3000');
         });
     }
 }
