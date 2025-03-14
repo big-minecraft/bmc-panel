@@ -26,10 +26,11 @@ class Unarchiver {
     private constructor() {}
 
     public static getInstance(): Unarchiver {
-        if (!Unarchiver.instance) {
-            Unarchiver.instance = new Unarchiver();
-        }
         return Unarchiver.instance;
+    }
+
+    public static init(): void {
+        Unarchiver.instance = new Unarchiver();
     }
 
     private createTempDir = async (): Promise<string> => {
@@ -204,4 +205,4 @@ class Unarchiver {
     }
 }
 
-export default Unarchiver.getInstance();
+export default Unarchiver

@@ -4,9 +4,9 @@ import jwt from 'jsonwebtoken';
 import {join} from "path";
 import {writeFileSync} from "fs";
 import AppConfig from "../controllers/config/models/appConfig";
-import inviteCodeService from "./inviteCodeService";
 import ConfigManager from "../controllers/config/controllers/configManager";
 import DatabaseService from "./databaseService";
+import InviteCodeService from "./inviteCodeService";
 
 interface UserSecret {
     password: string;
@@ -53,7 +53,7 @@ class AuthService {
 
     public async register(username: string, password: string, inviteToken: string): Promise<string> {
         if (await DatabaseService.getInstance().userExists(username)) throw new Error('User already exists');
-        if (!inviteCodeService.checkToken(inviteToken)) throw new Error('Invalid invite token');
+        if (!InviteCodeService.getInstance().checkToken(inviteToken)) throw new Error('Invalid invite token');
 
         const secret = speakeasy.generateSecret({
             length: 20,
@@ -73,7 +73,7 @@ class AuthService {
     public async verifyRegistration(username: string, token: string, inviteToken: string): Promise<string> {
         const user = this.users[username];
 
-        if (!inviteCodeService.checkToken(inviteToken)) throw new Error('Invalid invite token');
+        if (!InviteCodeService.getInstance().checkToken(inviteToken)) throw new Error('Invalid invite token');
         if (!user) throw new Error('User not found');
 
         const verified = speakeasy.totp.verify({
@@ -90,6 +90,7 @@ class AuthService {
         }
 
         if (!verified && environment === "production") throw new Error('Invalid token');
+        let inviteCodeService = InviteCodeService.getInstance();
 
         await DatabaseService.getInstance().setInviteTokenUsed(inviteCodeService.getCode(inviteToken), username);
         inviteCodeService.removeToken(inviteToken);

@@ -8,11 +8,12 @@ export class BackupService {
     }
 
     public static getInstance(): BackupService {
-        if (!BackupService.instance) {
-            BackupService.instance = new BackupService();
-        }
         return BackupService.instance;
+    }
+
+    public static init(): void {
+        BackupService.instance = new BackupService();
     }
 }
 
-export default BackupService.getInstance();
+export default BackupService;

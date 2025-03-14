@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from 'zod';
-import inviteCodeService from "../../services/inviteCodeService";
+import InviteCodeService from "../../services/inviteCodeService";
 
 const verifyInviteSchema = z.object({
     inviteCode: z.string().min(1).nullish(),
@@ -22,7 +22,7 @@ export const verifyInviteEndpoint: ApiEndpoint<VerifyInviteRequest, VerifyInvite
 
             //TODO: Move this to the auth controller
 
-            let token = await inviteCodeService.verifyInvite(data.inviteCode);
+            let token = await InviteCodeService.getInstance().verifyInvite(data.inviteCode);
 
             res.json({
                 success: true,

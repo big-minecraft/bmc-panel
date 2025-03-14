@@ -1,5 +1,5 @@
 import {ApiEndpoint, AuthType} from '../types';
-import k8sDashboardService from "../../services/k8sDashboardService";
+import K8sDashboardService from "../../services/k8sDashboardService";
 
 export interface DeleteK8sTokenResponse {
     message: string;
@@ -11,7 +11,7 @@ export const deleteK8sTokenEndpoint: ApiEndpoint<unknown, DeleteK8sTokenResponse
     auth: AuthType.Admin,
     handler: async (req, res) => {
         try {
-            await k8sDashboardService.deleteK8sDashboardToken();
+            await K8sDashboardService.getInstance().deleteK8sDashboardToken();
             
             res.json({
                 success: true,

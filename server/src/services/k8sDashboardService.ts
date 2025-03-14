@@ -11,10 +11,11 @@ class K8sDashboardTokenManager {
     private constructor() {}
 
     public static getInstance(): K8sDashboardTokenManager {
-        if (!K8sDashboardTokenManager.instance) {
-            K8sDashboardTokenManager.instance = new K8sDashboardTokenManager();
-        }
         return K8sDashboardTokenManager.instance;
+    }
+
+    public static init(): void {
+        K8sDashboardTokenManager.instance = new K8sDashboardTokenManager();
     }
 
     public async getK8sDashboardToken(): Promise<string | null> {
@@ -95,4 +96,4 @@ class K8sDashboardTokenManager {
     }
 }
 
-export default K8sDashboardTokenManager.getInstance();
+export default K8sDashboardTokenManager;

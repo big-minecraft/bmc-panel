@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from 'zod';
-import unzipService from "../../services/unzipService";
+import UnzipService from "../../services/unzipService";
 
 const unarchiveFileSchema = z.object({
     path: z.string().min(1),
@@ -21,7 +21,7 @@ export const unarchiveFileEndpoint: ApiEndpoint<UnarchiveFileRequest, UnarchiveF
             const data: UnarchiveFileRequest = unarchiveFileSchema.parse(req.body);
             const path = data.path;
 
-            await unzipService.unarchiveFile(path);
+            await UnzipService.getInstance().unarchiveFile(path);
             
             res.json({
                 success: true,

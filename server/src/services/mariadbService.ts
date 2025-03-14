@@ -29,10 +29,11 @@ class MariadbService {
     private constructor() {}
 
     public static getInstance(): MariadbService {
-        if (!MariadbService.instance) {
-            MariadbService.instance = new MariadbService();
-        }
         return MariadbService.instance;
+    }
+
+    public static init(): void {
+        MariadbService.instance = new MariadbService();
     }
 
     public async createSqlDatabase(name: string): Promise<{ name: string; credentials: DatabaseCredentials }> {
@@ -388,4 +389,4 @@ class MariadbService {
     }
 }
 
-export default MariadbService.getInstance();
+export default MariadbService;

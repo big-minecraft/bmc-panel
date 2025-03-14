@@ -16,6 +16,10 @@ import DatabaseService from "./services/databaseService";
 import AuthService from "./services/authService";
 import MongodbService from "./services/mongodbService";
 import PrometheusService from "./services/prometheusService";
+import InviteCodeService from "./services/inviteCodeService";
+import K8sDashboardService from "./services/k8sDashboardService";
+import UnzipService from "./services/unzipService";
+import MariadbService from "./services/mariadbService";
 
 
 class AppServer {
@@ -54,6 +58,10 @@ class AppServer {
         AuthService.init();
         MongodbService.init();
         PrometheusService.init();
+        InviteCodeService.init();
+        K8sDashboardService.init();
+        UnzipService.init();
+        MariadbService.init();
 
         setupWebSocket(this.server);
         if (KubernetesService.getInstance().isRunningInCluster()) await this.installDependencies();

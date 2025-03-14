@@ -7,7 +7,6 @@ import {DeploymentValues} from "../features/deployments/models/types";
 import {InstanceState} from "../../../shared/enum/enums/instance-state";
 import {Enum} from "../../../shared/enum/enum";
 import RedisService from "./redisService";
-import KubernetesClient from "./kubernetesService";
 import KubernetesService from "./kubernetesService";
 
 const podStatusMap = new Map<string, string>();

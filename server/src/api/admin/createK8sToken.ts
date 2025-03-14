@@ -1,5 +1,5 @@
 import {ApiEndpoint, AuthType} from '../types';
-import k8sDashboardService from "../../services/k8sDashboardService";
+import K8sDashboardService from "../../services/k8sDashboardService";
 
 export interface CreateK8sTokenResponse {
     token: string;
@@ -11,7 +11,7 @@ export const createK8sTokenEndpoint: ApiEndpoint<unknown, CreateK8sTokenResponse
     auth: AuthType.Admin,
     handler: async (req, res) => {
         try {
-            const token = await k8sDashboardService.createK8sDashboardToken();
+            const token = await K8sDashboardService.getInstance().createK8sDashboardToken();
 
             res.json({
                 success: true,

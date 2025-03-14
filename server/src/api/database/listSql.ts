@@ -1,5 +1,5 @@
 import {ApiEndpoint, AuthType} from '../types';
-import mariadbService, {DatabaseInfo} from "../../services/mariadbService";
+import MariadbService, {DatabaseInfo} from "../../services/mariadbService";
 
 export interface ListSqlResponse {
     databases: DatabaseInfo[];
@@ -11,7 +11,7 @@ export const listSqlEndpoint: ApiEndpoint<unknown, ListSqlResponse> = {
     auth: AuthType.Basic,
     handler: async (req, res) => {
         try {
-            const databases: DatabaseInfo[] = await mariadbService.listSqlDatabases();
+            const databases: DatabaseInfo[] = await MariadbService.getInstance().listSqlDatabases();
 
             const sanitizedDatabases: DatabaseInfo[] = databases.map(db => ({
                 ...db,

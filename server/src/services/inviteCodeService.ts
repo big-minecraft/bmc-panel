@@ -1,4 +1,3 @@
-import databaseService from "./databaseService";
 import ConfigManager from "../controllers/config/controllers/configManager";
 import DatabaseService from "./databaseService";
 
@@ -9,10 +8,11 @@ class InviteCodeService {
     private constructor() {}
 
     public static getInstance(): InviteCodeService {
-        if (!InviteCodeService.instance) {
-            InviteCodeService.instance = new InviteCodeService();
-        }
         return InviteCodeService.instance;
+    }
+
+    public static init(): void {
+        InviteCodeService.instance = new InviteCodeService();
     }
 
     async verifyInvite(code: string): Promise<string> {
@@ -57,4 +57,4 @@ class InviteCodeService {
     }
 }
 
-export default InviteCodeService.getInstance();
+export default InviteCodeService;

@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from 'zod';
-import mariadbService from "../../services/mariadbService";
+import MariadbService from "../../services/mariadbService";
 
 const createSqlSchema = z.object({
     name: z.string().min(1),
@@ -20,7 +20,7 @@ export const createSqlEndpoint: ApiEndpoint<CreateSqlRequest, CreateSqlResponse>
         try {
             const data: CreateSqlRequest = createSqlSchema.parse(req.body);
 
-            await mariadbService.createSqlDatabase(data.name);
+            await MariadbService.getInstance().createSqlDatabase(data.name);
 
 
             res.json({

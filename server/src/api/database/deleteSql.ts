@@ -1,5 +1,5 @@
 import {ApiEndpoint, AuthType} from '../types';
-import mariadbService from "../../services/mariadbService";
+import MariadbService from "../../services/mariadbService";
 
 export interface DeleteSqlResponse {
     message: string;
@@ -13,7 +13,7 @@ export const deleteSqlEndpoint: ApiEndpoint<unknown, DeleteSqlResponse> = {
         try {
             const name = req.params.name as string;
 
-            await mariadbService.deleteSqlDatabase(name);
+            await MariadbService.getInstance().deleteSqlDatabase(name);
 
 
             res.json({

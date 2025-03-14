@@ -1,5 +1,5 @@
 import {ApiEndpoint, AuthType} from '../types';
-import mariadbService from "../../services/mariadbService";
+import MariadbService from "../../services/mariadbService";
 
 export interface ResetSqlPasswordResponse {
     message: string;
@@ -15,7 +15,7 @@ export const resetSqlPasswordEndpoint: ApiEndpoint<unknown, ResetSqlPasswordResp
         try {
             const name = req.params.name as string;
 
-            const {username, password} = await mariadbService.resetSqlDatabasePassword(name);
+            const {username, password} = await MariadbService.getInstance().resetSqlDatabasePassword(name);
 
 
             res.json({

@@ -3,7 +3,6 @@ import WebSocket from 'ws';
 import {setupPodLogs} from './logService';
 import {executeCommand} from './commandService';
 import {executePowerAction} from './powerActionService';
-import KubernetesClient from "./kubernetesService";
 import KubernetesService from "./kubernetesService";
 
 interface BaseMessage {
