@@ -8,8 +8,6 @@ class DatabaseService {
     private constructor() {
         let config = ConfigManager.getConfig();
 
-        console.log(config.mariadb)
-
         this.pool = mariadb.createPool({
             host: config.mariadb.host,
             port: config.mariadb.port,
