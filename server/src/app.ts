@@ -75,9 +75,15 @@ class AppServer {
                 ws: true
             }));
         } else if (process.env.NODE_ENV === 'production') {
-            this.app.use(express.static(resolve(__dirname, '../../client/dist')));
+            console.log(__dirname)
+            console.log(__dirname)
+            console.log(__dirname)
+            console.log(__dirname)
+            console.log(__dirname)
+            this.app.use(express.static(resolve(__dirname, '../../client')));
             this.app.get('*', (_req, res) => {
-                res.sendFile(resolve(__dirname, '../../client/dist/index.html'));
+                console.log(resolve(__dirname, '../../client/index.html'))
+                res.sendFile(resolve(__dirname, '../../client/index.html'));
             });
         }
 

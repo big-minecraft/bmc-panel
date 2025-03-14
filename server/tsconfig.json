@@ -9,9 +9,16 @@
     "allowJs": false,
     "strict": false,
     "strictPropertyInitialization": false,
-    "jsx": "react"
+    "skipLibCheck": true,
+    "jsx": "react",
+    "outDir": "../dist",
+    "rootDir": "..",
+//    "baseUrl": ".."
   },
   "include": [
-    "src"
+    "src",
+  ],
+  "references": [
+    { "path": "../shared" }
   ]
 }

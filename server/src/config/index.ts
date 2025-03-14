@@ -1,6 +1,7 @@
 import {join} from 'path';
 import {existsSync, copyFileSync} from 'fs';
 import AppConfig from "./appConfig";
+import '../../config.example.json';
 
 const CONFIG_PATH = join(__dirname, '../../config.json');
 const EXAMPLE_CONFIG_PATH = join(__dirname, '../../config.example.json');
