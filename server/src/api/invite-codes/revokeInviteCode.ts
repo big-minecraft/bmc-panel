@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
-import databaseService from "../../services/databaseService";
 import {z} from "zod";
+import DatabaseService from "../../services/databaseService";
 
 const revokeInviteCodeSchema = z.object({
     code: z.string().min(1),
@@ -20,7 +20,7 @@ export const revokeInviteCodeEndpoint: ApiEndpoint<RevokeInviteCodeRequest, Revo
         try {
             const data: RevokeInviteCodeRequest = revokeInviteCodeSchema.parse(req.params);
 
-            await databaseService.revokeInviteCode(data.code);
+            await DatabaseService.getInstance().revokeInviteCode(data.code);
             res.json({
                 success: true,
                 data: {

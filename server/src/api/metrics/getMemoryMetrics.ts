@@ -1,5 +1,5 @@
 import {ApiEndpoint, AuthType} from '../types';
-import prometheusService, {TimeSeriesData} from "../../services/prometheusService";
+import PrometheusService, {TimeSeriesData} from "../../services/prometheusService";
 
 export interface GetMemoryMetricsResponse {
     data: TimeSeriesData[];
@@ -12,7 +12,7 @@ export const getMemoryMetricsEndpoint: ApiEndpoint<unknown, GetMemoryMetricsResp
     handler: async (req, res) => {
         try {
             const { pod } = req.query;
-            const data = await prometheusService.getPodMemoryUsageForGraph(pod as string);
+            const data = await PrometheusService.getInstance().getPodMemoryUsageForGraph(pod as string);
 
             res.json({
                 success: true,

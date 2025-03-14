@@ -1,5 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
-import mongoService, {DatabaseInfo} from "../../services/mongodbService";
+import {DatabaseInfo} from "../../services/mongodbService";
+import MongodbService from "../../services/mongodbService";
 
 export interface ListMongoResponse {
     databases: DatabaseInfo[];
@@ -11,7 +12,7 @@ export const listMongoEndpoint: ApiEndpoint<unknown, ListMongoResponse> = {
     auth: AuthType.Basic,
     handler: async (req, res) => {
         try {
-            const databases: DatabaseInfo[] = await mongoService.listMongoDatabases();
+            const databases: DatabaseInfo[] = await MongodbService.getInstance().listMongoDatabases();
 
             const sanitizedDatabases: DatabaseInfo[] = databases.map(db => ({
                 ...db,

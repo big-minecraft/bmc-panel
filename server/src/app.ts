@@ -12,6 +12,10 @@ import ConfigManager from "./controllers/config/controllers/configManager";
 import RedisService from "./services/redisService";
 import KubernetesService from "./services/kubernetesService";
 import SftpService from "./services/sftpService";
+import DatabaseService from "./services/databaseService";
+import AuthService from "./services/authService";
+import MongodbService from "./services/mongodbService";
+import PrometheusService from "./services/prometheusService";
 
 
 class AppServer {
@@ -46,6 +50,10 @@ class AppServer {
         RedisService.init();
         KubernetesService.init();
         SftpService.init();
+        DatabaseService.init();
+        AuthService.init();
+        MongodbService.init();
+        PrometheusService.init();
 
         setupWebSocket(this.server);
         if (KubernetesService.getInstance().isRunningInCluster()) await this.installDependencies();

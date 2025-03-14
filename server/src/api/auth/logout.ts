@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from 'zod';
-import databaseService from "../../services/databaseService";
+import DatabaseService from "../../services/databaseService";
 
 export interface LogoutResponse {
     message: string;
@@ -15,7 +15,7 @@ export const logoutEndpoint: ApiEndpoint<unknown, LogoutResponse> = {
 
             //TODO: Move this to the auth controller
 
-            await databaseService.logout(req.user.username);
+            await DatabaseService.getInstance().logout(req.user.username);
 
             res.json({
                 success: true,

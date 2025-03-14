@@ -8,6 +8,8 @@ class DatabaseService {
     private constructor() {
         let config = ConfigManager.getConfig();
 
+        console.log(config.mariadb)
+
         this.pool = mariadb.createPool({
             host: config.mariadb.host,
             port: config.mariadb.port,
@@ -21,10 +23,11 @@ class DatabaseService {
     }
 
     public static getInstance(): DatabaseService {
-        if (!DatabaseService.instance) {
-            DatabaseService.instance = new DatabaseService();
-        }
         return DatabaseService.instance;
+    }
+
+    public static init(): void {
+        DatabaseService.instance = new DatabaseService();
     }
 
     private async databaseInit(): Promise<void> {
@@ -314,4 +317,4 @@ class DatabaseService {
     }
 }
 
-export default DatabaseService.getInstance();
+export default DatabaseService

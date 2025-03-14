@@ -6,6 +6,7 @@ import databaseService from "../services/databaseService";
 import ConfigManager from "../controllers/config/controllers/configManager";
 import configManager from "../controllers/config/controllers/configManager";
 import KubernetesService from "../services/kubernetesService";
+import DatabaseService from "../services/databaseService";
 
 export enum AuthType {
     None = 'none',
@@ -41,7 +42,7 @@ export const handleBasicAuth: RequestHandler = async (
         const decoded = jwt.verify(token, ConfigManager.getString("token-secret"));
         const user = decoded.username;
 
-        const dbUser = await databaseService.getUser(user);
+        const dbUser = await DatabaseService.getInstance().getUser(user);
         const last_logout = dbUser.last_logout;
 
         if (last_logout) {
@@ -102,7 +103,7 @@ export const handleAdminAuth: RequestHandler = async (
         const decoded = jwt.verify(token, configManager.getString("token-secret"));
         const user = decoded.username;
 
-        const dbUser = await databaseService.getUser(user);
+        const dbUser = await DatabaseService.getInstance().getUser(user);
         const last_logout = dbUser.last_logout;
 
         if (last_logout) {

@@ -1,7 +1,7 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from 'zod';
-import authController from '../../services/authService';
-import databaseService from "../../services/databaseService";
+import DatabaseService from "../../services/databaseService";
+import AuthService from "../../services/authService";
 
 const verifyLoginSchema = z.object({
     username: z.string().min(1).nullish(),
@@ -23,9 +23,9 @@ export const verifyLoginEndpoint: ApiEndpoint<VerifyLoginRequest, VerifyLoginRes
     handler: async (req, res) => {
         try {
             const data: VerifyLoginRequest = verifyLoginSchema.parse(req.body);
-            const jwtToken = await authController.verifyLogin(data.username, data.token, data.sessionToken);
+            const jwtToken = await AuthService.getInstance().verifyLogin(data.username, data.token, data.sessionToken);
 
-            let dbUser = await databaseService.getUser(data.username);
+            let dbUser = await DatabaseService.getInstance().getUser(data.username);
             let isAdmin = dbUser.is_admin;
 
             res.json({

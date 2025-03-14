@@ -1,5 +1,6 @@
 import databaseService from "./databaseService";
 import ConfigManager from "../controllers/config/controllers/configManager";
+import DatabaseService from "./databaseService";
 
 class InviteCodeService {
     private tokens: { [code: string]: string } = {};
@@ -18,8 +19,8 @@ class InviteCodeService {
         const environment = ConfigManager.getString("environment");
 
         if (environment === 'production') {
-            if (await databaseService.isCodeExpired(code)) throw new Error('Invite code expired');
-            const verified = await databaseService.verifyInviteCode(code);
+            if (await DatabaseService.getInstance().isCodeExpired(code)) throw new Error('Invite code expired');
+            const verified = await DatabaseService.getInstance().verifyInviteCode(code);
             if (!verified) throw new Error('Invalid invite code');
         }
 

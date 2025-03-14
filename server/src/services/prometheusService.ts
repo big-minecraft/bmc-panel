@@ -1,8 +1,6 @@
 import axios from 'axios';
 import ConfigManager from "../controllers/config/controllers/configManager";
 
-let config = ConfigManager.getConfig();
-const PROMETHEUS_API_URL = `http://${config.prometheus.host}:${config.prometheus.port}/api/v1/query_range`;
 
 export interface TimeSeriesData {
     timestamp: number;
@@ -11,19 +9,24 @@ export interface TimeSeriesData {
 
 class PrometheusService {
     private static instance: PrometheusService;
+    private PROMETHEUS_API_URL: string;
 
-    private constructor() {}
+    private constructor() {
+        let config = ConfigManager.getConfig();
+        this.PROMETHEUS_API_URL = `http://${config.prometheus.host}:${config.prometheus.port}/api/v1/query_range`;
+    }
 
     public static getInstance(): PrometheusService {
-        if (!PrometheusService.instance) {
-            PrometheusService.instance = new PrometheusService();
-        }
         return PrometheusService.instance;
+    }
+
+    public static init() {
+        PrometheusService.instance = new PrometheusService();
     }
 
     private async fetchMetrics(query: string, startTime: number, endTime: number, step: number) {
         try {
-            const response = await axios.get(PROMETHEUS_API_URL, {
+            const response = await axios.get(this.PROMETHEUS_API_URL, {
                 params: { query, start: startTime, end: endTime, step },
             });
             return response?.data?.data?.result || [];
@@ -100,4 +103,4 @@ class PrometheusService {
     }
 }
 
-export default PrometheusService.getInstance();
+export default PrometheusService;

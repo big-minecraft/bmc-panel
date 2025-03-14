@@ -1,6 +1,5 @@
 import {ApiEndpoint, AuthType} from '../types';
-import mariadbService from "../../services/mariadbService";
-import mongodbService from "../../services/mongodbService";
+import MongodbService from "../../services/mongodbService";
 
 export interface ResetMongoPasswordResponse {
     message: string;
@@ -16,7 +15,7 @@ export const resetMongoPasswordEndpoint: ApiEndpoint<unknown, ResetMongoPassword
         try {
             const name = req.params.name as string;
 
-            const {username, password} = await mongodbService.resetMongoDatabasePassword(name);
+            const {username, password} = await MongodbService.getInstance().resetMongoDatabasePassword(name);
 
 
             res.json({

@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from 'zod';
-import authController from '../../services/authService';
+import AuthService from "../../services/authService";
 
 const loginSchema = z.object({
     username: z.string().min(1).nullish(),
@@ -20,7 +20,7 @@ export const loginEndpoint: ApiEndpoint<LoginRequest, LoginResponse> = {
     handler: async (req, res) => {
         try {
             const data: LoginRequest = loginSchema.parse(req.body);
-            const sessionToken = await authController.login(data.username, data.password);
+            const sessionToken = await AuthService.getInstance().login(data.username, data.password);
 
 
             res.json({

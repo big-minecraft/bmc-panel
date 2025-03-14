@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from "zod";
-import databaseService from "../../services/databaseService";
+import DatabaseService from "../../services/databaseService";
 
 const setAdminSchema = z.object({
     is_admin: z.boolean(),
@@ -19,6 +19,8 @@ export const setAdminEndpoint: ApiEndpoint<SetAdminRequest, SetAdminResponse> = 
     auth: AuthType.Admin,
     handler: async (req, res) => {
         try {
+            let databaseService = DatabaseService.getInstance();
+
             const data: SetAdminRequest = setAdminSchema.parse(req.body);
             const id = parseInt(req.params.id as string);
 

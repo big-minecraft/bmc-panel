@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 import mongodbService from "../../services/mongodbService";
-
+import MongodbService from "../../services/mongodbService";
 
 export interface DeleteMongoResponse {
     message: string;
@@ -14,7 +14,7 @@ export const deleteMongoEndpoint: ApiEndpoint<unknown, DeleteMongoResponse> = {
         try {
             const name = req.params.name as string;
 
-            await mongodbService.deleteMongoDatabase(name);
+            await MongodbService.getInstance().deleteMongoDatabase(name);
 
 
             res.json({

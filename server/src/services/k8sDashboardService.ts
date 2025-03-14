@@ -1,7 +1,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import databaseService from "./databaseService";
 import ConfigManager from "../controllers/config/controllers/configManager";
+import DatabaseService from "./databaseService";
 
 const execAsync = promisify(exec);
 
@@ -20,7 +20,7 @@ class K8sDashboardTokenManager {
     public async getK8sDashboardToken(): Promise<string | null> {
         let conn;
         try {
-            conn = await databaseService.pool.getConnection();
+            conn = await DatabaseService.getInstance().pool.getConnection();
             const rows = await conn.query('SELECT * FROM k8s_dash');
 
             if (rows.length === 0) {
@@ -47,7 +47,7 @@ class K8sDashboardTokenManager {
     public async createK8sDashboardToken(): Promise<string> {
         let conn;
         try {
-            conn = await databaseService.pool.getConnection();
+            conn = await DatabaseService.getInstance().pool.getConnection();
 
             const existingToken = await this.getK8sDashboardToken();
             if (existingToken) {
@@ -80,7 +80,7 @@ class K8sDashboardTokenManager {
     public async deleteK8sDashboardToken(): Promise<void> {
         let conn;
         try {
-            conn = await databaseService.pool.getConnection();
+            conn = await DatabaseService.getInstance().pool.getConnection();
             await conn.query('DELETE FROM k8s_dash');
         } catch (error) {
             console.error('Failed to delete k8s dashboard token:', error);

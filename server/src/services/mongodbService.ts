@@ -44,10 +44,11 @@ class MongodbService {
     }
 
     public static getInstance(): MongodbService {
-        if (!MongodbService.instance) {
-            MongodbService.instance = new MongodbService();
-        }
         return MongodbService.instance;
+    }
+
+    public static init() {
+        MongodbService.instance = new MongodbService();
     }
 
     private async connect() {
@@ -392,4 +393,4 @@ function isValidDatabaseName(name: string): boolean {
     return /^[a-zA-Z0-9_]+$/.test(name);
 }
 
-export default MongodbService.getInstance();
+export default MongodbService;

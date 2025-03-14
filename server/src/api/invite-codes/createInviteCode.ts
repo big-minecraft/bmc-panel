@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from 'zod';
-import databaseService from "../../services/databaseService";
+import DatabaseService from "../../services/databaseService";
 
 const createInviteCodeSchema = z.object({
     message: z.string().min(1),
@@ -19,7 +19,7 @@ export const createInviteCodeEndpoint: ApiEndpoint<CreateInviteCodeRequest, Crea
     handler: async (req, res) => {
         try {
             const data: CreateInviteCodeRequest = createInviteCodeSchema.parse(req.body);
-            await databaseService.createInviteCode(data.message)
+            await DatabaseService.getInstance().createInviteCode(data.message)
             res.json({
                 success: true,
                 data: {

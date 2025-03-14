@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from 'zod';
-import mongoService from "../../services/mongodbService";
+import MongodbService from "../../services/mongodbService";
 
 const createMongoSchema = z.object({
     name: z.string().min(1),
@@ -19,7 +19,7 @@ export const createMongoEndpoint: ApiEndpoint<CreateMongoRequest, CreateMongoRes
     handler: async (req, res) => {
         try {
             const data: CreateMongoRequest = createMongoSchema.parse(req.body);
-            await mongoService.createMongoDatabase(data.name);
+            await MongodbService.getInstance().createMongoDatabase(data.name);
 
             res.json({
                 success: true,

@@ -1,12 +1,12 @@
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
-import databaseService from "./databaseService";
 import jwt from 'jsonwebtoken';
 import {join} from "path";
 import {writeFileSync} from "fs";
 import AppConfig from "../controllers/config/models/appConfig";
 import inviteCodeService from "./inviteCodeService";
 import ConfigManager from "../controllers/config/controllers/configManager";
+import DatabaseService from "./databaseService";
 
 interface UserSecret {
     password: string;
@@ -52,7 +52,7 @@ class AuthService {
     }
 
     public async register(username: string, password: string, inviteToken: string): Promise<string> {
-        if (await databaseService.userExists(username)) throw new Error('User already exists');
+        if (await DatabaseService.getInstance().userExists(username)) throw new Error('User already exists');
         if (!inviteCodeService.checkToken(inviteToken)) throw new Error('Invalid invite token');
 
         const secret = speakeasy.generateSecret({
@@ -86,21 +86,21 @@ class AuthService {
 
         if (verified || environment === 'development') {
             delete this.users[username];
-            await databaseService.addUser(username, user.password, user.secret);
+            await DatabaseService.getInstance().addUser(username, user.password, user.secret);
         }
 
         if (!verified && environment === "production") throw new Error('Invalid token');
 
-        await databaseService.setInviteTokenUsed(inviteCodeService.getCode(inviteToken), username);
+        await DatabaseService.getInstance().setInviteTokenUsed(inviteCodeService.getCode(inviteToken), username);
         inviteCodeService.removeToken(inviteToken);
 
         return await this.generateToken(username);
     }
 
     public async login(username: string, password: string): Promise<string> {
-        if (!(await databaseService.userExists(username))) throw new Error('User not found');
+        if (!(await DatabaseService.getInstance().userExists(username))) throw new Error('User not found');
 
-        const storedPassword = await databaseService.getPassword(username);
+        const storedPassword = await DatabaseService.getInstance().getPassword(username);
         if (password !== storedPassword) throw new Error('Invalid password');
 
         const token = Math.random().toString(36).substr(2);
@@ -116,7 +116,7 @@ class AuthService {
         if (!tempToken) throw new Error('User not found');
         if (tempToken.secret !== sessionToken) throw new Error('Invalid session token');
 
-        const user = await databaseService.getUser(username);
+        const user = await DatabaseService.getInstance().getUser(username);
         const secret = user.secret;
 
         const verified = speakeasy.totp.verify({
@@ -139,11 +139,12 @@ class AuthService {
     }
 
     public static getInstance(): AuthService {
-        if (!AuthService.instance) {
-            AuthService.instance = new AuthService();
-        }
         return AuthService.instance;
+    }
+
+    public static init(): void {
+        AuthService.instance = new AuthService();
     }
 }
 
-export default AuthService.getInstance();
+export default AuthService;

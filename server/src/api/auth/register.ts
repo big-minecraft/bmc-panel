@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from 'zod';
-import authController from '../../services/authService';
+import AuthService from "../../services/authService";
 
 const registerSchema = z.object({
     username: z.string().min(1).nullish(),
@@ -22,7 +22,7 @@ export interface RegisterResponse {
     handler: async (req, res) => {
         try {
             const data: RegisterRequest = registerSchema.parse(req.body);
-            const data_url = await authController.register(data.username, data.password, data.inviteToken);
+            const data_url = await AuthService.getInstance().register(data.username, data.password, data.inviteToken);
 
             res.json({
                 success: true,

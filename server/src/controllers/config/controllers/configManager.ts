@@ -30,13 +30,16 @@ class ConfigManager {
     }
 
     public addEnvVariables(): void {
-        if (process.env.BMC_PATH) this.config["bmc-path"] = "/host-root" + process.env.BMC_PATH;
+        if (process.env.BMC_PATH) this.config["bmc-path"] = process.env.BMC_PATH;
+        if (process.env.MARIADB_HOST) this.config.mariadb.host = process.env.MARIADB_HOST;
+        if (process.env.MARIADB_PORT) this.config.mariadb.port = parseInt(process.env.MARIADB_PORT);
         if (process.env.MARIADB_PASSWORD) this.config.mariadb.password = process.env.MARIADB_PASSWORD;
         if (process.env.MONGO_INITDB_ROOT_PASSWORD) this.config.mongodb.password = process.env.MONGO_INITDB_ROOT_PASSWORD;
         if (process.env.PANEL_HOST) this.config['panel-host'] = process.env.PANEL_HOST;
         if (process.env.K8S_DASHBOARD_HOST) this.config['k8s-dashboard-host'] = process.env.K8S_DASHBOARD_HOST;
         if (process.env.TOKEN_SECRET) this.config['token-secret'] = process.env.TOKEN_SECRET;
         if (process.env.REDIS_HOST) this.config.redis.host = process.env.REDIS_HOST;
+        if (process.env.REDIS_PORT) this.config.redis.port = parseInt(process.env.REDIS_PORT);
         if (process.env.SFTP_PASSWORD) this.config.sftp.password = process.env.SFTP_PASSWORD;
         if (process.env.ENVIRONMENT) this.config.environment = process.env.ENVIRONMENT;
     };

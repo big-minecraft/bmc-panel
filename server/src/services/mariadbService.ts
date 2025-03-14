@@ -1,10 +1,10 @@
 import { PoolConnection } from 'mariadb';
-import databaseService from "./databaseService";
 import {createReadStream, createWriteStream, mkdirSync} from "node:fs";
 import * as readline from "node:readline";
 import {BackupService} from "./backupService";
 import {existsSync} from "fs";
 import ConfigManager from "../controllers/config/controllers/configManager";
+import DatabaseService from "./databaseService";
 
 interface DatabaseCredentials {
     username: string;
@@ -47,7 +47,7 @@ class MariadbService {
                 throw new Error('Invalid database name');
             }
 
-            conn = await databaseService.pool.getConnection();
+            conn = await DatabaseService.getInstance().pool.getConnection();
 
             const existingDatabases = await conn.query(
                 'SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = ?',
@@ -129,7 +129,7 @@ class MariadbService {
     public async listSqlDatabases(): Promise<DatabaseInfo[]> {
         let conn: PoolConnection | undefined;
         try {
-            conn = await databaseService.pool.getConnection();
+            conn = await DatabaseService.getInstance().pool.getConnection();
 
             const databases = await conn.query(`
                 SELECT
@@ -175,7 +175,7 @@ class MariadbService {
                 throw new Error('Invalid database name');
             }
 
-            conn = await databaseService.pool.getConnection();
+            conn = await DatabaseService.getInstance().pool.getConnection();
 
             const username = `${name}_user`;
             await conn.query(`DROP USER IF EXISTS ?@'%'`, [username]);
@@ -201,7 +201,7 @@ class MariadbService {
                 throw new Error('Invalid database name');
             }
 
-            conn = await databaseService.pool.getConnection();
+            conn = await DatabaseService.getInstance().pool.getConnection();
 
             const username = `${name}_user`;
             const newPassword = this.generatePassword();
@@ -255,7 +255,7 @@ class MariadbService {
         }
 
         try {
-            connection = await databaseService.pool.getConnection();
+            connection = await DatabaseService.getInstance().pool.getConnection();
 
             const tables = await connection.query(
                 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = ?',
@@ -331,7 +331,7 @@ class MariadbService {
     async restore(backupPath: string): Promise<void> {
         let connection: PoolConnection | null = null;
         try {
-            connection = await databaseService.pool.getConnection();
+            connection = await DatabaseService.getInstance().pool.getConnection();
 
             const match = backupPath.match(/backup-(.+?)-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z\.sql/);
             if (!match) {

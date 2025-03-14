@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from "zod";
-import databaseService from "../../services/databaseService";
+import DatabaseService from "../../services/databaseService";
 
 const resetPasswordSchema = z.object({
     password: z.string().min(1),
@@ -22,7 +22,7 @@ export const resetPasswordEndpoint: ApiEndpoint<unknown, ResetPasswordResponse> 
             const data: ResetPasswordRequest = resetPasswordSchema.parse(req.body);
 
 
-            await databaseService.resetPassword(id, data.password);
+            await DatabaseService.getInstance().resetPassword(id, data.password);
 
 
             res.json({

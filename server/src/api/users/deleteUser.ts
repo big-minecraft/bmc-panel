@@ -1,5 +1,5 @@
 import {ApiEndpoint, AuthType} from '../types';
-import databaseService from "../../services/databaseService";
+import DatabaseService from "../../services/databaseService";
 
 export interface DeleteUserResponse {
     message: string;
@@ -13,7 +13,7 @@ export const deleteUserEndpoint: ApiEndpoint<unknown, DeleteUserResponse> = {
         try {
             const id: number = parseInt(req.params.id);
 
-            await databaseService.deleteUser(id);
+            await DatabaseService.getInstance().deleteUser(id);
 
             res.json({
                 success: true,

@@ -1,5 +1,5 @@
 import {ApiEndpoint, AuthType} from '../types';
-import databaseService from "../../services/databaseService";
+import DatabaseService from "../../services/databaseService";
 
 export interface GetUsersResponse {
     users: any[];
@@ -11,7 +11,7 @@ export const getUsersEndpoint: ApiEndpoint<unknown, GetUsersResponse> = {
     auth: AuthType.Admin,
     handler: async (req, res) => {
         try {
-            const users = await databaseService.getUsers()
+            const users = await DatabaseService.getInstance().getUsers()
             res.json({
                 success: true,
                 data: {
