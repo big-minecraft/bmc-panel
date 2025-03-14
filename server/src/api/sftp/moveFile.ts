@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from 'zod';
-import sftpService from "../../services/sftpService";
+import SftpService from "../../services/sftpService";
 
 const moveFileSchema = z.object({
     sourcePath: z.string().min(1),
@@ -20,7 +20,7 @@ export const moveFileEndpoint: ApiEndpoint<MoveFileRequest, MoveFileResponse> = 
     handler: async (req, res) => {
         try {
             const data: MoveFileRequest = moveFileSchema.parse(req.body);
-            await sftpService.moveFileOrFolder(data.sourcePath, data.targetPath)
+            await SftpService.getInstance().moveFileOrFolder(data.sourcePath, data.targetPath)
             
             res.json({
                 success: true,

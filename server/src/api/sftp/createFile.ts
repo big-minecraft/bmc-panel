@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from 'zod';
-import sftpService from "../../services/sftpService";
+import SftpService from "../../services/sftpService";
 
 const createFileSchema = z.object({
     path: z.string().min(1),
@@ -20,7 +20,7 @@ export const createFileEndpoint: ApiEndpoint<CreateFileRequest, CreateFileRespon
     handler: async (req, res) => {
         try {
             const data: CreateFileRequest = createFileSchema.parse(req.body);
-            await sftpService.createSFTPFile(data.path, data.content);
+            await SftpService.getInstance().createSFTPFile(data.path, data.content);
             res.json({
                 success: true,
                 data: {

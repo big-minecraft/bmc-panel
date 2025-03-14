@@ -1,7 +1,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import databaseService from "./databaseService";
-import config from "../config";
+import ConfigManager from "../controllers/config/controllers/configManager";
 
 const execAsync = promisify(exec);
 
@@ -91,7 +91,7 @@ class K8sDashboardTokenManager {
     }
 
     public getK8sDashboardHost() {
-        return config["k8s-dashboard-host"];
+        return ConfigManager.getString("k8s-dashboard-host");
     }
 }
 

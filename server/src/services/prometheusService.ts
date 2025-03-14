@@ -1,6 +1,7 @@
 import axios from 'axios';
-import config from '../config';
+import ConfigManager from "../controllers/config/controllers/configManager";
 
+let config = ConfigManager.getConfig();
 const PROMETHEUS_API_URL = `http://${config.prometheus.host}:${config.prometheus.port}/api/v1/query_range`;
 
 export interface TimeSeriesData {

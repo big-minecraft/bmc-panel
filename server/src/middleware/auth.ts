@@ -2,9 +2,10 @@ import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
 import {ApiRequest} from "../controllers/api/apiManager";
 import {ApiResponse} from "../api/types";
-import config from "../config";
 import databaseService from "../services/databaseService";
-import kubernetesService from "../services/kubernetesService";
+import ConfigManager from "../controllers/config/controllers/configManager";
+import configManager from "../controllers/config/controllers/configManager";
+import KubernetesService from "../services/kubernetesService";
 
 export enum AuthType {
     None = 'none',
@@ -37,7 +38,7 @@ export const handleBasicAuth: RequestHandler = async (
     }
 
     try {
-        const decoded = jwt.verify(token, config["token-secret"]);
+        const decoded = jwt.verify(token, ConfigManager.getString("token-secret"));
         const user = decoded.username;
 
         const dbUser = await databaseService.getUser(user);
@@ -46,7 +47,7 @@ export const handleBasicAuth: RequestHandler = async (
         if (last_logout) {
             const lastLogoutTimestamp = new Date(last_logout).getTime() / 1000;
 
-            if (decoded.iat < lastLogoutTimestamp && kubernetesService.isRunningInCluster()) {
+            if (decoded.iat < lastLogoutTimestamp && KubernetesService.getInstance().isRunningInCluster()) {
                 res.status(401).json({
                     success: false,
                     error: 'Token has expired'
@@ -98,7 +99,7 @@ export const handleAdminAuth: RequestHandler = async (
     }
 
     try {
-        const decoded = jwt.verify(token, config["token-secret"]);
+        const decoded = jwt.verify(token, configManager.getString("token-secret"));
         const user = decoded.username;
 
         const dbUser = await databaseService.getUser(user);
@@ -107,7 +108,7 @@ export const handleAdminAuth: RequestHandler = async (
         if (last_logout) {
             const lastLogoutTimestamp = new Date(last_logout).getTime() / 1000;
 
-            if (decoded.iat < lastLogoutTimestamp && kubernetesService.isRunningInCluster()) {
+            if (decoded.iat < lastLogoutTimestamp && KubernetesService.getInstance().isRunningInCluster()) {
                 res.status(401).json({
                     success: false,
                     error: 'Token has expired'

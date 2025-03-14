@@ -1,5 +1,5 @@
 import {ApiEndpoint, AuthType} from '../types';
-import sftpService from "../../services/sftpService";
+import SftpService from "../../services/sftpService";
 
 export interface GetFileContentResponse {
     content: string | Buffer | NodeJS.WritableStream;
@@ -13,7 +13,7 @@ export const getFileContentEndpoint: ApiEndpoint<unknown, GetFileContentResponse
         try {
             const path = req.query.path as string;
 
-            const content = await sftpService.getSFTPFileContent(path);
+            const content = await SftpService.getInstance().getSFTPFileContent(path);
 
             res.json({
                 success: true,

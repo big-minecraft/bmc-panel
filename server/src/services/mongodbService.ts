@@ -1,11 +1,11 @@
 import { MongoClient } from 'mongodb';
-import config from '../config';
 import path from "path";
 import {BackupService} from "./backupService";
 import {createReadStream, createWriteStream, mkdirSync} from "node:fs";
 import {existsSync} from "fs";
 import {pipeline, Readable, Transform} from "node:stream";
 import {readFile, writeFile} from "node:fs/promises";
+import ConfigManager from "../controllers/config/controllers/configManager";
 
 interface DatabaseCredentials {
     username: string;
@@ -31,6 +31,8 @@ class MongodbService {
     private readonly uri: string;
 
     private constructor() {
+        let config = ConfigManager.getConfig();
+
         const adminUsername = config.mongodb.username;
         const adminPassword = config.mongodb.password;
         const host = config.mongodb.host;
@@ -163,8 +165,8 @@ class MongodbService {
                         credentials: creds ? {
                             username: `${db.name}_user`,
                             password: creds.password,
-                            host: config['panel-host'],
-                            port: config.mongodb.port
+                            host: ConfigManager.getString('panel-host'),
+                            port: ConfigManager.getConfig().mongodb.port
                         } : null
                     };
                 }));

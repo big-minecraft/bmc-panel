@@ -1,5 +1,4 @@
 import path from 'path';
-import config from '../../../config';
 import {promises as fs, readdirSync, unlinkSync} from 'fs';
 import yaml from 'js-yaml';
 import Util from "../../../misc/util";
@@ -7,19 +6,20 @@ import {DeploymentValues, Manifest} from "../models/types";
 import Deployment from "../models/deployment";
 import {DeploymentType} from "../../../../../shared/enum/enums/deployment-type";
 import {Enum} from "../../../../../shared/enum/enum";
-import {EnumValue} from "../../../../../shared/enum/custom-enum";
+import ConfigManager from "../../../controllers/config/controllers/configManager";
 
 export default class DeploymentManifestManager {
-    private static readonly baseDir: string = path.join(config["bmc-path"], "local/deployments");
 
     public static async createDeploymentManifest(
         name: string,
         type: DeploymentType,
         node?: string
     ): Promise<string> {
-        const workingDir = path.join(this.baseDir, type.identifier);
+        let baseDir: string = path.join(ConfigManager.getString("bmc-path"), "local/deployments");
+
+        const workingDir = path.join(baseDir, type.identifier);
         const filePath = path.join(workingDir, `${name}.yaml`);
-        const defaultsDir = `${config["bmc-path"]}/defaults`;
+        const defaultsDir = `${ConfigManager.getString("bmc-path")}/defaults`;
         const defaultFile = path.join(defaultsDir, `${type.identifier}.yaml`);
 
         if (await Util.fileExists(filePath)) throw new Error('Deployment already exists');
@@ -56,10 +56,12 @@ export default class DeploymentManifestManager {
     }
 
     public static async getAllManifests(): Promise<Manifest[]> {
+        let baseDir: string = path.join(ConfigManager.getString("bmc-path"), "local/deployments");
+
         const manifests: Manifest[] = [];
 
         for (const deploymentType of Enum.DeploymentType.values()) {
-            const dirPath = path.join(this.baseDir, deploymentType.identifier);
+            const dirPath = path.join(baseDir, deploymentType.identifier);
 
             try {
                 const files = readdirSync(dirPath);

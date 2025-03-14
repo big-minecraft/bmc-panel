@@ -1,7 +1,7 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from 'zod';
 import JSZip from "jszip";
-import sftpService from "../../services/sftpService";
+import SftpService from "../../services/sftpService";
 
 const fileSchema = z.object({
     path: z.string().min(1, { message: "File path must not be empty" }),
@@ -25,6 +25,8 @@ export const archiveMultipleEndpoint: ApiEndpoint<ArchiveMultipleRequest, Archiv
     method: 'post',
     auth: AuthType.Basic,
     handler: async (req, res) => {
+        let sftpService = SftpService.getInstance();
+
         try {
             const data: ArchiveMultipleRequest = archiveMultipleSchema.parse(req.body);
             const files = data.files;

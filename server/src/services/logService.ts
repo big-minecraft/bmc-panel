@@ -3,9 +3,9 @@ import axios from 'axios';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as https from 'https';
-import kubernetesService from "./kubernetesService";
 import DeploymentManager from "../features/deployments/controllers/deploymentManager";
 import {Enum} from "../../../shared/enum/enum";
+import KubernetesService from "./kubernetesService";
 
 interface LogOptions {
     follow: boolean;
@@ -51,7 +51,7 @@ export async function setupPodLogs(ws: WebSocket, deployment: string, podName: s
     let headers: Record<string, string> = {};
 
     try {
-        if (kubernetesService.isRunningInCluster()) {
+        if (KubernetesService.getInstance().isRunningInCluster()) {
             console.log('running in cluster environment');
             const tokenPath = path.join('/host-root', user.authProvider?.config.tokenFile ?? '');
             const caPath = path.join('/host-root', cluster.caFile ?? '');

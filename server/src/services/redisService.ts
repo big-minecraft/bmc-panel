@@ -1,12 +1,13 @@
 import Redis from 'ioredis';
 import * as genericPool from 'generic-pool';
-import config from '../config';
 import {RedisListenerService} from "./redisListenerService";
 import Deployment from "../features/deployments/models/deployment";
 import {MinecraftInstance} from "../../../shared/model/minecraft-instance";
 import {Instance} from "../../../shared/model/instance";
 import DeploymentManager from "../features/deployments/controllers/deploymentManager";
 import {InstanceState} from "../../../shared/enum/enums/instance-state";
+import {Config} from "@kubernetes/client-node";
+import ConfigManager from "../controllers/config/controllers/configManager";
 
 interface RedisPool extends genericPool.Pool<Redis> {
     acquire: () => Promise<Redis>;
@@ -22,8 +23,8 @@ export class RedisManager {
         this.redisPool = genericPool.createPool({
             create: (): Promise<Redis> => {
                 return Promise.resolve(new Redis({
-                    host: config.redis.host,
-                    port: config.redis.port,
+                    host: ConfigManager.getConfig().redis.host,
+                    port: ConfigManager.getConfig().redis.port,
                 }));
             },
             destroy: async (client: Redis): Promise<void> => {
@@ -42,10 +43,11 @@ export class RedisManager {
     }
 
     public static getInstance(): RedisManager {
-        if (!RedisManager.instance) {
-            RedisManager.instance = new RedisManager();
-        }
         return RedisManager.instance;
+    }
+
+    public static init(): void {
+        RedisManager.instance = new RedisManager();
     }
 
     public async getInstances(deployment: Deployment): Promise<Instance[]> {
@@ -120,4 +122,4 @@ export class RedisManager {
     }
 }
 
-export default RedisManager.getInstance();
+export default RedisManager;

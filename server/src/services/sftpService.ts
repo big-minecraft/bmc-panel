@@ -1,13 +1,15 @@
 import Client from 'ssh2-sftp-client';
-import config from '../config';
 import genericPool from 'generic-pool';
 import { Readable } from 'node:stream';
+import ConfigManager from "../controllers/config/controllers/configManager";
 
 class SFTPClient {
     private static instance: SFTPClient;
     private sftpPool: genericPool.Pool<Client>;
 
     private constructor() {
+        let config = ConfigManager.getConfig();
+
         this.sftpPool = genericPool.createPool<Client>({
             create: async () => {
                 const sftp = new Client();
@@ -29,10 +31,11 @@ class SFTPClient {
     }
 
     public static getInstance(): SFTPClient {
-        if (!SFTPClient.instance) {
-            SFTPClient.instance = new SFTPClient();
-        }
         return SFTPClient.instance;
+    }
+
+    public static init(): void {
+        SFTPClient.instance = new SFTPClient();
     }
 
     public async listSFTPFiles(path: string) {
@@ -316,4 +319,4 @@ class SFTPClient {
     }
 }
 
-export default SFTPClient.getInstance();
+export default SFTPClient;

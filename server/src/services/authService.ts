@@ -1,12 +1,12 @@
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
 import databaseService from "./databaseService";
-import config from '../config';
 import jwt from 'jsonwebtoken';
 import {join} from "path";
 import {writeFileSync} from "fs";
-import AppConfig from "../config/appConfig";
+import AppConfig from "../controllers/config/models/appConfig";
 import inviteCodeService from "./inviteCodeService";
+import ConfigManager from "../controllers/config/controllers/configManager";
 
 interface UserSecret {
     password: string;
@@ -32,7 +32,7 @@ class AuthService {
     private constructor() {
         this.users = {};
         this.tempTokens = {};
-        this.config = config;
+        this.config = ConfigManager.getConfig();
         this.init();
 
         AuthService.instance = this;

@@ -7,8 +7,7 @@ import path from 'path';
 import os from 'os';
 import zlib from 'zlib';
 import * as unrar from 'node-unrar-js';
-import sftpService from "./sftpService";
-import sftp from "ssh2-sftp-client";
+import SftpService from "./sftpService";
 
 // Type definitions
 type FileContent = Buffer | string;
@@ -18,6 +17,8 @@ interface ExtractedEntry {
     name: string;
     buffer?: Buffer;
 }
+
+let sftpService = SftpService.getInstance();
 
 class Unarchiver {
     private static instance: Unarchiver;

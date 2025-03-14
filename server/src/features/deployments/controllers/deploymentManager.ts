@@ -1,14 +1,14 @@
-import config from '../../../config';
 import path from 'path';
-import redisService from "../../../services/redisService";
-import kubernetesService from "../../../services/kubernetesService";
 import Util from "../../../misc/util";
 import DeploymentManifestManager from './deploymentManifestManager';
 import Deployment from '../models/deployment';
-import sftpService from "../../../services/sftpService";
 import {DeploymentType} from "../../../../../shared/enum/enums/deployment-type";
 import {Enum} from "../../../../../shared/enum/enum";
 import Redis from "ioredis";
+import ConfigManager from "../../../controllers/config/controllers/configManager";
+import RedisService from "../../../services/redisService";
+import KubernetesService from "../../../services/kubernetesService";
+import SftpService from "../../../services/sftpService";
 
 export default class DeploymentManager {
     private static deployments: Deployment[] = [];
@@ -20,7 +20,7 @@ export default class DeploymentManager {
     }
 
     public static async loadDeployments() {
-        await kubernetesService.listNodeNames();
+        await KubernetesService.getInstance().listNodeNames();
         const manifestFiles = await DeploymentManifestManager.getAllManifests();
         DeploymentManager.deployments = manifestFiles.map(manifest => new Deployment(manifest));
     }
@@ -36,7 +36,7 @@ export default class DeploymentManager {
         const manifest = await DeploymentManifestManager.getManifest(manifestPath);
         const deployment = new Deployment(manifest);
         try {
-            await sftpService.createSFTPDirectory(`nfsshare${deployment.dataDirectory}`);
+            await SftpService.getInstance().createSFTPDirectory(`nfsshare${deployment.dataDirectory}`);
         } catch (error) {
             console.error(error)
             throw new Error('failed to create deployment')
@@ -58,7 +58,7 @@ export default class DeploymentManager {
             throw new Error('failed to delete deployment manifest');
         }
         try {
-            await sftpService.deleteSFTPDirectory(`nfsshare${deployment.dataDirectory}`);
+            await SftpService.getInstance().deleteSFTPDirectory(`nfsshare${deployment.dataDirectory}`);
         } catch (error) {
             console.error(error);
             throw new Error('failed to delete sftp directory');
@@ -77,16 +77,16 @@ export default class DeploymentManager {
     }
 
     public static async runApplyScript(): Promise<void> {
-        const scriptDir = path.join(config["bmc-path"], "scripts");
+        const scriptDir = path.join(ConfigManager.getString("bmc-path"), "scripts");
         await Util.safelyExecuteShellCommand(`cd "${scriptDir}" && ls && ./apply-deployments.sh`);
     }
 
     public static async sendRedisUpdates(deploymentName: string): Promise<void> {
-        const client: Redis = await redisService.redisPool.acquire();
+        const client: Redis = await RedisService.getInstance().redisPool.acquire();
         try {
             await client.publish('deployment-modified', deploymentName);
         } finally {
-            await redisService.redisPool.release(client);
+            await RedisService.getInstance().redisPool.release(client);
         }
     }
 }

@@ -1,5 +1,5 @@
-import config from '../config';
 import databaseService from "./databaseService";
+import ConfigManager from "../controllers/config/controllers/configManager";
 
 class InviteCodeService {
     private tokens: { [code: string]: string } = {};
@@ -15,7 +15,7 @@ class InviteCodeService {
     }
 
     async verifyInvite(code: string): Promise<string> {
-        const environment = config.environment;
+        const environment = ConfigManager.getString("environment");
 
         if (environment === 'production') {
             if (await databaseService.isCodeExpired(code)) throw new Error('Invite code expired');

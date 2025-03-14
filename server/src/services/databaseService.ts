@@ -1,11 +1,13 @@
-import config from '../config';
 import mariadb from 'mariadb';
+import ConfigManager from "../controllers/config/controllers/configManager";
 
 class DatabaseService {
     private static instance: DatabaseService;
     public pool: mariadb.Pool;
 
     private constructor() {
+        let config = ConfigManager.getConfig();
+
         this.pool = mariadb.createPool({
             host: config.mariadb.host,
             port: config.mariadb.port,
@@ -223,7 +225,7 @@ class DatabaseService {
     }
 
     public async isCodeExpired(code: string): Promise<boolean> {
-        let expiryDays = config['invite-code-expiry-days'];
+        let expiryDays = ConfigManager.getInt('invite-code-expiry-days');
 
         let conn;
         try {

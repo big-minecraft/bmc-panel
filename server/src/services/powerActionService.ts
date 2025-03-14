@@ -2,13 +2,13 @@ import WebSocket from 'ws';
 import {User, Cluster, getPodConnections} from "./podService";
 import {executeCommand} from "./commandService";
 import yaml from 'js-yaml';
-import kubernetesService from "./kubernetesService";
-import redisService from "./redisService";
 import DeploymentManager from "../features/deployments/controllers/deploymentManager";
 import {DeploymentValues} from "../features/deployments/models/types";
 import {InstanceState} from "../../../shared/enum/enums/instance-state";
 import {Enum} from "../../../shared/enum/enum";
-import {Instance} from "../../../shared/model/instance";
+import RedisService from "./redisService";
+import KubernetesClient from "./kubernetesService";
+import KubernetesService from "./kubernetesService";
 
 const podStatusMap = new Map<string, string>();
 
@@ -56,7 +56,7 @@ async function killPod(
     deploymentName: string,
     podName: string
 ): Promise<void> {
-    await kubernetesService.killPod(podName);
+    await KubernetesService.getInstance().killPod(podName);
     await updatePod(deploymentName, podName, Enum.InstanceState.STOPPED);
 }
 
@@ -142,7 +142,7 @@ async function executePowerAction(
 async function updatePod(deploymentName: string, podName: string, state: InstanceState) {
     podStatusMap.set(podName, state.identifier);
 
-    await redisService.setPodState(deploymentName, podName, state);
+    await RedisService.getInstance().setPodState(deploymentName, podName, state);
 
     getPodConnections(podName).forEach(connection => {
         if (connection.ws.readyState === WebSocket.OPEN) {

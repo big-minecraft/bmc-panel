@@ -1,7 +1,7 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from 'zod';
-import sftpService from "../../services/sftpService";
 import JSZip from "jszip";
+import SftpService from "../../services/sftpService";
 
 const archiveFileSchema = z.object({
     path: z.string().min(1),
@@ -24,7 +24,7 @@ export const archiveFileEndpoint: ApiEndpoint<ArchiveFileRequest, ArchiveFileRes
             const data: ArchiveFileRequest = archiveFileSchema.parse(req.body);
             const path = data.path;
 
-            const fileBuffer = await sftpService.downloadSFTPFile(path);
+            const fileBuffer = await SftpService.getInstance().downloadSFTPFile(path);
             const filename = path.split('/').pop();
             const directoryPath = path.split('/').slice(0, -1).join('/');
             const zip = new JSZip();
@@ -37,7 +37,7 @@ export const archiveFileEndpoint: ApiEndpoint<ArchiveFileRequest, ArchiveFileRes
                 compression: 'DEFLATE'
             });
             const archivePath = `${directoryPath}/${filename}.zip`;
-            await sftpService.uploadSFTPFile(zipBuffer, archivePath);
+            await SftpService.getInstance().uploadSFTPFile(zipBuffer, archivePath);
             
             res.json({
                 success: true,

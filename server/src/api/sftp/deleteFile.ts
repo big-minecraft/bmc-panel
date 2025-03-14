@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from "zod";
-import sftpService from "../../services/sftpService";
+import SftpService from "../../services/sftpService";
 
 const deleteFileSchema = z.object({
     path: z.string().min(1),
@@ -20,7 +20,7 @@ export const deleteFileEndpoint: ApiEndpoint<DeleteFileRequest, DeleteFileRespon
         try {
             const data: DeleteFileRequest = deleteFileSchema.parse(req.query);
 
-            await sftpService.deleteSFTPFile(data.path);
+            await SftpService.getInstance().deleteSFTPFile(data.path);
 
             res.json({
                 success: true,

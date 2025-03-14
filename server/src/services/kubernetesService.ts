@@ -1,5 +1,5 @@
 import * as K8s from '@kubernetes/client-node';
-import config from '../config';
+import ConfigManager from "../controllers/config/controllers/configManager";
 
 interface KubernetesClientStatus {
     initialized: boolean;
@@ -26,17 +26,18 @@ class KubernetesClient {
         this.appsV1Api = null;
         this.initialized = false;
 
-        this.initialize();
+        this.initializeConfig();
     }
 
     public static getInstance(): KubernetesClient {
-        if (!KubernetesClient.instance) {
-            KubernetesClient.instance = new KubernetesClient();
-        }
         return KubernetesClient.instance;
     }
 
-    private initialize(): void {
+    public static init(): void {
+        KubernetesClient.instance = new KubernetesClient();
+    }
+
+    private initializeConfig(): void {
         try {
             this.loadConfiguration();
             this.initialized = true;
@@ -82,7 +83,7 @@ class KubernetesClient {
     }
 
     private loadLocalConfig(): void {
-        const typedConfig = config as KubernetesConfig;
+        const typedConfig = ConfigManager.getConfig() as KubernetesConfig;
         const pathsToTry: string[] = [
             typedConfig.k8s.configPath,
             '/host-root/etc/rancher/k3s/k3s.yaml',
@@ -111,7 +112,7 @@ class KubernetesClient {
 
     private ensureInitialized(): void {
         if (!this.initialized || !this.appsV1Api) {
-            this.initialize();
+            this.initializeConfig();
 
             if (!this.initialized || !this.appsV1Api) {
                 throw new Error('Kubernetes client initialization failed. Please check your kubeconfig and permissions.');
@@ -209,8 +210,4 @@ class KubernetesClient {
     }
 }
 
-const kubernetesClient = KubernetesClient.getInstance();
-
-console.log('Kubernetes client status after creation:', kubernetesClient.getStatus());
-
-export default kubernetesClient;
+export default KubernetesClient;

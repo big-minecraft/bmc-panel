@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import {Agent} from 'https';
 import * as fs from 'fs';
 import * as path from 'path';
-import kubernetesService from "./kubernetesService";
+import KubernetesService from "./kubernetesService";
 
 interface Cluster {
     server: string;
@@ -111,7 +111,7 @@ async function createWebSocketConnection(wsUrl: string, cluster: Cluster, user: 
         headers: {}
     };
 
-    if (kubernetesService.isRunningInCluster()) {
+    if (KubernetesService.getInstance().isRunningInCluster()) {
         const tokenPath = path.join('/host-root', user.authProvider?.config.tokenFile || '');
         const caPath = path.join('/host-root', cluster.caFile || '');
 

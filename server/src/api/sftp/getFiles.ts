@@ -1,5 +1,5 @@
 import {ApiEndpoint, AuthType} from '../types';
-import sftpService from "../../services/sftpService";
+import SftpService from "../../services/sftpService";
 
 export interface GetFilesResponse {
     files: any[];
@@ -13,7 +13,7 @@ export const getFilesEndpoint: ApiEndpoint<unknown, GetFilesResponse> = {
         try {
             const path = req.query.path as string;
             
-            const files = await sftpService.listSFTPFiles(path);
+            const files = await SftpService.getInstance().listSFTPFiles(path);
             
             res.json({
                 success: true,

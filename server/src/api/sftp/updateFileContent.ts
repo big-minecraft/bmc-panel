@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from "zod";
-import sftpService from "../../services/sftpService";
+import SftpService from "../../services/sftpService";
 
 const updateFileContentSchema = z.object({
     path: z.string().min(1),
@@ -22,7 +22,7 @@ export const updateFileContentEndpoint: ApiEndpoint<UpdateFileContentRequest, Up
         try {
             const data: UpdateFileContentRequest = updateFileContentSchema.parse(req.body);
             
-            await sftpService.updateSFTPFile(data.path, data.content);
+            await SftpService.getInstance().updateSFTPFile(data.path, data.content);
 
             res.json({
                 success: true,

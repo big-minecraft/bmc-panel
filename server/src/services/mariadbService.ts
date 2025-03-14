@@ -1,10 +1,10 @@
-import config from '../config';
 import { PoolConnection } from 'mariadb';
 import databaseService from "./databaseService";
 import {createReadStream, createWriteStream, mkdirSync} from "node:fs";
 import * as readline from "node:readline";
 import {BackupService} from "./backupService";
 import {existsSync} from "fs";
+import ConfigManager from "../controllers/config/controllers/configManager";
 
 interface DatabaseCredentials {
     username: string;
@@ -157,7 +157,7 @@ class MariadbService {
                 credentials: {
                     username: `${db.name}_user`,
                     password: db.password,
-                    host: config['panel-host'],
+                    host: ConfigManager.getString('panel-host'),
                     port: 30036
                 }
             }));

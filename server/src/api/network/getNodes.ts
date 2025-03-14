@@ -1,5 +1,5 @@
 import {ApiEndpoint, AuthType} from '../types';
-import kubernetesService from "../../services/kubernetesService";
+import KubernetesService from "../../services/kubernetesService";
 
 export interface GetNodesResponse {
     nodes: String[];
@@ -11,7 +11,7 @@ export const getNodesEndpoint: ApiEndpoint<unknown, GetNodesResponse> = {
     auth: AuthType.None,
     handler: async (req, res) => {
         try {
-            const nodes = await kubernetesService.listNodeNames();
+            const nodes = await KubernetesService.getInstance().listNodeNames();
 
             res.json({
                 success: true,

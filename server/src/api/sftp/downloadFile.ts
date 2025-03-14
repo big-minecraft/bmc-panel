@@ -1,6 +1,6 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from 'zod';
-import sftpService from "../../services/sftpService";
+import SftpService from "../../services/sftpService";
 
 const downloadFileSchema = z.object({
     path: z.string().min(1),
@@ -17,7 +17,7 @@ export const downloadFileEndpoint: ApiEndpoint<DownloadFileRequest> = {
             const data: DownloadFileRequest = downloadFileSchema.parse(req.body);
             const path = data.path;
 
-            const fileBuffer = await sftpService.downloadSFTPFile(path);
+            const fileBuffer = await SftpService.getInstance().downloadSFTPFile(path);
             const filename = path.split('/').pop();
 
             res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);

@@ -1,8 +1,8 @@
 import { ApiEndpoint, AuthType } from '../types';
 import { z } from 'zod';
 import multer from 'multer';
-import sftpService from "../../services/sftpService";
-import config from "../../config";
+import ConfigManager from "../../controllers/config/controllers/configManager";
+import SftpService from "../../services/sftpService";
 
 const fileSchema = z.object({
     buffer: z.instanceof(Buffer),
@@ -34,7 +34,7 @@ export const uploadMultipleEndpoint: ApiEndpoint<UploadMultipleRequest, UploadMu
             const upload = multer({
                 storage: storage,
                 limits: {
-                    fileSize: config["max-upload-size-mb"] * 1024 * 1024
+                    fileSize: ConfigManager.getInt("max-upload-size-mb") * 1024 * 1024
                 }
             }).array('files');
 
@@ -58,7 +58,7 @@ export const uploadMultipleEndpoint: ApiEndpoint<UploadMultipleRequest, UploadMu
                 path: req.body.path
             });
 
-            await sftpService.uploadSFTPFiles(files, validatedData.path);
+            await SftpService.getInstance().uploadSFTPFiles(files, validatedData.path);
 
             res.json({
                 success: true,

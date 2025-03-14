@@ -5,19 +5,26 @@ import path, {resolve} from 'path';
 import {exec} from 'child_process';
 
 // Import local modules
-import config from './config';
 import {setupWebSocket} from './services/websocketService';
 import ApiManager from "./controllers/api/apiManager";
-import kubernetesService from "./services/kubernetesService";
 import DeploymentManager from "./features/deployments/controllers/deploymentManager";
+import ConfigManager from "./controllers/config/controllers/configManager";
+import RedisService from "./services/redisService";
+import KubernetesService from "./services/kubernetesService";
+import SftpService from "./services/sftpService";
 
-console.log(config);
 
 class AppServer {
     private readonly app: Application;
     private readonly server: HttpServer;
 
     constructor() {
+        ConfigManager.init();
+
+        console.log("----------------------------------")
+        console.log(ConfigManager.getConfig())
+        console.log("----------------------------------")
+
         this.app = express();
         this.server = new HttpServer(this.app);
         this.configureMiddleware();
@@ -36,12 +43,17 @@ class AppServer {
     }
 
     private async initializeServices(): Promise<void> {
+        RedisService.init();
+        KubernetesService.init();
+        SftpService.init();
+
         setupWebSocket(this.server);
-        if (kubernetesService.isRunningInCluster()) await this.installDependencies();
+        if (KubernetesService.getInstance().isRunningInCluster()) await this.installDependencies();
+
     }
 
     private async installDependencies(): Promise<void> {
-        const scriptDir: string = path.join(config["bmc-path"], "scripts");
+        const scriptDir: string = path.join(ConfigManager.getString("bmc-path"), "scripts");
 
         console.log('running install-dependents script');
 
