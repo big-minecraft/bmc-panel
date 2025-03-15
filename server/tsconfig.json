@@ -13,7 +13,6 @@
     "jsx": "react",
     "outDir": "../dist",
     "rootDir": "..",
-//    "baseUrl": ".."
   },
   "include": [
     "src",
