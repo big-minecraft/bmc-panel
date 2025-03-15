@@ -40,14 +40,15 @@ class AuthService {
 
     private init(): void {
         if (this.config["token-secret"] && this.config["token-secret"] === "secret") {
-            this.config["token-secret"] = Math.random().toString(36).substr(2);
-
-            writeFileSync(
-                join(__dirname, '../config.json'),
-                JSON.stringify(this.config, null, 2)
-            );
-
-            console.log("Randomizing token secret");
+            // TODO: This is a major security vulnerability and requires a rewrite to fix
+            // this.config["token-secret"] = Math.random().toString(36).substr(2);
+            //
+            // writeFileSync(
+            //     join(__dirname, '../config.json'),
+            //     JSON.stringify(this.config, null, 2)
+            // );
+            //
+            // console.log("Randomizing token secret");
         }
     }
 

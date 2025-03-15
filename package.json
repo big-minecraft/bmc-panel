@@ -5,7 +5,7 @@
   "main": "server/src/app.ts",
   "scripts": {
     "build": "npm run client:build && npm run server:build",
-    "start": "npm run server:start",
+    "start:local": "dotenv -e server/.env -- cross-env NODE_ENV=production node ./dist/server/src/app.js",
     "client:build": "cd client && npm run build",
     "server:build": "cd server && npm run build",
     "server:start": "cd server && npm run start",
@@ -15,7 +15,9 @@
   },
   "devDependencies": {
     "@storybook/addon-themes": "^8.4.7",
-    "concurrently": "^4.1.2"
+    "concurrently": "^4.1.2",
+    "cross-env": "^7.0.3",
+    "dotenv-cli": "^8.0.0"
   },
   "private": true,
   "workspaces": [

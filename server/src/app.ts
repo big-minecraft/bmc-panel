@@ -31,9 +31,9 @@ class AppServer {
     constructor() {
         ConfigManager.init();
 
-        console.log("----------------------------------")
-        console.log(ConfigManager.getConfig())
-        console.log("----------------------------------")
+        console.log("----------------------------------");
+        console.log(ConfigManager.getConfig());
+        console.log("----------------------------------");
 
         this.app = express();
         this.server = new HttpServer(this.app);
@@ -66,34 +66,6 @@ class AppServer {
         MariadbService.init();
 
         setupWebSocket(this.server);
-        if (KubernetesService.getInstance().isRunningInCluster()) await this.installDependencies();
-
-    }
-
-    private async installDependencies(): Promise<void> {
-        const scriptDir: string = path.join(ConfigManager.getString("bmc-path"), "scripts");
-
-        console.log('running install-dependents script');
-
-        return new Promise((resolve, reject) => {
-            const process = exec(
-                `cd ${scriptDir} && ls && ./install-dependents.sh`
-            );
-
-            process.stdout?.on('data', (data) => console.log(data.toString().trim()));
-            process.stderr?.on('data', (data) => console.log(data.toString().trim()));
-
-            process.on('close', (code) => {
-                if (code !== 0) {
-                    const error = new Error(`process exited with code ${code}`);
-                    console.log(`install-dependents failed: ${error}`);
-                    reject(error);
-                    return
-                }
-                console.log('install-dependents succeeded');
-                resolve();
-            });
-        });
     }
 
     public async start() {
