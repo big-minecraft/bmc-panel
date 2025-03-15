@@ -21,6 +21,8 @@ import K8sDashboardService from "./services/k8sDashboardService";
 import UnzipService from "./services/unzipService";
 import MariadbService from "./services/mariadbService";
 
+// import files that should be included in build
+import '../config.example.json';
 
 class AppServer {
     private readonly app: Application;
