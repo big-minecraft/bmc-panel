@@ -25,31 +25,38 @@ const UploadButton = () => {
                 className="hidden"
                 disabled={uploading}
             />
-            <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="h-12 px-4 flex items-center bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all disabled:opacity-75"
-            >
-                {uploading ? (
-                    <>
-                        <Loader2 size={20} className="animate-spin mr-2"/>
-                        <span className="text-sm font-medium">{progress}%</span>
-                    </>
-                ) : (
-                    <>
-                        <Upload size={20} className="mr-2"/>
-                        <span className="text-sm font-medium">Upload Files</span>
-                    </>
-                )}
-            </button>
-            {uploading && (
-                <div className="absolute -bottom-1 left-2 right-2 h-1 bg-blue-200 rounded-full overflow-hidden">
-                    <div
-                        className="h-full bg-white transition-all duration-300"
-                        style={{width: `${progress}%`}}
-                    />
-                </div>
-            )}
+
+            <div className="w-40">
+                <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="relative w-full h-12 flex items-center justify-center bg-indigo-600 text-white rounded-lg shadow-md hover:opacity-90 transition-opacity duration-300 overflow-hidden"
+                >
+                    {uploading && (
+                        <div className="absolute inset-0 bg-indigo-800"
+                             style={{
+                                 clipPath: `polygon(0 0, ${progress}% 0, ${progress}% 100%, 0 100%)`,
+                                 transition: 'clip-path 50ms linear'
+                             }}
+                        />
+                    )}
+
+                    {/* Button content */}
+                    <div className="flex items-center justify-center z-10 relative">
+                        {uploading ? (
+                            <>
+                                <Loader2 size={18} className="animate-spin mr-2"/>
+                                <span className="text-sm font-semibold">{progress}%</span>
+                            </>
+                        ) : (
+                            <>
+                                <Upload size={18} className="mr-2"/>
+                                <span className="text-sm font-semibold">Upload Files</span>
+                            </>
+                        )}
+                    </div>
+                </button>
+            </div>
         </div>
     );
 };
