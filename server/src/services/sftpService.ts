@@ -2,6 +2,9 @@ import Client from 'ssh2-sftp-client';
 import genericPool from 'generic-pool';
 import { Readable } from 'node:stream';
 import ConfigManager from "../controllers/config/controllers/configManager";
+import {DeploymentType} from "../../../shared/enum/enums/deployment-type";
+import {getDeploymentContentEndpoint} from "../api/deployments/getDeploymentContent";
+import DeploymentManager from "../features/deployments/controllers/deploymentManager";
 
 class SFTPClient {
     private static instance: SFTPClient;
@@ -57,10 +60,10 @@ class SFTPClient {
                         const data = await sftp.get(fullPath);
                         if (Buffer.isBuffer(data)) {
                             isTextFile = isText(null, data);
-                            console.log("reading buffer")
                         } else if (typeof data === 'string') {
                             isTextFile = isText(null, Buffer.from(data, 'utf8'));
-                            console.log("reading string")
+                            // TODO: these don't seem to ever happen, maybe make them errors instead
+                            console.log("reading string");
                         } else if (data instanceof Readable) {
                             console.error(`skipping stream for ${fullPath}`);
                         } else {
@@ -89,6 +92,14 @@ class SFTPClient {
         } finally {
             if (sftp) this.sftpPool.release(sftp);
         }
+    }
+
+    public getDeploymentType(path: string): DeploymentType {
+        const pathSegments = path.split('/').filter(Boolean);
+        if (pathSegments.length < 3 || pathSegments[0] !== 'nfsshare' || pathSegments[1] !== 'deployments') return null;
+        let deployment = DeploymentManager.getDeploymentByName(pathSegments[2]);
+        if (!deployment) return null;
+        return deployment.type;
     }
 
     public async getSFTPFileContent(path: string) {

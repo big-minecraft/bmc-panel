@@ -8,6 +8,7 @@ export abstract class CustomEnum<T extends EnumValue> {
     }
 
     public fromIndex(index: number) {
+        if (index == -1) return null;
         return this.enumValues[index];
     }
 

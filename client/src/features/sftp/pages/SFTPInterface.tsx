@@ -8,6 +8,7 @@ import FilesList from '../components/files/FilesList';
 import ModalsContainer from '../components/modals/ModalsContainer';
 import UploadOverlay from "../components/misc/UploadOverlay";
 import ActionOverlay from "../components/actions/ActionOverlay";
+import {DeployButtonProvider} from "../context/DeployButtonContext.tsx";
 
 function SFTPContent() {
     const location = useLocation();
@@ -39,7 +40,9 @@ function SFTPContent() {
 
 const SFTPInterface = () => (
     <SFTPProvider>
-        <SFTPContent/>
+        <DeployButtonProvider>
+            <SFTPContent/>
+        </DeployButtonProvider>
     </SFTPProvider>
 );
 

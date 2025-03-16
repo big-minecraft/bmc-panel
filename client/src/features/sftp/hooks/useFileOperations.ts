@@ -2,11 +2,14 @@ import {useCallback} from 'react';
 import axiosInstance from '../../../utils/auth';
 import {useSFTPState, useSFTPDispatch} from '../context/SFTPContext';
 import {useFileNavigation} from "./useFileNavigation";
+import {useDeployButton} from "../context/DeployButtonContext.tsx";
+import {Enum} from "../../../../../shared/enum/enum.ts";
 
 export function useFileOperations() {
     const state = useSFTPState();
     const dispatch = useSFTPDispatch();
     const {handleDirectoryChange} = useFileNavigation();
+    const { setIsVisible } = useDeployButton();
 
     const fetchFiles = useCallback(async () => {
         dispatch({type: 'SET_LOADING', payload: {key: 'files', value: true}});
@@ -14,6 +17,10 @@ export function useFileOperations() {
             const response = await axiosInstance.get('/api/sftp/files', {
                 params: {path: state.currentDirectory}
             });
+
+            // TODO: this code should probably be moved to handleDirectoryChange somehow (prob when sftp ui is redone)
+            const deploymentType = Enum.DeploymentType.fromIndex(response.data.data.deploymentTypeIndex);
+            setIsVisible(deploymentType === Enum.DeploymentType.SCALABLE);
 
             const processedFiles = response.data.data.files
                 .map(file => ({
