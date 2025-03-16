@@ -181,20 +181,6 @@ class SFTPClient {
         }
     }
 
-    public async uploadSFTPBuffer(buffer: Buffer, path: string) {
-        let sftp: Client;
-        try {
-            sftp = await this.sftpPool.acquire();
-            await sftp.put(buffer, path);
-            return { success: true, message: 'File uploaded successfully' };
-        } catch (error) {
-            console.error('Error uploading SFTP buffer:', error);
-            throw error;
-        } finally {
-            if (sftp) this.sftpPool.release(sftp);
-        }
-    }
-
     public async uploadSFTPFiles(files: Array<{ originalname: string, buffer: Buffer }>, basePath: string) {
         let sftp: Client;
         try {
@@ -277,17 +263,6 @@ class SFTPClient {
         } finally {
             if (sftp) this.sftpPool.release(sftp);
         }
-    }
-
-    public async parseFormData(req: any) {
-        return new Promise((resolve) => {
-            const chunks: any[] = [];
-            req.on('data', (chunk: any) => chunks.push(chunk));
-            req.on('end', () => {
-                const data = Buffer.concat(chunks).toString();
-                resolve(data);
-            });
-        });
     }
 
     public async moveFileOrFolder(sourcePath: string, destinationPath: string) {
