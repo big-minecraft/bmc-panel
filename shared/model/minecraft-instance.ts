@@ -3,7 +3,7 @@ import {Instance} from "./instance";
 export class MinecraftInstance extends Instance {
     players: Map<string, string>;
 
-    constructor(uid: string, name: string, podName: string, ip: number, state: string, deployment: string) {
+    constructor(uid: string, name: string, podName: string, ip: string, state: string, deployment: string) {
         super(uid, name, podName, ip, state, deployment);
 
         this.players = new Map<string, string>();

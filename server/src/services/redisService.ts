@@ -53,42 +53,57 @@ export class RedisManager {
         const client: Redis = await this.redisPool.acquire();
         try {
             let instances: Instance[] = [];
+            let cursor = '0';
+            const pattern = `instance:*:${deployment.name}`;
 
-            const instancesData: { [key: string]: string } = await client.hgetall(deployment.name);
+            do {
+                const [nextCursor, keys] = await client.scan(cursor, 'MATCH', pattern);
+                cursor = nextCursor;
 
-            let deploymentInstances = Object.entries(instancesData).map(([uid, jsonString]: [string, string]): Instance => {
-                const instanceData = JSON.parse(jsonString);
+                if (keys.length > 0) {
+                    for (const key of keys) {
+                        const instanceData = await client.hgetall(key);
+                        if (!instanceData || Object.keys(instanceData).length === 0) continue;
 
-                if (instanceData.players !== undefined) {
-                    const minecraftInstance = new MinecraftInstance(
-                        uid,
-                        instanceData.name,
-                        instanceData.podName,
-                        instanceData.ip,
-                        instanceData.state,
-                        deployment.name
-                    );
+                        if (instanceData.players !== undefined) {
+                            const minecraftInstance = new MinecraftInstance(
+                                instanceData.uid,
+                                instanceData.name,
+                                instanceData.podName,
+                                instanceData.ip,
+                                instanceData.state,
+                                deployment.name
+                            );
 
-                    if (typeof instanceData.players === 'object') {
-                        Object.entries(instanceData.players).forEach(([playerUuid, playerName]) => {
-                            minecraftInstance.addPlayer(playerUuid, playerName as string);
-                        });
+                            try {
+                                const playersData = typeof instanceData.players === 'string'
+                                    ? JSON.parse(instanceData.players)
+                                    : instanceData.players;
+
+                                if (typeof playersData === 'object') {
+                                    Object.entries(playersData).forEach(([playerUuid, playerName]) => {
+                                        minecraftInstance.addPlayer(playerUuid, playerName as string);
+                                    });
+                                }
+                            } catch (err) {
+                                console.warn(`Failed to parse players data for instance ${instanceData.uid}:`, err);
+                            }
+
+                            instances.push(minecraftInstance);
+                        } else {
+                            instances.push(new Instance(
+                                instanceData.uid,
+                                instanceData.name,
+                                instanceData.podName,
+                                instanceData.ip,
+                                instanceData.state,
+                                deployment.name
+                            ));
+                        }
                     }
-
-                    return minecraftInstance;
-                } else {
-                    return new Instance(
-                        uid,
-                        instanceData.name,
-                        instanceData.podName,
-                        instanceData.ip,
-                        instanceData.state,
-                        deployment.name
-                    );
                 }
-            });
+            } while (cursor !== '0');
 
-            instances = instances.concat(deploymentInstances);
             return instances;
         } catch (error) {
             console.error('Failed to fetch instances:', error);
