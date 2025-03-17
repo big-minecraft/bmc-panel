@@ -34,6 +34,7 @@ function constructFinalCommand(command: string): string {
     return `echo '${escapedCommand}' > /tmp/server_input`;
 }
 
+//Test
 async function executeCommand(
     ws: WebSocket,
     command: string,
