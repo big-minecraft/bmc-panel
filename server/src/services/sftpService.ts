@@ -10,8 +10,6 @@ class SFTPClient {
     private constructor() {
         let config = ConfigManager.getConfig();
 
-        console.log(config.sftp)
-
         this.sftpPool = genericPool.createPool<Client>({
             create: async () => {
                 const sftp = new Client();

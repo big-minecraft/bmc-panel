@@ -25,7 +25,7 @@ export const hasValidAdminAuth = async (token: string): Promise<boolean> => {
 };
 
 export const verifyTokenWithBasicAuth = async (token: string): Promise<any> => {
-    const decoded = jwt.verify(token, ConfigManager.getString("token-secret"));
+    const decoded = jwt.verify(token, ConfigManager.getString("panel-secret"));
     const user = decoded.username;
 
     const dbUser = await DatabaseService.getInstance().getUser(user);
@@ -43,7 +43,7 @@ export const verifyTokenWithBasicAuth = async (token: string): Promise<any> => {
 };
 
 export const verifyTokenWithAdminAuth = async (token: string): Promise<any> => {
-    const decoded = jwt.verify(token, configManager.getString("token-secret"));
+    const decoded = jwt.verify(token, configManager.getString("panel-secret"));
     const user = decoded.username;
 
     const dbUser = await DatabaseService.getInstance().getUser(user);
