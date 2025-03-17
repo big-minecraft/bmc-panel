@@ -57,13 +57,14 @@ export function useFileOperations() {
         try {
             await axiosInstance.post('/api/sftp/upload', formData, {
                 headers: {'Content-Type': 'multipart/form-data'},
-                onUploadProgress: (event) => {
-                    const progress = Math.round((event.loaded * 100) / event.total);
-                    dispatch({
-                        type: 'SET_UPLOAD_STATE',
-                        payload: {progress}
-                    });
-                },
+                // TODO: should probably be redone with socket
+                // onUploadProgress: (event) => {
+                //     const progress = Math.round((event.loaded * 100) / event.total);
+                //     dispatch({
+                //         type: 'SET_UPLOAD_STATE',
+                //         payload: {progress}
+                //     });
+                // },
             });
             await fetchFiles();
         } catch (error) {

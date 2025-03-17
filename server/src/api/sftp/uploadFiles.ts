@@ -32,10 +32,7 @@ export const uploadMultipleEndpoint: ApiEndpoint<UploadMultipleRequest, UploadMu
         try {
             const storage = multer.memoryStorage();
             const upload = multer({
-                storage: storage,
-                limits: {
-                    fileSize: ConfigManager.getInt("max-upload-size-mb") * 1024 * 1024
-                }
+                storage: storage
             }).array('files');
 
             await new Promise<void>((resolve, reject) => {

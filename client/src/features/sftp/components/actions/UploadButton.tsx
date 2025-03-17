@@ -46,7 +46,8 @@ const UploadButton = () => {
                         {uploading ? (
                             <>
                                 <Loader2 size={18} className="animate-spin mr-2"/>
-                                <span className="text-sm font-semibold">{progress}%</span>
+                                {/*<span className="text-sm font-semibold">{progress}%</span>*/}
+                                <span className="text-sm font-semibold">Uploading...</span>
                             </>
                         ) : (
                             <>
