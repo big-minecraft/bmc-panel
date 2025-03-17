@@ -1,5 +1,4 @@
 import express, { Router, Request, Response, NextFunction, RequestHandler } from 'express';
-import { Types } from "mongoose";
 import {verifyInviteEndpoint} from "../../api/auth/verifyInvite";
 import {loginEndpoint} from "../../api/auth/login";
 import {logoutEndpoint} from "../../api/auth/logout";
@@ -47,56 +46,16 @@ import {updateFileContentEndpoint} from "../../api/sftp/updateFileContent";
 import {uploadMultipleEndpoint} from "../../api/sftp/uploadFiles";
 import {moveFileEndpoint} from "../../api/sftp/moveFile";
 import {getDeploymentsEndpoint} from "../../api/deployments/getDeployments";
-import {AuthType} from "../../api/types";
+import {ApiEndpoint, AuthType} from "../../api/types";
 import {handleAdminAuth, handleBasicAuth} from "../../middleware/auth";
 import {getK8sDashboardHostEndpoint} from "../../api/admin/getK8sDashboardHost";
 import {getNodesEndpoint} from "../../api/network/getNodes";
 import {getDeploymentInstancesEndpoint} from "../../api/deployments/getDeploymentInstances";
 
-export interface MulterFile {
-    fieldname: string;
-    originalname: string;
-    encoding: string;
-    mimetype: string;
-    size: number;
-    destination: string;
-    filename: string;
-    path: string;
-    buffer: Buffer;
-}
-
-export interface ApiRequest<TReq> extends Request {
-    body: TReq;
-    auth?: {
-        authId: Types.ObjectId;
-        userId?: Types.ObjectId;
-    };
-    user?: any;
-    files?: MulterFile[] | { [fieldname: string]: MulterFile[] };
-    file?: MulterFile;
-}
-
-export interface ApiResponse<TRes> extends Response {
-    json: (body: ApiResponseBody<TRes>) => this;
-}
-
-export interface ApiResponseBody<TRes> {
-    success: boolean;
-    data?: TRes;
-    error?: string;
-}
-
-export interface ApiEndpoint<TReq = unknown, TRes = unknown> {
-    path: string;
-    method: 'get' | 'post' | 'put' | 'delete' | 'patch';
-    auth: AuthType;
-    handler: (req: ApiRequest<TReq>, res: ApiResponse<TRes>) => Promise<void>;
-}
-
 export default class ApiManager {
     private static instance: ApiManager;
     private readonly router: Router;
-    private endpoints: ApiEndpoint<any, any>[] = [];
+    private endpoints: ApiEndpoint[] = [];
 
     private constructor() {
         this.router = express.Router();

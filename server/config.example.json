@@ -35,6 +35,5 @@
     "port": 9090
   },
   "token-secret": "secret",
-  "invite-code-expiry-days": 7,
-  "max-upload-size-mb": 100
+  "invite-code-expiry-days": 7
 }

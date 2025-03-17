@@ -1,17 +1,27 @@
 import { Request, Response } from 'express';
-import { Types } from "mongoose";
-import {ApiRequest} from "../controllers/api/apiManager";
+import {Types} from "mongoose";
 
-interface MulterFile {
-    fieldname: string;
-    originalname: string;
-    encoding: string;
-    mimetype: string;
-    size: number;
-    destination: string;
-    filename: string;
-    path: string;
-    buffer: Buffer;
+// export interface MulterFile {
+//     fieldname: string;
+//     originalname: string;
+//     encoding: string;
+//     mimetype: string;
+//     size: number;
+//     destination: string;
+//     filename: string;
+//     path: string;
+//     buffer: Buffer;
+// }
+
+export interface ApiRequest<TReq> extends Request {
+    body: TReq;
+    auth?: {
+        authId: Types.ObjectId;
+        userId?: Types.ObjectId;
+    };
+    user?: any;
+    // files?: MulterFile[] | { [fieldname: string]: MulterFile[] };
+    // file?: MulterFile;
 }
 
 export interface ApiResponse<TRes> extends Response {

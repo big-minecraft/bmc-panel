@@ -42,7 +42,6 @@ export default interface AppConfig extends Record<string, unknown> {
     'bmc-path': string;
     'token-secret': string;
     'invite-code-expiry-days': number;
-    'max-upload-size-mb': number;
     redis: RedisConfig;
     k8s: KubernetesConfig;
     mariadb: MariaDBConfig;

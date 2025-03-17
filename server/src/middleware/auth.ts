@@ -1,22 +1,14 @@
 import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
-import {ApiRequest} from "../controllers/api/apiManager";
-import {ApiResponse} from "../api/types";
-import databaseService from "../services/databaseService";
+import {ApiRequest, ApiResponse} from "../api/types";
 import ConfigManager from "../controllers/config/controllers/configManager";
 import configManager from "../controllers/config/controllers/configManager";
 import KubernetesService from "../services/kubernetesService";
 import DatabaseService from "../services/databaseService";
 
-export enum AuthType {
-    None = 'none',
-    Basic = 'basic',
-    Admin = 'admin',
-}
-
 export const handleBasicAuth: RequestHandler = async (
-    req: ApiRequest<any>,
-    res: ApiResponse<any>,
+    req: ApiRequest<unknown>,
+    res: ApiResponse<unknown>,
     next
 ): Promise<void> => {
     const authHeader = req.headers.authorization;
@@ -76,8 +68,8 @@ export const handleBasicAuth: RequestHandler = async (
 };
 
 export const handleAdminAuth: RequestHandler = async (
-    req: ApiRequest<any>,
-    res: ApiResponse<any>,
+    req: ApiRequest<unknown>,
+    res: ApiResponse<unknown>,
     next
 ): Promise<void> => {
     const authHeader = req.headers.authorization;

@@ -63,7 +63,7 @@ class ConfigManager {
         });
 
         // Validate required numbers
-        const requiredNumbers: Array<keyof AppConfig> = ['invite-code-expiry-days', 'max-upload-size-mb'];
+        const requiredNumbers: Array<keyof AppConfig> = ['invite-code-expiry-days'];
         requiredNumbers.forEach(key => {
             if (typeof config[key] !== 'number' || config[key] <= 0) {
                 throw new Error(`Configuration error: ${key} must be a positive number`);
