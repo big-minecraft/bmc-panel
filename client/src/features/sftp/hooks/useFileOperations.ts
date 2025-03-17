@@ -1,5 +1,5 @@
 import {useCallback} from 'react';
-import axiosInstance from '../../../utils/auth';
+import axiosInstance, {getToken} from '../../../utils/auth';
 import {useSFTPState, useSFTPDispatch} from '../context/SFTPContext';
 import {useFileNavigation} from "./useFileNavigation";
 
@@ -176,19 +176,14 @@ export function useFileOperations() {
                 link.parentNode.removeChild(link);
                 window.URL.revokeObjectURL(url);
             } else {
-                const response = await axiosInstance.get('/api/sftp/download', {
-                    params: {path: file.path},
-                    responseType: 'blob'
-                });
+                const downloadUrl = `/api/sftp/download?path=${encodeURIComponent(file.path)}&token=${getToken()}`;
 
-                const url = window.URL.createObjectURL(new Blob([response.data.data]));
                 const link = document.createElement('a');
-                link.href = url;
-                link.setAttribute('download', file.name);
+                link.href = downloadUrl;
+                link.target = '_blank';
                 document.body.appendChild(link);
                 link.click();
-                link.parentNode.removeChild(link);
-                window.URL.revokeObjectURL(url);
+                document.body.removeChild(link);
             }
         } catch (error) {
             console.error('error downloading file:', error);

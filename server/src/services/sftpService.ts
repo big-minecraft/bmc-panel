@@ -1,6 +1,6 @@
 import Client from 'ssh2-sftp-client';
 import genericPool from 'generic-pool';
-import { Readable } from 'node:stream';
+import {Readable} from 'node:stream';
 import ConfigManager from "../controllers/config/controllers/configManager";
 
 class SFTPClient {
@@ -265,6 +265,24 @@ class SFTPClient {
         }
     }
 
+    public async createSFTPReadStream(path: string): Promise<{stream: Readable, release: () => void}> {
+        let sftp: Client;
+        try {
+            sftp = await this.sftpPool.acquire();
+            const stream = sftp.createReadStream(path);
+
+            const release = () => {
+                if (sftp) this.sftpPool.release(sftp);
+            };
+
+            return { stream, release };
+        } catch (error) {
+            console.error('error creating sftp read stream:', error);
+            if (sftp) await this.sftpPool.release(sftp);
+            throw error;
+        }
+    }
+
     public async downloadSFTPFile(path: string) {
         let sftp: Client;
         try {
@@ -272,7 +290,7 @@ class SFTPClient {
             const fileBuffer = await sftp.get(path);
             return fileBuffer;
         } catch (error) {
-            console.error('Error downloading SFTP file:', error);
+            console.error('error downloading sftp file:', error);
             throw error;
         } finally {
             if (sftp) this.sftpPool.release(sftp);
@@ -318,6 +336,19 @@ class SFTPClient {
         }
 
         return results;
+    }
+
+    public async statFile(path: string): Promise<Client.FileStats> {
+        let sftp: Client;
+        try {
+            sftp = await this.sftpPool.acquire();
+            return await sftp.stat(path);
+        } catch (error) {
+            console.error('error getting file stats:', error);
+            throw error;
+        } finally {
+            if (sftp) this.sftpPool.release(sftp);
+        }
     }
 }
 
