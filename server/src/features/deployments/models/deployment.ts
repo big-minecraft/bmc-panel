@@ -32,7 +32,7 @@ export default class Deployment {
             await DeploymentManifestManager.updateDeploymentState(this, enabled);
 
             if (enabled) {
-                const minimumInstances = this.manifest.content.scaling.minInstances || 1;
+                const minimumInstances = this.manifest?.content?.scaling?.minInstances || 1;
                 await KubernetesService.getInstance().scaleDeployment(this.name, minimumInstances);
             } else {
                 await KubernetesService.getInstance().scaleDeployment(this.name, 0);
