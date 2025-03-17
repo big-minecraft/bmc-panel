@@ -3,8 +3,8 @@ import qrcode from 'qrcode';
 import jwt from 'jsonwebtoken';
 import {join} from "path";
 import {writeFileSync} from "fs";
-import AppConfig from "../controllers/config/models/appConfig";
-import ConfigManager from "../controllers/config/controllers/configManager";
+import AppConfig from "../features/config/models/appConfig";
+import ConfigManager from "../features/config/controllers/configManager";
 import DatabaseService from "./databaseService";
 import InviteCodeService from "./inviteCodeService";
 

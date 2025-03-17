@@ -1,7 +1,7 @@
 import Client from 'ssh2-sftp-client';
 import genericPool from 'generic-pool';
 import {Readable} from 'node:stream';
-import ConfigManager from "../controllers/config/controllers/configManager";
+import ConfigManager from "../features/config/controllers/configManager";
 
 class SFTPClient {
     private static instance: SFTPClient;

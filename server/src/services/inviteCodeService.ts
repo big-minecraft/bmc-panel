@@ -1,4 +1,4 @@
-import ConfigManager from "../controllers/config/controllers/configManager";
+import ConfigManager from "../features/config/controllers/configManager";
 import DatabaseService from "./databaseService";
 
 class InviteCodeService {

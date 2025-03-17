@@ -1,8 +1,8 @@
 import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
 import { ApiRequest, ApiResponse } from "../api/types";
-import ConfigManager from "../controllers/config/controllers/configManager";
-import configManager from "../controllers/config/controllers/configManager";
+import ConfigManager from "../features/config/controllers/configManager";
+import configManager from "../features/config/controllers/configManager";
 import KubernetesService from "../services/kubernetesService";
 import DatabaseService from "../services/databaseService";
 

@@ -5,7 +5,7 @@ import Deployment from '../models/deployment';
 import {DeploymentType} from "../../../../../shared/enum/enums/deployment-type";
 import {Enum} from "../../../../../shared/enum/enum";
 import Redis from "ioredis";
-import ConfigManager from "../../../controllers/config/controllers/configManager";
+import ConfigManager from "../../config/controllers/configManager";
 import RedisService from "../../../services/redisService";
 import KubernetesService from "../../../services/kubernetesService";
 import SftpService from "../../../services/sftpService";

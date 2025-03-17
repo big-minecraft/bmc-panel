@@ -3,7 +3,7 @@ import {createReadStream, createWriteStream, mkdirSync} from "node:fs";
 import * as readline from "node:readline";
 import {BackupService} from "./backupService";
 import {existsSync} from "fs";
-import ConfigManager from "../controllers/config/controllers/configManager";
+import ConfigManager from "../features/config/controllers/configManager";
 import DatabaseService from "./databaseService";
 
 interface DatabaseCredentials {

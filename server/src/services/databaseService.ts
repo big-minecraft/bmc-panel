@@ -1,5 +1,5 @@
 import mariadb from 'mariadb';
-import ConfigManager from "../controllers/config/controllers/configManager";
+import ConfigManager from "../features/config/controllers/configManager";
 
 class DatabaseService {
     private static instance: DatabaseService;
