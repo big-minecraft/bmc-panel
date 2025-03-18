@@ -134,6 +134,18 @@ export class RedisManager {
             await this.redisPool.release(client);
         }
     }
+
+    public async getManagerTimestamp(): Promise<number> {
+        const client: Redis = await this.redisPool.acquire();
+        try {
+            return parseInt(await client.get("lastManagerUpdate"));
+        } catch (error) {
+            console.error('Failed to fetch manager timestamp:', error);
+            throw error;
+        } finally {
+            await this.redisPool.release(client);
+        }
+    }
 }
 
 export default RedisManager;
