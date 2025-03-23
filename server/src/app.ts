@@ -2,7 +2,9 @@ import express, {Application} from 'express';
 import {Server as HttpServer} from 'http';
 import cors from 'cors';
 import path, {resolve} from 'path';
-import {exec} from 'child_process';
+
+// import files that should be included in build
+import '../config.example.json';
 
 // Import local modules
 import {setupWebSocket} from './services/websocketService';
@@ -20,13 +22,12 @@ import InviteCodeService from "./services/inviteCodeService";
 import K8sDashboardService from "./services/k8sDashboardService";
 import UnzipService from "./services/unzipService";
 import MariadbService from "./services/mariadbService";
+import SocketManager from "./features/socket/controllers/socket-manager";
 
-// import files that should be included in build
-import '../config.example.json';
-
-class AppServer {
+class App {
     private readonly app: Application;
     private readonly server: HttpServer;
+    public socketManager: SocketManager;
 
     constructor() {
         ConfigManager.init();
@@ -65,6 +66,7 @@ class AppServer {
         UnzipService.init();
         MariadbService.init();
 
+        this.socketManager = new SocketManager(this.server);
         setupWebSocket(this.server);
     }
 
@@ -92,5 +94,5 @@ class AppServer {
     }
 }
 
-const appServer = new AppServer();
+const appServer = new App();
 appServer.start();

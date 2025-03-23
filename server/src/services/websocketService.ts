@@ -5,6 +5,9 @@ function setupWebSocket(server) {
     const wss = new WebSocket.Server({noServer: true});
 
     server.on('upgrade', (request, socket, head) => {
+        // temporary patch to prevent socket.io websocket requests from interfering with legacy system
+        if (request.url.includes('socket.io')) return;
+
         console.log('Upgrade request received:', request.url);
 
         const urlParts = request.url.split('/');

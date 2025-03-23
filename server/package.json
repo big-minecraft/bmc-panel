@@ -33,6 +33,7 @@
     "path": "^0.12.7",
     "qrcode": "^1.5.4",
     "react-router-dom": "^6.27.0",
+    "socket.io": "^4.8.1",
     "speakeasy": "^2.0.0",
     "ssh2-sftp-client": "^11.0.0",
     "tar": "^7.4.3",
