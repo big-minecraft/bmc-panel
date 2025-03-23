@@ -3,6 +3,7 @@ import ClientSocket from '../controllers/client-socket';
 import SocketService from "../controllers/socket-service";
 import { SocketMessageType } from "../../../../../shared/enum/enums/socket-message-type";
 import SocketListener from "../../../../../shared/model/socket-listener.ts";
+import {SocketListenersRegistry} from "../components/SocketListenerRegistry.tsx";
 
 interface SocketContextType {
     socket: ClientSocket | null;
@@ -80,6 +81,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
     return (
         <SocketContext.Provider value={value}>
+            <SocketListenersRegistry />
             {children}
         </SocketContext.Provider>
     );
