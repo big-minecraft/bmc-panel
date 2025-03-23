@@ -2,6 +2,7 @@ import React from 'react';
 import {Folder, ChevronRight} from 'lucide-react';
 import {useSFTPState} from '../../context/SFTPContext';
 import {useFileNavigation} from '../../hooks/useFileNavigation';
+import SyncStatus from "../actions/SyncStatus.tsx";
 
 const Breadcrumb = () => {
     const {currentDirectory} = useSFTPState();

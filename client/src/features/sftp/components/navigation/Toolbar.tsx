@@ -1,5 +1,7 @@
 import Breadcrumb from './Breadcrumb';
 import ActionButtons from './ActionButtons';
+import SyncStatus from "../actions/SyncStatus.tsx";
+import React from "react";
 
 const Toolbar = () => {
     return (
