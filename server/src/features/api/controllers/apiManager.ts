@@ -51,6 +51,8 @@ import {handleAdminAuth, handleBasicAuth} from "../../../middleware/auth";
 import {getK8sDashboardHostEndpoint} from "../../../api/admin/getK8sDashboardHost";
 import {getNodesEndpoint} from "../../../api/network/getNodes";
 import {getDeploymentInstancesEndpoint} from "../../../api/deployments/getDeploymentInstances";
+import {getManagerTimestampEndpoint} from "../../../api/network/getManagerTimestamp";
+
 
 export default class ApiManager {
     private static instance: ApiManager;
@@ -102,6 +104,7 @@ export default class ApiManager {
 
         //Network
         this.addEndpoint(getNodesEndpoint);
+        this.addEndpoint(getManagerTimestampEndpoint);
 
         //Invite Codes
         this.addEndpoint(createInviteCodeEndpoint);
