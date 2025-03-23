@@ -6,7 +6,7 @@ const SyncStatus = () => {
 
     return (
         <div
-            className="cursor-pointer relative flex items-center justify-center"
+            className="relative flex items-center justify-center"
         >
             {areFilesSynced ? (
                 <CheckCircle
