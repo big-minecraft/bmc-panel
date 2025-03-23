@@ -86,7 +86,6 @@ export default class SocketManager {
         };
 
         socket.emit('message', message);
-        console.log(`sent message: ${JSON.stringify(message)}`);
         return true;
     }
 }

@@ -1,8 +1,8 @@
 import ClientSocket from '../controllers/client-socket';
 import HandshakeListener from '../listeners/handshake-listener';
+import FileSyncListener from "../listeners/file-sync-listener";
 
 class SocketService {
-    private static instance: SocketService;
     private static socket: ClientSocket | null = null;
 
     public static init(): void {
@@ -18,6 +18,7 @@ class SocketService {
         if (this.socket) {
             console.log('registering socket listeners');
             this.socket.registerCustomListener(new HandshakeListener());
+            this.socket.registerCustomListener(new FileSyncListener());
         }
     }
 

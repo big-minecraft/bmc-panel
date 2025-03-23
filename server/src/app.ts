@@ -94,5 +94,7 @@ class App {
     }
 }
 
-const appServer = new App();
-appServer.start();
+const app = new App();
+app.start();
+
+export { app };
