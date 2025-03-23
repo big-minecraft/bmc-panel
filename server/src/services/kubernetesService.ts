@@ -1,5 +1,5 @@
 import * as K8s from '@kubernetes/client-node';
-import ConfigManager from "../controllers/config/controllers/configManager";
+import ConfigManager from "../features/config/controllers/configManager";
 
 interface KubernetesClientStatus {
     initialized: boolean;

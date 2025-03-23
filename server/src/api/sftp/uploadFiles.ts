@@ -1,7 +1,7 @@
 import { ApiEndpoint, AuthType } from '../types';
 import { z } from 'zod';
 import multer from 'multer';
-import ConfigManager from "../../controllers/config/controllers/configManager";
+import ConfigManager from "../../features/config/controllers/configManager";
 import SftpService from "../../services/sftpService";
 
 const fileSchema = z.object({

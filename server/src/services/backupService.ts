@@ -1,4 +1,4 @@
-import ConfigManager from "../controllers/config/controllers/configManager";
+import ConfigManager from "../features/config/controllers/configManager";
 
 export class BackupService {
     private static instance: BackupService;

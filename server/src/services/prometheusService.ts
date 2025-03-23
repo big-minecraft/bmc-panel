@@ -1,5 +1,5 @@
 import axios from 'axios';
-import ConfigManager from "../controllers/config/controllers/configManager";
+import ConfigManager from "../features/config/controllers/configManager";
 
 export interface TimeSeriesData {
     timestamp: number;

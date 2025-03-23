@@ -3,8 +3,8 @@ import qrcode from 'qrcode';
 import jwt from 'jsonwebtoken';
 import {join} from "path";
 import {writeFileSync} from "fs";
-import AppConfig from "../controllers/config/models/appConfig";
-import ConfigManager from "../controllers/config/controllers/configManager";
+import AppConfig from "../features/config/models/appConfig";
+import ConfigManager from "../features/config/controllers/configManager";
 import DatabaseService from "./databaseService";
 import InviteCodeService from "./inviteCodeService";
 
@@ -17,39 +17,17 @@ interface TempToken {
     secret: string;
 }
 
-interface Config {
-    "token-secret": string;
-    environment: "development" | "production";
-}
-
 class AuthService {
     private readonly users: Record<string, UserSecret>;
     private readonly tempTokens: Record<string, TempToken>;
-    private readonly config: AppConfig;
 
     private static instance: AuthService;
 
     private constructor() {
         this.users = {};
         this.tempTokens = {};
-        this.config = ConfigManager.getConfig();
-        this.init();
 
         AuthService.instance = this;
-    }
-
-    private init(): void {
-        if (this.config["token-secret"] && this.config["token-secret"] === "secret") {
-            // TODO: This is a major security vulnerability and requires a rewrite to fix
-            // this.config["token-secret"] = Math.random().toString(36).substr(2);
-            //
-            // writeFileSync(
-            //     join(__dirname, '../config.json'),
-            //     JSON.stringify(this.config, null, 2)
-            // );
-            //
-            // console.log("Randomizing token secret");
-        }
     }
 
     public async register(username: string, password: string, inviteToken: string): Promise<string> {
@@ -83,7 +61,7 @@ class AuthService {
             token
         });
 
-        const environment = this.config.environment;
+        const environment = ConfigManager.getConfig().environment;
 
         if (verified || environment === 'development') {
             delete this.users[username];
@@ -127,7 +105,7 @@ class AuthService {
             token
         });
 
-        const environment = this.config.environment;
+        const environment = ConfigManager.getConfig().environment;
         if (!verified && environment === "production") throw new Error('Invalid token');
 
         return await this.generateToken(username);
@@ -137,7 +115,7 @@ class AuthService {
         const payload = {username: username};
         const options = {expiresIn: "7d"};
 
-        return jwt.sign(payload, this.config["token-secret"], options);
+        return jwt.sign(payload, ConfigManager.getString("panel-secret"), options);
     }
 
     public static getInstance(): AuthService {

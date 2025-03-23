@@ -5,7 +5,7 @@ import {createReadStream, createWriteStream, mkdirSync} from "node:fs";
 import {existsSync} from "fs";
 import {pipeline, Readable, Transform} from "node:stream";
 import {readFile, writeFile} from "node:fs/promises";
-import ConfigManager from "../controllers/config/controllers/configManager";
+import ConfigManager from "../features/config/controllers/configManager";
 
 interface DatabaseCredentials {
     username: string;

@@ -6,7 +6,7 @@ import {DeploymentValues, Manifest} from "../models/types";
 import Deployment from "../models/deployment";
 import {DeploymentType} from "../../../../../shared/enum/enums/deployment-type";
 import {Enum} from "../../../../../shared/enum/enum";
-import ConfigManager from "../../../controllers/config/controllers/configManager";
+import ConfigManager from "../../config/controllers/configManager";
 
 export default class DeploymentManifestManager {
 

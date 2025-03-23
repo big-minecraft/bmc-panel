@@ -6,7 +6,7 @@ import {MinecraftInstance} from "../../../shared/model/minecraft-instance";
 import {Instance} from "../../../shared/model/instance";
 import DeploymentManager from "../features/deployments/controllers/deploymentManager";
 import {InstanceState} from "../../../shared/enum/enums/instance-state";
-import ConfigManager from "../controllers/config/controllers/configManager";
+import ConfigManager from "../features/config/controllers/configManager";
 
 interface RedisPool extends genericPool.Pool<Redis> {
     acquire: () => Promise<Redis>;

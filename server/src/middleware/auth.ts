@@ -1,8 +1,8 @@
 import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
 import { ApiRequest, ApiResponse } from "../api/types";
-import ConfigManager from "../controllers/config/controllers/configManager";
-import configManager from "../controllers/config/controllers/configManager";
+import ConfigManager from "../features/config/controllers/configManager";
+import configManager from "../features/config/controllers/configManager";
 import KubernetesService from "../services/kubernetesService";
 import DatabaseService from "../services/databaseService";
 
@@ -25,7 +25,7 @@ export const hasValidAdminAuth = async (token: string): Promise<boolean> => {
 };
 
 export const verifyTokenWithBasicAuth = async (token: string): Promise<any> => {
-    const decoded = jwt.verify(token, ConfigManager.getString("token-secret"));
+    const decoded = jwt.verify(token, ConfigManager.getString("panel-secret"));
     const user = decoded.username;
 
     const dbUser = await DatabaseService.getInstance().getUser(user);
@@ -43,7 +43,7 @@ export const verifyTokenWithBasicAuth = async (token: string): Promise<any> => {
 };
 
 export const verifyTokenWithAdminAuth = async (token: string): Promise<any> => {
-    const decoded = jwt.verify(token, configManager.getString("token-secret"));
+    const decoded = jwt.verify(token, configManager.getString("panel-secret"));
     const user = decoded.username;
 
     const dbUser = await DatabaseService.getInstance().getUser(user);

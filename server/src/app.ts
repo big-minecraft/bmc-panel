@@ -6,9 +6,9 @@ import {exec} from 'child_process';
 
 // Import local modules
 import {setupWebSocket} from './services/websocketService';
-import ApiManager from "./controllers/api/apiManager";
+import ApiManager from "./features/api/controllers/apiManager";
 import DeploymentManager from "./features/deployments/controllers/deploymentManager";
-import ConfigManager from "./controllers/config/controllers/configManager";
+import ConfigManager from "./features/config/controllers/configManager";
 import RedisService from "./services/redisService";
 import KubernetesService from "./services/kubernetesService";
 import SftpService from "./services/sftpService";

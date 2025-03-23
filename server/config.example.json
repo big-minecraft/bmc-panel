@@ -34,6 +34,6 @@
     "host": "prometheus-service",
     "port": 9090
   },
-  "token-secret": "secret",
+  "panel-secret": "secret",
   "invite-code-expiry-days": 7
 }
