@@ -1,15 +1,21 @@
 import {useState, useEffect, useRef} from 'react';
-import {Send, Terminal} from 'lucide-react';
+import {Send, Terminal, ArrowDown} from 'lucide-react';
 
 const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
     const [logs, setLogs] = useState([]);
     const [command, setCommand] = useState('');
     const [ws, setWs] = useState(null);
     const [isConnecting, setIsConnecting] = useState(false);
+    const [autoScroll, setAutoScroll] = useState(true);
+    const autoScrollRef = useRef(autoScroll);
     const consoleRef = useRef(null);
     const wsRef = useRef(null);
     const controllerRef = useRef(null);
     const initializedRef = useRef(false);
+
+    useEffect(() => {
+        autoScrollRef.current = autoScroll;
+    }, [autoScroll]);
 
     const closeWebSocket = (socket, message) => {
         if (socket && socket.readyState !== WebSocket.CLOSED && socket.readyState !== WebSocket.CLOSING) {
@@ -34,7 +40,7 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
 
     const connectWebSocket = () => {
         if (isConnecting || (wsRef.current && wsRef.current.readyState !== WebSocket.CLOSED)) {
-            console.log('Connection already in progress or active, skipping');
+            console.log('connection already in progress or active, skipping');
             return;
         }
 
@@ -64,7 +70,6 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
             };
 
             socket.onmessage = (event) => {
-                // Check if this connection has been aborted
                 if (controllerRef.current?.signal.aborted) return;
                 if (event.data === '') return;
 
@@ -81,7 +86,6 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
                         return;
                     }
 
-                    // Check for "Jar file not found!" message
                     if (parsedData.content.includes('Jar file not found!')) {
                         closeWebSocket(socket, '[System] Jar file not found. Connection terminated.');
                         return;
@@ -96,16 +100,13 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
                         }]);
                     });
 
-                    if (consoleRef.current) {
-                        const {scrollHeight, clientHeight, scrollTop} = consoleRef.current;
-                        const isScrolledToBottom = scrollHeight - scrollTop === clientHeight;
-                        if (isScrolledToBottom) {
-                            setTimeout(() => {
-                                if (consoleRef.current) {
-                                    consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
-                                }
-                            }, 0);
-                        }
+                    const currentAutoScroll = localStorage.getItem('console-autoscroll') !== 'false';
+                    if (consoleRef.current && autoScrollRef.current) {
+                        setTimeout(() => {
+                            if (consoleRef.current) {
+                                consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
+                            }
+                        }, 1);
                     }
                 } catch (error) {
                     console.error('error parsing message:', error);
@@ -149,6 +150,18 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
         }
     };
 
+    const handleScroll = () => {
+        if (!consoleRef.current) return;
+        const { scrollHeight, clientHeight, scrollTop } = consoleRef.current;
+
+        const isScrolledToBottom = Math.abs(scrollHeight - scrollTop - clientHeight) < 5;
+        if (!isScrolledToBottom && autoScroll) {
+            setAutoScroll(false);
+        } else if (isScrolledToBottom && !autoScroll) {
+            setAutoScroll(true);
+        }
+    };
+
     useEffect(() => {
         initializedRef.current = true;
 
@@ -156,6 +169,19 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
             initializedRef.current = false;
         };
     }, []);
+
+    useEffect(() => {
+        const consoleElement = consoleRef.current;
+        if (consoleElement) {
+            consoleElement.addEventListener('scroll', handleScroll);
+        }
+
+        return () => {
+            if (consoleElement) {
+                consoleElement.removeEventListener('scroll', handleScroll);
+            }
+        };
+    }, [autoScroll]);
 
     useEffect(() => {
         if (!initializedRef.current) return;
@@ -195,6 +221,12 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
         }
     };
 
+    useEffect(() => {
+        if (autoScroll && consoleRef.current) {
+            consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
+        }
+    }, [autoScroll]);
+
     const LogLine = ({ log }) => {
         const isSystemMessage = log.content.startsWith('[System]');
         return (
@@ -210,10 +242,24 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center text-gray-500 mb-4">
-                <Terminal size={18} className="mr-2"/>
-                <span className="text-sm">Connected to {instance.podName}</span>
-                {isConnecting && <span className="ml-2 text-xs">(Connecting...)</span>}
+            <div className="flex items-center justify-between text-gray-500 mb-4">
+                <div className="flex items-center">
+                    <Terminal size={18} className="mr-2"/>
+                    <span className="text-sm">Connected to {instance.podName}</span>
+                    {isConnecting && <span className="ml-2 text-xs">(Connecting...)</span>}
+                </div>
+                <button
+                    className={`flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors ${
+                        autoScroll
+                            ? 'bg-blue-500 text-white hover:bg-blue-600'
+                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                    }`}
+                    onClick={() => setAutoScroll(!autoScroll)}
+                    title={autoScroll ? "Disable auto-scroll" : "Enable auto-scroll"}
+                >
+                    <ArrowDown size={14} />
+                    {autoScroll ? 'Auto-scroll On' : 'Auto-scroll Off'}
+                </button>
             </div>
 
             <div
