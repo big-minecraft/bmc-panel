@@ -7,7 +7,6 @@ const initialState = {
     files: [],
     selectedFiles: [],
     currentDirectory: '',
-    areFilesSynced: true,
     loading: {
         files: false,
         creating: false,
@@ -38,8 +37,6 @@ function sftpReducer(state, action) {
             return {...state, selectedFiles: action.payload};
         case 'SET_CURRENT_DIRECTORY':
             return {...state, currentDirectory: action.payload};
-        case 'SET_ARE_FILES_SYNCED':
-            return {...state, areFilesSynced: action.payload};
         case 'SET_LOADING':
             return {
                 ...state,
