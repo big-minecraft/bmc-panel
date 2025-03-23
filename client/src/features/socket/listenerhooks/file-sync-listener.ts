@@ -10,10 +10,8 @@ export function useFileSyncListener() {
     const handleFileSync = useCallback((message: ClientFileSync) => {
         if (message.event === 'sync_started') {
             dispatch({ type: 'SET_FILES_SYNCED', payload: false });
-            console.log('sync started');
         } else if (message.event === 'sync_completed') {
             dispatch({ type: 'SET_FILES_SYNCED', payload: true });
-            console.log('sync completed');
         }
     }, [dispatch]);
 

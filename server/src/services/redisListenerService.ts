@@ -96,7 +96,6 @@ export class RedisListenerService {
     }
 
     private handleFileSyncEvent(event: FileSyncEvent) {
-        console.log("File sync event:", event);
         app.socketManager.sendAll(Enum.SocketMessageType.CLIENT_FILE_SYNC, event);
     }
 
