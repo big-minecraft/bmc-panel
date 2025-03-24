@@ -3,20 +3,13 @@ import {updatePod} from "./powerActionService";
 import {RedisManager} from "./redisService";
 import {Enum} from "../../../shared/enum/enum";
 import { app} from "../app";
-
+import {ClientFileSync} from "../../../shared/types/client-file-sync";
 
 interface ServerShutdownEvent {
     server: string;
     deployment: string;
     event: 'shutdown';
     timestamp: string;
-}
-
-interface FileSyncEvent {
-    event: string;
-    success: boolean;
-    timestamp: string;
-    details: string;
 }
 
 export class RedisListenerService {
@@ -79,7 +72,7 @@ export class RedisListenerService {
             if (channel === 'sync-status') {
                 try {
                     console.log('Sync status:', message);
-                    const event: FileSyncEvent = JSON.parse(message);
+                    const event: ClientFileSync = JSON.parse(message);
                     this.handleFileSyncEvent(event);
                 } catch (error) {
                     console.error('Error parsing file sync message:', error);
@@ -95,8 +88,8 @@ export class RedisListenerService {
         await updatePod(event.deployment, event.server, Enum.InstanceState.STOPPED);
     }
 
-    private handleFileSyncEvent(event: FileSyncEvent) {
-        app.socketManager.sendAll(Enum.SocketMessageType.CLIENT_FILE_SYNC, event);
+    private handleFileSyncEvent(event: ClientFileSync) {
+        app.socketManager.sendAll<ClientFileSync>(Enum.SocketMessageType.CLIENT_FILE_SYNC, event);
     }
 
     public async shutdown() {
