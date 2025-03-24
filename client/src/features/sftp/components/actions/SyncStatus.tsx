@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { CheckCircle, RotateCw } from 'lucide-react';
+import {useSocketListener} from "../../../socket/hooks/useSocketListener.ts";
+import {Enum} from "../../../../../../shared/enum/enum.ts";
+import {ClientHandshake} from "../../../../../../shared/types/client-handshake.ts";
 
 const SyncStatus = () => {
     // In a real implementation, this would come from your context
@@ -10,6 +13,10 @@ const SyncStatus = () => {
         console.log('toggling sync state')
         setIsSynced(!isSynced);
     };
+
+    useSocketListener<ClientHandshake>(Enum.SocketMessageType.CLIENT_HANDSHAKE, (message) => {
+        setIsSynced(false);
+    });
 
     return (
         <div
