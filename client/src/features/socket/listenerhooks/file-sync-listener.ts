@@ -1,6 +1,6 @@
 import { Enum } from "../../../../../shared/enum/enum.ts";
 import { useSocketListener } from "../hooks/useSocketListener.ts";
-import { ClientFileSync } from "../../../../../shared/types/client-file-sync.ts";
+import { ClientFileSync } from "../../../../../shared/types/socket/client-file-sync.ts";
 import { useCallback } from "react";
 import { useGlobalDispatch } from "../../../context/GlobalContext.tsx";
 
