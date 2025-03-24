@@ -368,8 +368,7 @@ class SFTPClient {
             {
                 event: 'sync_started',
                 success: true,
-                'timestamp': new Date().toISOString(),
-                details: 'File sync started',
+                'timestamp': new Date().toISOString()
             }
         );
     }
