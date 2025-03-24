@@ -4,7 +4,7 @@ import {Readable} from 'node:stream';
 import ConfigManager from "../features/config/controllers/configManager";
 import {app} from "../app";
 import {Enum} from "../../../shared/enum/enum";
-import {ClientFileSync} from "../../../shared/types/client-file-sync";
+import {ClientFileSync} from "../../../shared/types/socket/client-file-sync";
 
 class SFTPClient {
     private static instance: SFTPClient;

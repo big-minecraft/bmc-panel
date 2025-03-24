@@ -3,7 +3,7 @@ import {updatePod} from "./powerActionService";
 import {RedisManager} from "./redisService";
 import {Enum} from "../../../shared/enum/enum";
 import { app} from "../app";
-import {ClientFileSync} from "../../../shared/types/client-file-sync";
+import {ClientFileSync} from "../../../shared/types/socket/client-file-sync";
 
 interface ServerShutdownEvent {
     server: string;
