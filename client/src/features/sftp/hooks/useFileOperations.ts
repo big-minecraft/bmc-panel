@@ -35,6 +35,7 @@ export function useFileOperations() {
 
             dispatch({type: 'SET_FILES', payload: processedFiles});
             dispatch({type: 'SET_SELECTED_FILES', payload: []});
+            dispatch({type: 'SET_CURRENT_DIRECTORY_DEPLOYMENT_TYPE', payload: response.data.data.deploymentType });
         } catch (error) {
             console.error('error fetching files:', error);
         } finally {
