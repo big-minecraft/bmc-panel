@@ -2,6 +2,9 @@ import Client from 'ssh2-sftp-client';
 import genericPool from 'generic-pool';
 import {Readable} from 'node:stream';
 import ConfigManager from "../features/config/controllers/configManager";
+import {app} from "../app";
+import {Enum} from "../../../shared/enum/enum";
+import {ClientFileSync} from "../../../shared/types/socket/client-file-sync";
 
 class SFTPClient {
     private static instance: SFTPClient;
@@ -109,6 +112,7 @@ class SFTPClient {
             sftp = await this.sftpPool.acquire();
             const buffer = Buffer.from(content);
             await sftp.put(buffer, path);
+            this.notifyClientFileDesync();
             return { success: true, message: 'File created successfully' };
         } catch (error) {
             console.error('Error creating SFTP file:', error);
@@ -128,6 +132,7 @@ class SFTPClient {
             }
             const buffer = Buffer.from(content);
             await sftp.put(buffer, path);
+            this.notifyClientFileDesync();
             return { success: true, message: 'File updated successfully' };
         } catch (error) {
             console.error('Error updating SFTP file:', error);
@@ -142,6 +147,7 @@ class SFTPClient {
         try {
             sftp = await this.sftpPool.acquire();
             await sftp.delete(path);
+            this.notifyClientFileDesync();
             return { success: true, message: 'File deleted successfully' };
         } catch (error) {
             console.error('Error deleting SFTP file:', error);
@@ -156,6 +162,7 @@ class SFTPClient {
         try {
             sftp = await this.sftpPool.acquire();
             await sftp.mkdir(path, true);
+            this.notifyClientFileDesync();
             return { success: true, message: 'Directory created successfully' };
         } catch (error) {
             console.error('Error creating SFTP directory:', error);
@@ -170,6 +177,7 @@ class SFTPClient {
         try {
             sftp = await this.sftpPool.acquire();
             await sftp.rmdir(path, true);
+            this.notifyClientFileDesync();
             return { success: true, message: 'Directory deleted successfully' };
         } catch (error) {
             console.error('Error deleting SFTP directory:', error);
@@ -184,6 +192,7 @@ class SFTPClient {
         try {
             sftp = await this.sftpPool.acquire();
             await sftp.put(buffer, path);
+            this.notifyClientFileDesync();
             return { success: true, message: 'File uploaded successfully' };
         } catch (error) {
             console.error('Error uploading SFTP buffer:', error);
@@ -203,6 +212,7 @@ class SFTPClient {
             });
 
             await Promise.all(uploadPromises);
+            this.notifyClientFileDesync();
             return { success: true, message: 'Files uploaded successfully' };
         } catch (error) {
             console.error('Error uploading SFTP files:', error);
@@ -254,6 +264,7 @@ class SFTPClient {
                 throw new Error('Invalid input: expected Buffer or Array of files');
             }
 
+            this.notifyClientFileDesync();
             return { success: true, message: 'Upload successful' };
         } catch (error) {
             console.error('Error uploading SFTP file:', error);
@@ -311,6 +322,7 @@ class SFTPClient {
         try {
             sftp = await this.sftpPool.acquire();
             await sftp.rename(sourcePath, destinationPath);
+            this.notifyClientFileDesync();
             return { success: true, message: 'File or folder moved successfully' };
         } catch (error) {
             console.error('Error moving file or folder:', error);
@@ -347,6 +359,18 @@ class SFTPClient {
         } finally {
             if (sftp) this.sftpPool.release(sftp);
         }
+    }
+
+    private notifyClientFileDesync() {
+        console.log("Notifying clients of file sync");
+
+        app.socketManager.sendAll<ClientFileSync>(Enum.SocketMessageType.CLIENT_FILE_SYNC,
+            {
+                event: 'sync_started',
+                success: true,
+                'timestamp': new Date().toISOString()
+            }
+        );
     }
 }
 

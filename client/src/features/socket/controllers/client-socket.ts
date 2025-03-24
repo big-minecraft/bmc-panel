@@ -110,7 +110,6 @@ export default class ClientSocket {
         };
 
         this.socket.emit('message', message);
-        console.log(`sent message: ${JSON.stringify(message)}`)
         return true;
     }
 }

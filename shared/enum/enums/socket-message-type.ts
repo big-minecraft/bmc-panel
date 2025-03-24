@@ -9,6 +9,7 @@ export class SocketMessageTypeEnum extends CustomEnum<SocketMessageType> {
 
     public CLIENT_HANDSHAKE = this.addValue(new SocketMessageType('CLIENT_HANDSHAKE', Enum.SocketMessageDirection.CLIENT_BOUND));
     public SERVER_HANDSHAKE_ACK = this.addValue(new SocketMessageType('SERVER_HANDSHAKE_ACK', Enum.SocketMessageDirection.SERVER_BOUND));
+    public CLIENT_FILE_SYNC = this.addValue(new SocketMessageType('CLIENT_FILE_SYNC', Enum.SocketMessageDirection.CLIENT_BOUND));
 
     public fromString(identifier: string) {
         for (let deploymentType of this.values()) if (deploymentType.identifier === identifier) return deploymentType;
