@@ -143,7 +143,10 @@ async function updatePod(deploymentName: string, podName: string, state: Instanc
 
     await RedisService.getInstance().setPodState(deploymentName, podName, state);
 
-    getPodConnections(podName).forEach(connection => {
+    let podConnections = getPodConnections(podName);
+    if (podConnections === undefined) return;
+
+    podConnections.forEach(connection => {
         if (connection.ws.readyState === WebSocket.OPEN) {
             connection.ws.send(JSON.stringify({type: "power", content: state.identifier}));
         }

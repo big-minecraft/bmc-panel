@@ -3,7 +3,6 @@ import {useNavigate} from 'react-router-dom';
 import {useSFTPState, useSFTPDispatch} from '../context/SFTPContext';
 
 export function useFileNavigation() {
-
     const {currentDirectory} = useSFTPState();
     const dispatch = useSFTPDispatch();
     const navigate = useNavigate();
