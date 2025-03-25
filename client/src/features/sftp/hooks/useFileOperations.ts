@@ -2,6 +2,7 @@ import {useCallback} from 'react';
 import axiosInstance, {getToken} from '../../../utils/auth';
 import {useSFTPState, useSFTPDispatch} from '../context/SFTPContext';
 import {useFileNavigation} from "./useFileNavigation";
+import {Enum} from "../../../../../shared/enum/enum.ts";
 
 export function useFileOperations() {
     const state = useSFTPState();
@@ -33,9 +34,13 @@ export function useFileOperations() {
                     return a.name.localeCompare(b.name);
                 });
 
+            const deploymentTypeIndex = response.data.data.deploymentTypeIndex;
+            const deploymentType = deploymentTypeIndex === null ? null : Enum.DeploymentType.fromIndex(deploymentTypeIndex)
+            console.log(deploymentTypeIndex);
+
             dispatch({type: 'SET_FILES', payload: processedFiles});
             dispatch({type: 'SET_SELECTED_FILES', payload: []});
-            dispatch({type: 'SET_CURRENT_DIRECTORY_DEPLOYMENT_TYPE', payload: response.data.data.deploymentType });
+            dispatch({type: 'SET_CURRENT_DIRECTORY_DEPLOYMENT_TYPE', payload: deploymentType });
         } catch (error) {
             console.error('error fetching files:', error);
         } finally {

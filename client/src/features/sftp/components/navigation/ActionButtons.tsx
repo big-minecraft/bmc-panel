@@ -11,7 +11,7 @@ const ActionButtons = () => {
     return (
         <div className="flex items-center gap-3 ml-4">
 
-            {currentDirectoryDeploymentType !== Enum.DeploymentType.PERSISTENT.identifier && <SyncStatus />}
+            {currentDirectoryDeploymentType !== Enum.DeploymentType.PERSISTENT && <SyncStatus />}
             <UploadButton />
             <CreateNewButton />
         </div>

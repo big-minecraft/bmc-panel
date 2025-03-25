@@ -1,11 +1,10 @@
 import {ApiEndpoint, AuthType} from '../types';
 import SftpService from "../../services/sftpService";
 import DeploymentManager from "../../features/deployments/controllers/deploymentManager";
-import {DeploymentType} from "../../../../shared/enum/enums/deployment-type";
 
 export interface GetFilesResponse {
     files: any[];
-    deploymentType: string | null;
+    deploymentTypeIndex: number | null;
 }
 
 export const getFilesEndpoint: ApiEndpoint<unknown, GetFilesResponse> = {
@@ -23,7 +22,7 @@ export const getFilesEndpoint: ApiEndpoint<unknown, GetFilesResponse> = {
                 success: true,
                 data: {
                     files: files,
-                    deploymentType: deployment ? deployment.type.identifier : null
+                    deploymentTypeIndex: deployment ? deployment.type.getIndex() : null
                 }
             });
         } catch (error) {
