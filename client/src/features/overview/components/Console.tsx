@@ -4,6 +4,8 @@ import {Send, Terminal, ArrowDown} from 'lucide-react';
 const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
     const [logs, setLogs] = useState([]);
     const [command, setCommand] = useState('');
+    const [commandHistory, setCommandHistory] = useState([]);
+    const [historyIndex, setHistoryIndex] = useState(-1);
     const [ws, setWs] = useState(null);
     const [isConnecting, setIsConnecting] = useState(false);
     const [autoScroll, setAutoScroll] = useState(true);
@@ -12,6 +14,7 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
     const wsRef = useRef(null);
     const controllerRef = useRef(null);
     const initializedRef = useRef(false);
+    const inputRef = useRef(null);
 
     useEffect(() => {
         autoScrollRef.current = autoScroll;
@@ -217,7 +220,35 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
                 type: 'command',
                 command: command
             }));
+
+            if (command.trim() !== '' && (commandHistory.length === 0 || commandHistory[0] !== command))
+                setCommandHistory(prev => [command, ...prev]);
+
             setCommand('');
+            setHistoryIndex(-1);
+        }
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (commandHistory.length > 0) {
+                const newIndex = Math.min(historyIndex + 1, commandHistory.length - 1);
+                setHistoryIndex(newIndex);
+                setCommand(commandHistory[newIndex]);
+            }
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (historyIndex > 0) {
+                const newIndex = historyIndex - 1;
+                setHistoryIndex(newIndex);
+                setCommand(commandHistory[newIndex]);
+            } else if (historyIndex === 0) {
+                setHistoryIndex(-1);
+                setCommand('');
+            }
+        } else if (e.key === 'Enter') {
+            handleCommandSubmit();
         }
     };
 
@@ -275,11 +306,12 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
 
             <div className="relative">
                 <input
+                    ref={inputRef}
                     type="text"
                     className="w-full pl-4 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                     value={command}
                     onChange={(e) => setCommand(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleCommandSubmit()}
+                    onKeyDown={handleKeyDown}
                     placeholder="Enter command..."
                 />
                 <button
