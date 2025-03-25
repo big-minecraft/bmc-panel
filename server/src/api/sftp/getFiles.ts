@@ -1,8 +1,10 @@
 import {ApiEndpoint, AuthType} from '../types';
 import SftpService from "../../services/sftpService";
+import DeploymentManager from "../../features/deployments/controllers/deploymentManager";
 
 export interface GetFilesResponse {
     files: any[];
+    deploymentTypeIndex: number | null;
 }
 
 export const getFilesEndpoint: ApiEndpoint<unknown, GetFilesResponse> = {
@@ -12,13 +14,15 @@ export const getFilesEndpoint: ApiEndpoint<unknown, GetFilesResponse> = {
     handler: async (req, res) => {
         try {
             const path = req.query.path as string;
-            
+
+            let deployment = DeploymentManager.getDeploymentByPath(path);
             const files = await SftpService.getInstance().listSFTPFiles(path);
             
             res.json({
                 success: true,
                 data: {
-                    files
+                    files: files,
+                    deploymentTypeIndex: deployment ? deployment.type.getIndex() : null
                 }
             });
         } catch (error) {

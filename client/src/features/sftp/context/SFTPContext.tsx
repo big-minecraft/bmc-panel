@@ -7,6 +7,7 @@ const initialState = {
     files: [],
     selectedFiles: [],
     currentDirectory: '',
+    currentDirectoryDeploymentType: null,
     loading: {
         files: false,
         creating: false,
@@ -37,6 +38,8 @@ function sftpReducer(state, action) {
             return {...state, selectedFiles: action.payload};
         case 'SET_CURRENT_DIRECTORY':
             return {...state, currentDirectory: action.payload};
+        case 'SET_CURRENT_DIRECTORY_DEPLOYMENT_TYPE':
+            return {...state, currentDirectoryDeploymentType: action.payload};
         case 'SET_LOADING':
             return {
                 ...state,
