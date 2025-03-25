@@ -36,7 +36,6 @@ export function useFileOperations() {
 
             const deploymentTypeIndex = response.data.data.deploymentTypeIndex;
             const deploymentType = deploymentTypeIndex === null ? null : Enum.DeploymentType.fromIndex(deploymentTypeIndex)
-            console.log(deploymentTypeIndex);
 
             dispatch({type: 'SET_FILES', payload: processedFiles});
             dispatch({type: 'SET_SELECTED_FILES', payload: []});
