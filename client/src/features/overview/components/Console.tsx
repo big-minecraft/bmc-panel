@@ -1,5 +1,5 @@
 import {useState, useEffect, useRef} from 'react';
-import {Send, Terminal, ArrowDown} from 'lucide-react';
+import {Send, Terminal, ArrowDown, Trash2} from 'lucide-react';
 
 const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
     const [logs, setLogs] = useState([]);
@@ -165,6 +165,17 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
         }
     };
 
+    const clearLogs = () => {
+        setLogs([{
+            type: 'message',
+            content: '[System] Console cleared.'
+        }]);
+
+        if (consoleRef.current) {
+            consoleRef.current.scrollTop = 0;
+        }
+    };
+
     useEffect(() => {
         initializedRef.current = true;
 
@@ -198,8 +209,8 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
                 connectWebSocket();
             }
         }, 100);
-        //TODO: This code is bad
 
+        //TODO: This code is bad
         return () => {
             clearTimeout(connectionTimer);
 
@@ -279,18 +290,28 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
                     <span className="text-sm">Connected to {instance.podName}</span>
                     {isConnecting && <span className="ml-2 text-xs">(Connecting...)</span>}
                 </div>
-                <button
-                    className={`flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors ${
-                        autoScroll
-                            ? 'bg-blue-500 text-white hover:bg-blue-600'
-                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                    }`}
-                    onClick={() => setAutoScroll(!autoScroll)}
-                    title={autoScroll ? "Disable auto-scroll" : "Enable auto-scroll"}
-                >
-                    <ArrowDown size={14} />
-                    {autoScroll ? 'Auto-scroll On' : 'Auto-scroll Off'}
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        className="flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors bg-red-500 text-white hover:bg-red-600"
+                        onClick={clearLogs}
+                        title="Clear console"
+                    >
+                        <Trash2 size={14} />
+                        Clear
+                    </button>
+                    <button
+                        className={`flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors ${
+                            autoScroll
+                                ? 'bg-blue-500 text-white hover:bg-blue-600'
+                                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                        }`}
+                        onClick={() => setAutoScroll(!autoScroll)}
+                        title={autoScroll ? "Disable auto-scroll" : "Enable auto-scroll"}
+                    >
+                        <ArrowDown size={14} />
+                        {autoScroll ? 'Auto-scroll On' : 'Auto-scroll Off'}
+                    </button>
+                </div>
             </div>
 
             <div
