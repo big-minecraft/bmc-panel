@@ -126,7 +126,21 @@ export class RedisManager {
         const client: Redis = await this.redisPool.acquire();
 
         try {
-            await client.hset(deploymentName, instance.uid, JSON.stringify(instance));
+            const key = `instance:${instance.uid}:${deploymentName}`;
+            const instanceData: any = {
+                uid: instance.uid,
+                name: instance.name,
+                podName: instance.podName,
+                ip: instance.ip,
+                state: instance.state,
+                deployment: instance.deployment
+            };
+
+            if (instance instanceof MinecraftInstance) {
+                instanceData.players = JSON.stringify(instance.players);
+            }
+
+            await client.hset(key, instanceData);
         } catch (error) {
             console.error('Failed to set pod status:', error);
             throw error;
