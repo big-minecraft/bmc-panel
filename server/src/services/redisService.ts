@@ -72,7 +72,7 @@ export class RedisManager {
                                 instanceData.podName,
                                 instanceData.ip,
                                 instanceData.state,
-                                deployment.name
+                                instanceData.deployment
                             );
 
                             try {
