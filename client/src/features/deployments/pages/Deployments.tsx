@@ -14,7 +14,7 @@ const DeploymentsContent = () => {
     const [deploymentToDelete, setDeploymentToDelete] = useState(null);
     const {setNodes, setIsLoadingNodes} = useDeploymentsContext();
 
-    const {deployments, isLoading, error, fetchDeployments, getDeploymentsByType, games, proxy, processes} = useDeployments();
+    const {isLoading, error, fetchDeployments, games, proxy, processes} = useDeployments();
     const {notifications, removeNotification} = useNotifications();
 
     useEffect(() => {
