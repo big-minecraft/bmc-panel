@@ -1,9 +1,11 @@
 import {useState, useEffect, useRef} from 'react';
-import {Send, Terminal, ArrowDown} from 'lucide-react';
+import {Send, Terminal, ArrowDown, Trash2} from 'lucide-react';
 
 const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
     const [logs, setLogs] = useState([]);
     const [command, setCommand] = useState('');
+    const [commandHistory, setCommandHistory] = useState([]);
+    const [historyIndex, setHistoryIndex] = useState(-1);
     const [ws, setWs] = useState(null);
     const [isConnecting, setIsConnecting] = useState(false);
     const [autoScroll, setAutoScroll] = useState(true);
@@ -12,6 +14,7 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
     const wsRef = useRef(null);
     const controllerRef = useRef(null);
     const initializedRef = useRef(false);
+    const inputRef = useRef(null);
 
     useEffect(() => {
         autoScrollRef.current = autoScroll;
@@ -162,6 +165,17 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
         }
     };
 
+    const clearLogs = () => {
+        setLogs([{
+            type: 'message',
+            content: '[System] Console cleared.'
+        }]);
+
+        if (consoleRef.current) {
+            consoleRef.current.scrollTop = 0;
+        }
+    };
+
     useEffect(() => {
         initializedRef.current = true;
 
@@ -195,8 +209,8 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
                 connectWebSocket();
             }
         }, 100);
-        //TODO: This code is bad
 
+        //TODO: This code is bad
         return () => {
             clearTimeout(connectionTimer);
 
@@ -217,7 +231,35 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
                 type: 'command',
                 command: command
             }));
+
+            if (command.trim() !== '' && (commandHistory.length === 0 || commandHistory[0] !== command))
+                setCommandHistory(prev => [command, ...prev]);
+
             setCommand('');
+            setHistoryIndex(-1);
+        }
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (commandHistory.length > 0) {
+                const newIndex = Math.min(historyIndex + 1, commandHistory.length - 1);
+                setHistoryIndex(newIndex);
+                setCommand(commandHistory[newIndex]);
+            }
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (historyIndex > 0) {
+                const newIndex = historyIndex - 1;
+                setHistoryIndex(newIndex);
+                setCommand(commandHistory[newIndex]);
+            } else if (historyIndex === 0) {
+                setHistoryIndex(-1);
+                setCommand('');
+            }
+        } else if (e.key === 'Enter') {
+            handleCommandSubmit();
         }
     };
 
@@ -248,18 +290,28 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
                     <span className="text-sm">Connected to {instance.podName}</span>
                     {isConnecting && <span className="ml-2 text-xs">(Connecting...)</span>}
                 </div>
-                <button
-                    className={`flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors ${
-                        autoScroll
-                            ? 'bg-blue-500 text-white hover:bg-blue-600'
-                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                    }`}
-                    onClick={() => setAutoScroll(!autoScroll)}
-                    title={autoScroll ? "Disable auto-scroll" : "Enable auto-scroll"}
-                >
-                    <ArrowDown size={14} />
-                    {autoScroll ? 'Auto-scroll On' : 'Auto-scroll Off'}
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        className="flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors bg-red-500 text-white hover:bg-red-600"
+                        onClick={clearLogs}
+                        title="Clear console"
+                    >
+                        <Trash2 size={14} />
+                        Clear
+                    </button>
+                    <button
+                        className={`flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors ${
+                            autoScroll
+                                ? 'bg-blue-500 text-white hover:bg-blue-600'
+                                : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                        }`}
+                        onClick={() => setAutoScroll(!autoScroll)}
+                        title={autoScroll ? "Disable auto-scroll" : "Enable auto-scroll"}
+                    >
+                        <ArrowDown size={14} />
+                        {autoScroll ? 'Auto-scroll On' : 'Auto-scroll Off'}
+                    </button>
+                </div>
             </div>
 
             <div
@@ -275,11 +327,12 @@ const Console = ({instance, onWebSocketReady, onStateUpdate}) => {
 
             <div className="relative">
                 <input
+                    ref={inputRef}
                     type="text"
                     className="w-full pl-4 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                     value={command}
                     onChange={(e) => setCommand(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleCommandSubmit()}
+                    onKeyDown={handleKeyDown}
                     placeholder="Enter command..."
                 />
                 <button

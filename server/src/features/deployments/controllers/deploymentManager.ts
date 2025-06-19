@@ -72,6 +72,17 @@ export default class DeploymentManager {
         return this.getDeployments().find(deployment => deployment.name === name);
     }
 
+    public static getDeploymentByPath(path: string) {
+        let foundDeployment: Deployment;
+
+        this.getDeployments().forEach(deployment => {
+            let deploymentPath = "/nfsshare" + deployment.dataDirectory;
+            if (path.startsWith(deploymentPath)) foundDeployment = deployment;
+        })
+
+        return foundDeployment;
+    }
+
     public static getDeployments(): Deployment[] {
         return DeploymentManager.deployments;
     }
