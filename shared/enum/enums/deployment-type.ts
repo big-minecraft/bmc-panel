@@ -13,6 +13,7 @@ export class DeploymentTypeEnum extends CustomEnum<DeploymentType> {
     public fromString(identifier: string) {
         for (let deploymentType of this.values()) if (deploymentType.identifier === identifier) return deploymentType;
         return null;
+        //Test comment
     }
 
     public fromPath(path: string) {
