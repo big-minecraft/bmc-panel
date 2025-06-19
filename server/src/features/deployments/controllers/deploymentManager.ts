@@ -16,6 +16,12 @@ export default class DeploymentManager {
     public static async init() {
         console.log("loading deployments");
         await this.loadDeployments();
+
+        if (!this.getDeploymentByName("proxy")) {
+            await DeploymentManager.createDeployment("proxy", Enum.DeploymentType.PROXY);
+            console.log("Proxy deployment missing, created default deployment");
+        }
+
         console.log("deployments loaded");
     }
 

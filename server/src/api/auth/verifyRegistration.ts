@@ -36,7 +36,7 @@ export const verifyRegistrationEndpoint: ApiEndpoint<VerifyRegistrationRequest, 
                 }
             });
         } catch (error) {
-            let message: string = 'Failed to verifyRegistration token';
+            let message: string = 'Failed to verify registration token';
 
             res.status(500).json({
                 success: false,
