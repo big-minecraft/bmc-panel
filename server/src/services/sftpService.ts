@@ -88,7 +88,7 @@ class SFTPClient {
             console.error('error listing sftp files:', error);
             throw error;
         } finally {
-            if (sftp) this.sftpPool.release(sftp);
+            if (sftp) await this.sftpPool.release(sftp);
         }
     }
 
@@ -118,7 +118,7 @@ class SFTPClient {
             console.error('Error creating SFTP file:', error);
             throw error;
         } finally {
-            if (sftp) this.sftpPool.release(sftp);
+            if (sftp) await this.sftpPool.release(sftp);
         }
     }
 
@@ -138,7 +138,7 @@ class SFTPClient {
             console.error('Error updating SFTP file:', error);
             throw error;
         } finally {
-            if (sftp) this.sftpPool.release(sftp);
+            if (sftp) await this.sftpPool.release(sftp);
         }
     }
 
@@ -153,7 +153,7 @@ class SFTPClient {
             console.error('Error deleting SFTP file:', error);
             throw error;
         } finally {
-            if (sftp) this.sftpPool.release(sftp);
+            if (sftp) await this.sftpPool.release(sftp);
         }
     }
 
@@ -168,7 +168,7 @@ class SFTPClient {
             console.error('Error creating SFTP directory:', error);
             throw error;
         } finally {
-            if (sftp) this.sftpPool.release(sftp);
+            if (sftp) await this.sftpPool.release(sftp);
         }
     }
 
@@ -183,7 +183,7 @@ class SFTPClient {
             console.error('Error deleting SFTP directory:', error);
             throw error;
         } finally {
-            if (sftp) this.sftpPool.release(sftp);
+            if (sftp) await this.sftpPool.release(sftp);
         }
     }
 
@@ -198,7 +198,7 @@ class SFTPClient {
             console.error('Error uploading SFTP buffer:', error);
             throw error;
         } finally {
-            if (sftp) this.sftpPool.release(sftp);
+            if (sftp) await this.sftpPool.release(sftp);
         }
     }
 
@@ -218,7 +218,7 @@ class SFTPClient {
             console.error('Error uploading SFTP files:', error);
             throw error;
         } finally {
-            if (sftp) this.sftpPool.release(sftp);
+            if (sftp) await this.sftpPool.release(sftp);
         }
     }
 
@@ -270,7 +270,7 @@ class SFTPClient {
             console.error('Error uploading SFTP file:', error);
             throw error;
         } finally {
-            if (sftp) this.sftpPool.release(sftp);
+            if (sftp) await this.sftpPool.release(sftp);
         }
     }
 
@@ -296,13 +296,12 @@ class SFTPClient {
         let sftp: Client;
         try {
             sftp = await this.sftpPool.acquire();
-            const fileBuffer = await sftp.get(path);
-            return fileBuffer;
+            return await sftp.get(path);
         } catch (error) {
             console.error('error downloading sftp file:', error);
             throw error;
         } finally {
-            if (sftp) this.sftpPool.release(sftp);
+            if (sftp) await this.sftpPool.release(sftp);
         }
     }
 
@@ -328,7 +327,7 @@ class SFTPClient {
             console.error('Error moving file or folder:', error);
             throw error;
         } finally {
-            if (sftp) this.sftpPool.release(sftp);
+            if (sftp) await this.sftpPool.release(sftp);
         }
     }
 
@@ -357,7 +356,7 @@ class SFTPClient {
             console.error('error getting file stats:', error);
             throw error;
         } finally {
-            if (sftp) this.sftpPool.release(sftp);
+            if (sftp) await this.sftpPool.release(sftp);
         }
     }
 

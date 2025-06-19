@@ -7,7 +7,7 @@ import path from 'path';
 import os from 'os';
 import zlib from 'zlib';
 import * as unrar from 'node-unrar-js';
-import SftpService from "./sftpService";
+import SFTPClient from "./sftpService";
 
 // Type definitions
 type FileContent = Buffer | string;
@@ -18,10 +18,9 @@ interface ExtractedEntry {
     buffer?: Buffer;
 }
 
-let sftpService = SftpService.getInstance();
-
 class Unarchiver {
     private static instance: Unarchiver;
+    sftpService = SFTPClient.getInstance();
 
     private constructor() {}
 
@@ -64,7 +63,7 @@ class Unarchiver {
                 const fullTargetPath = path.join(targetDir, file).replace(/\\/g, '/');
                 const targetDirPath = path.dirname(fullTargetPath);
 
-                await sftpService.uploadSFTPFile(content, fullTargetPath);
+                await this.sftpService.uploadSFTPFile(content, fullTargetPath);
             }
         }
     };
@@ -92,7 +91,7 @@ class Unarchiver {
                 } else {
                     const content = await fs.readFile(sourcePath);
                     await this.ensureRemoteDirectory(path.dirname(targetPath));
-                    await sftpService.uploadSFTPFile(content, targetPath);
+                    await this.sftpService.uploadSFTPFile(content, targetPath);
                 }
             }
         };
@@ -114,7 +113,7 @@ class Unarchiver {
             const fileName = path.basename(originalPath).replace(/\.gz$/, '');
             const targetPath = path.join(targetDir, fileName).replace(/\\/g, '/');
             await this.ensureRemoteDirectory(targetDir);
-            await sftpService.uploadSFTPFile(unzippedContent, targetPath);
+            await this.sftpService.uploadSFTPFile(unzippedContent, targetPath);
         }
     };
 
@@ -134,7 +133,7 @@ class Unarchiver {
             if (!file.fileHeader.flags.directory && file.extraction) {
                 const targetPath = path.join(targetDir, file.fileHeader.name).replace(/\\/g, '/');
                 await this.ensureRemoteDirectory(path.dirname(targetPath));
-                await sftpService.uploadSFTPFile(Buffer.from(file.extraction), targetPath);
+                await this.sftpService.uploadSFTPFile(Buffer.from(file.extraction), targetPath);
             }
         }
     };
@@ -164,7 +163,7 @@ class Unarchiver {
                 } else {
                     const content = await fs.readFile(sourcePath);
                     await this.ensureRemoteDirectory(path.dirname(targetPath));
-                    await sftpService.uploadSFTPFile(content, targetPath);
+                    await this.sftpService.uploadSFTPFile(content, targetPath);
                 }
             }
         };
@@ -173,10 +172,12 @@ class Unarchiver {
     };
 
     public async unarchiveFile(filePath: string): Promise<void> {
+        console.log("222222222222222222")
+
         let tempDir: string | null = null;
 
         try {
-            const fileBuffer = await sftpService.downloadSFTPFile(filePath);
+            const fileBuffer = await this.sftpService.downloadSFTPFile(filePath);
             tempDir = await this.createTempDir();
             const tempFilePath = path.join(tempDir, path.basename(filePath));
             await fs.writeFile(tempFilePath, fileBuffer as Buffer);

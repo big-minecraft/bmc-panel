@@ -13,7 +13,7 @@ import DeploymentManager from "./features/deployments/controllers/deploymentMana
 import ConfigManager from "./features/config/controllers/configManager";
 import RedisService from "./services/redisService";
 import KubernetesService from "./services/kubernetesService";
-import SftpService from "./services/sftpService";
+import SFTPClient from "./services/sftpService";
 import DatabaseService from "./services/databaseService";
 import AuthService from "./services/authService";
 import MongodbService from "./services/mongodbService";
@@ -56,7 +56,7 @@ class App {
     private async initializeServices(): Promise<void> {
         RedisService.init();
         KubernetesService.init();
-        SftpService.init();
+        SFTPClient.init();
         DatabaseService.init();
         AuthService.init();
         MongodbService.init();
