@@ -4,6 +4,7 @@ import {existsSync} from "fs";
 
 let configManager: ConfigManager;
 
+const CONFIG_PATH = join(__dirname, '../../../../config.json');
 const EXAMPLE_CONFIG_PATH = join(__dirname, '../../../../config.example.json');
 
 
@@ -12,12 +13,20 @@ class ConfigManager {
 
     constructor() {
         console.log('Loading configuration...');
-        if (!existsSync(EXAMPLE_CONFIG_PATH)) {
-            console.error('config.example.json not found. Cannot proceed with configuration setup.');
+        
+        let configPath = CONFIG_PATH;
+        if (existsSync(CONFIG_PATH)) {
+            console.log('Loading local development configuration');
+            configPath = CONFIG_PATH;
+        } else if (existsSync(EXAMPLE_CONFIG_PATH)) {
+            console.log('Loading production configuration');
+            configPath = EXAMPLE_CONFIG_PATH;
+        } else {
+            console.error('No configuration file found. Cannot proceed with configuration setup.');
             process.exit(1);
         }
 
-        this.config = require(EXAMPLE_CONFIG_PATH) as AppConfig;
+        this.config = require(configPath) as AppConfig;
 
         this.addEnvVariables();
     }
