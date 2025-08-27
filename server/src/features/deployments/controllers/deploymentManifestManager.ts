@@ -1,5 +1,5 @@
 import path from 'path';
-import {promises as fs, readdirSync, unlinkSync} from 'fs';
+import {promises as fs, readdirSync, unlinkSync, existsSync, mkdirSync} from 'fs';
 import yaml from 'js-yaml';
 import Util from "../../../misc/util";
 import {DeploymentValues, Manifest} from "../models/types";
@@ -62,6 +62,7 @@ export default class DeploymentManifestManager {
 
         for (const deploymentType of Enum.DeploymentType.values()) {
             const dirPath = path.join(baseDir, deploymentType.identifier);
+            if (!existsSync(dirPath)) mkdirSync(dirPath);
 
             try {
                 const files = readdirSync(dirPath);
