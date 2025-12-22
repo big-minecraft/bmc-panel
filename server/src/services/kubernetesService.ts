@@ -1,5 +1,6 @@
 import * as K8s from '@kubernetes/client-node';
 import ConfigManager from "../features/config/controllers/configManager";
+import {ScalableKind} from "../../../shared/enum/enums/deployment-type";
 
 interface KubernetesClientStatus {
     initialized: boolean;
@@ -118,42 +119,46 @@ class KubernetesClient {
         }
     }
 
-    public async scaleDeployment(deploymentName: string, replicas: number): Promise<K8s.V1Deployment> {
+    public async scaleWorkload(
+        kind: ScalableKind,
+        name: string,
+        replicas: number,
+        namespace = 'default'
+    ): Promise<number> {
         this.ensureInitialized();
-        let namespace = 'default';
 
         if (!this.appsV1Api) {
             throw new Error('AppsV1Api is not initialized');
         }
 
-        try {
-            console.log(`Scaling deployment ${deploymentName} to ${replicas} replicas`);
+        let scale;
 
-            const res = await this.appsV1Api.readNamespacedDeployment(deploymentName, namespace);
-            const deployment = res.body;
+        if (kind === 'Deployment') {
+            const res = await this.appsV1Api.readNamespacedDeploymentScale(name, namespace);
+            scale = res.body;
+        } else {
+            const res = await this.appsV1Api.readNamespacedStatefulSetScale(name, namespace);
+            scale = res.body;
+        }
 
-            if (!deployment.spec) {
-                throw new Error('Deployment spec is undefined');
-            }
+        if (!scale.spec) throw new Error('Scale spec is undefined');
 
-            deployment.spec.replicas = replicas;
+        scale.spec.replicas = replicas;
 
-            const response = await this.appsV1Api.replaceNamespacedDeployment(
-                deploymentName,
+        if (kind === 'Deployment') {
+            const res = await this.appsV1Api.replaceNamespacedDeploymentScale(
+                name,
                 namespace,
-                deployment
-            );
-
-            if (!response.body) {
-                throw new Error('Response body is undefined');
-            }
-
-            console.log(`Deployment ${deploymentName} scaled successfully`);
-            return response.body;
-        } catch (error) {
-            const err = error instanceof Error ? error : new Error('Unknown error occurred');
-            console.error('Error scaling deployment:', err);
-            throw new Error(`Failed to scale deployment: ${err.message}`);
+                scale
+            )
+            return res.body.spec!.replicas!;
+        } else {
+            const res = await this.appsV1Api.replaceNamespacedStatefulSetScale(
+                name,
+                namespace,
+                scale
+            )
+            return res.body.spec!.replicas!;
         }
     }
 

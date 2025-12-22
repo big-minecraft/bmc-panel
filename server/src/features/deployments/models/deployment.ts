@@ -33,9 +33,9 @@ export default class Deployment {
 
             if (enabled) {
                 const minimumInstances = this.manifest?.content?.scaling?.minInstances || 1;
-                await KubernetesService.getInstance().scaleDeployment(this.name, minimumInstances);
+                await KubernetesService.getInstance().scaleWorkload(this.type.k8sResourceName, this.name, minimumInstances);
             } else {
-                await KubernetesService.getInstance().scaleDeployment(this.name, 0);
+                await KubernetesService.getInstance().scaleWorkload(this.type.k8sResourceName, this.name, 0);
             }
             this.isEnabled = enabled;
         } catch (error) {
