@@ -1,7 +1,6 @@
 import {WebSocket} from 'ws';
 import axios from 'axios';
 import * as fs from 'fs';
-import * as path from 'path';
 import * as https from 'https';
 import DeploymentManager from "../features/deployments/controllers/deploymentManager";
 import {Enum} from "../../../shared/enum/enum";
@@ -53,8 +52,8 @@ export async function setupPodLogs(ws: WebSocket, deployment: string, podName: s
     try {
         if (KubernetesService.getInstance().isRunningInCluster()) {
             console.log('running in cluster environment');
-            const tokenPath = path.join('/host-root', user.authProvider?.config.tokenFile ?? '');
-            const caPath = path.join('/host-root', cluster.caFile ?? '');
+            const tokenPath = '/var/run/secrets/kubernetes.io/serviceaccount/token';
+            const caPath = '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt';
 
             const token = fs.readFileSync(tokenPath, 'utf8');
             const ca = fs.readFileSync(caPath);
@@ -129,8 +128,40 @@ export async function setupPodLogs(ws: WebSocket, deployment: string, podName: s
 
     } catch (err) {
         console.error(`failed to initiate log stream for pod ${podName}:`, err);
+
+        // Try to get the actual error message from Kubernetes
+        let errorMessage = (err as Error).message;
+        if (axios.isAxiosError(err) && err.response) {
+            try {
+                // If response is a stream, read it
+                if (err.response.data && typeof err.response.data.read === 'function') {
+                    const chunks: Buffer[] = [];
+                    for await (const chunk of err.response.data) {
+                        chunks.push(chunk);
+                    }
+                    const responseBody = Buffer.concat(chunks).toString();
+                    console.error(`Kubernetes API error response: ${responseBody}`);
+
+                    // Try to parse as JSON
+                    try {
+                        const errorData = JSON.parse(responseBody);
+                        if (errorData.message) {
+                            errorMessage = errorData.message;
+                        }
+                    } catch {
+                        errorMessage = responseBody;
+                    }
+                } else if (typeof err.response.data === 'string') {
+                    console.error(`Kubernetes API error response: ${err.response.data}`);
+                    errorMessage = err.response.data;
+                }
+            } catch (parseErr) {
+                console.error('Failed to parse error response:', parseErr);
+            }
+        }
+
         if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({type: "error", content: `Failed to initiate log stream: ${(err as Error).message}`}));
+            ws.send(JSON.stringify({type: "error", content: `Failed to initiate log stream: ${errorMessage}`}));
             ws.close();
         }
     }

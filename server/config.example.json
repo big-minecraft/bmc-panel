@@ -2,7 +2,7 @@
   "environment": "production",
   "panel-host": "0.0.0.0",
   "k8s-dashboard-host": "0.0.0.0",
-  "storage-path": "/host-root/var/lib/baremetal/big-minecraft",
+  "storage-path": "/data",
   "redis": {
     "host": "redis-service",
     "port": 6379

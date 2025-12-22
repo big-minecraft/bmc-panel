@@ -86,8 +86,6 @@ class KubernetesClient {
         const typedConfig = ConfigManager.getConfig() as KubernetesConfig;
         const pathsToTry: string[] = [
             typedConfig.k8s.configPath,
-            '/host-root/etc/rancher/k3s/k3s.yaml',
-            '/host-root/etc/kubernetes/admin.conf',
             `${process.env.HOME || ''}/.kube/config`,
         ];
 

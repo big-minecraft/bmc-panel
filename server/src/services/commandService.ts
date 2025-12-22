@@ -1,7 +1,6 @@
 import WebSocket from 'ws';
 import {Agent} from 'https';
 import * as fs from 'fs';
-import * as path from 'path';
 import KubernetesService from "./kubernetesService";
 
 interface Cluster {
@@ -112,8 +111,8 @@ async function createWebSocketConnection(wsUrl: string, cluster: Cluster, user: 
     };
 
     if (KubernetesService.getInstance().isRunningInCluster()) {
-        const tokenPath = path.join('/host-root', user.authProvider?.config.tokenFile || '');
-        const caPath = path.join('/host-root', cluster.caFile || '');
+        const tokenPath = '/var/run/secrets/kubernetes.io/serviceaccount/token';
+        const caPath = '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt';
 
         const token = fs.readFileSync(tokenPath, 'utf8');
         const ca = fs.readFileSync(caPath);
