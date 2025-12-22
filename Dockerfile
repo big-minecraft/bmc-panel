@@ -20,7 +20,7 @@ ENV HELM_VERSION="v3.16.2" \
     HELM_DIFF_VERSION="v3.9.11" \
     KUBECTL_VERSION="v1.29.2"
 
-RUN apk add --no-cache curl tar
+RUN apk add --no-cache curl tar jq
 WORKDIR /tools
 
 # Install kubectl
@@ -58,6 +58,7 @@ COPY --from=build /app/server/node_modules ./server/node_modules
 COPY --from=tools /tools/kubectl /usr/local/bin/
 COPY --from=tools /tools/helm /usr/local/bin/
 COPY --from=tools /tools/helmfile /usr/local/bin/
+COPY --from=tools /usr/bin/jq /usr/local/bin/
 COPY --from=tools /tools/helm-plugins/diff /root/.local/share/helm/plugins/diff
 
 ENV NODE_ENV=production
