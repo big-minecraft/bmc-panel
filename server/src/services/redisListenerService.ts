@@ -3,7 +3,6 @@ import {updatePod} from "./powerActionService";
 import {RedisManager} from "./redisService";
 import {Enum} from "../../../shared/enum/enum";
 import { app} from "../app";
-import {ClientFileSync} from "../../../shared/types/socket/client-file-sync";
 
 interface ServerShutdownEvent {
     server: string;
@@ -27,7 +26,6 @@ export class RedisListenerService {
         try {
             this.subscriber = await this.redisService.redisPool.acquire();
             this.setupPowerActionListener();
-            this.setupFileSyncListener();
         } catch (error) {
             if (this.subscriber) {
                 await this.redisService.redisPool.release(this.subscriber);
@@ -60,36 +58,11 @@ export class RedisListenerService {
         });
     }
 
-    private async setupFileSyncListener() {
-        await this.subscriber.subscribe('sync-status', (err, count) => {
-            if (err) {
-                console.error('Failed to subscribe:', err);
-                return;
-            }
-        });
-
-        this.subscriber.on('message', (channel: string, message: string) => {
-            if (channel === 'sync-status') {
-                try {
-                    console.log('Sync status:', message);
-                    const event: ClientFileSync = JSON.parse(message);
-                    this.handleFileSyncEvent(event);
-                } catch (error) {
-                    console.error('Error parsing file sync message:', error);
-                }
-            }
-        });
-    }
-
     private async handleServerShutdownEvent(event: ServerShutdownEvent) {
         console.log(`Server ${event.server} shutdown at ${event.timestamp}`);
 
         await this.redisService.setPodState(event.deployment, event.server, Enum.InstanceState.STOPPED);
         await updatePod(event.deployment, event.server, Enum.InstanceState.STOPPED);
-    }
-
-    private handleFileSyncEvent(event: ClientFileSync) {
-        app.socketManager.sendAll<ClientFileSync>(Enum.SocketMessageType.CLIENT_FILE_SYNC, event);
     }
 
     public async shutdown() {

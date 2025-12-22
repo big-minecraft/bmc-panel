@@ -10,9 +10,6 @@ export const DeploymentsProvider = ({children}) => {
     const [restartingDeployments, setRestartingDeployments] = useState(new Set());
     const [restartingProxy, setRestartingProxy] = useState(false);
     const [notifications, setNotifications] = useState([]);
-    const [nodes, setNodes] = useState([]);
-    const [selectedNode, setSelectedNode] = useState('');
-    const [isLoadingNodes, setIsLoadingNodes] = useState(false);
     const [deploymentToDelete, setDeploymentToDelete] = useState(null);
 
     const getDeploymentsByType = useCallback((type: DeploymentType) => {
@@ -50,12 +47,6 @@ export const DeploymentsProvider = ({children}) => {
         setRestartingProxy,
         notifications,
         setNotifications,
-        nodes,
-        setNodes,
-        selectedNode,
-        setSelectedNode,
-        isLoadingNodes,
-        setIsLoadingNodes,
         deploymentToDelete,
         setDeploymentToDelete
     };

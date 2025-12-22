@@ -2,7 +2,7 @@
   "environment": "production",
   "panel-host": "0.0.0.0",
   "k8s-dashboard-host": "0.0.0.0",
-  "bmc-path": "/host-root/var/lib/baremetal/big-minecraft",
+  "storage-path": "/host-root/var/lib/baremetal/big-minecraft",
   "redis": {
     "host": "redis-service",
     "port": 6379
@@ -24,16 +24,18 @@
     "password": "admin",
     "database": "admin"
   },
-  "sftp": {
-    "host": "sftp-service",
-    "port": 22,
-    "username": "user",
-    "password": "password"
-  },
   "prometheus": {
     "host": "prometheus-service",
     "port": 9090
   },
+  "fileEditSession": {
+    "timeoutMinutes": 15,
+    "maxSessionsPerDeployment": 10,
+    "maxSessionsPerUser": 5,
+    "podImage": "alpine:latest",
+    "podNamespace": "default"
+  },
   "panel-secret": "secret",
-  "invite-code-expiry-days": 7
+  "invite-code-expiry-days": 7,
+  "token-secret": "secret"
 }

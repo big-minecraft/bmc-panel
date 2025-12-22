@@ -13,15 +13,15 @@ import DeploymentManager from "./features/deployments/controllers/deploymentMana
 import ConfigManager from "./features/config/controllers/configManager";
 import RedisService from "./services/redisService";
 import KubernetesService from "./services/kubernetesService";
-import SFTPClient from "./services/sftpService";
 import DatabaseService from "./services/databaseService";
 import AuthService from "./services/authService";
 import MongodbService from "./services/mongodbService";
 import PrometheusService from "./services/prometheusService";
 import InviteCodeService from "./services/inviteCodeService";
 import K8sDashboardService from "./services/k8sDashboardService";
-import UnzipService from "./services/unzipService";
 import MariadbService from "./services/mariadbService";
+import FileSessionService from "./services/fileSessionService";
+import PVCFileOperationsService from "./services/pvcFileOperationsService";
 import SocketManager from "./features/socket/controllers/socket-manager";
 
 class App {
@@ -56,17 +56,21 @@ class App {
     private async initializeServices(): Promise<void> {
         RedisService.init();
         KubernetesService.init();
-        SFTPClient.init();
         DatabaseService.init();
         AuthService.init();
         MongodbService.init();
         PrometheusService.init();
         InviteCodeService.init();
         K8sDashboardService.init();
-        UnzipService.init();
         MariadbService.init();
+        FileSessionService.init();
+        PVCFileOperationsService.init();
+
+        // Start file session timeout checker
+        FileSessionService.getInstance().startTimeoutChecker();
 
         this.socketManager = new SocketManager(this.server);
+        PVCFileOperationsService.getInstance().setSocketManager(this.socketManager);
         setupWebSocket(this.server);
     }
 

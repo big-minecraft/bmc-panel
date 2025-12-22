@@ -3,7 +3,6 @@ import {motion} from 'framer-motion';
 import {X, Server, AlertCircle} from 'lucide-react';
 import {useDeployments} from '../../hooks/useDeployments';
 import {useNotifications} from '../../hooks/useNotifications';
-import {useDeploymentsContext} from '../../context/DeploymentsContext';
 
 const CreateDeploymentModal = ({show, onClose}) => {
     const [deploymentName, setDeploymentName] = useState('');
@@ -12,7 +11,6 @@ const CreateDeploymentModal = ({show, onClose}) => {
 
     const {createDeployment} = useDeployments();
     const {addNotification} = useNotifications();
-    const {nodes, isLoadingNodes, selectedNode, setSelectedNode} = useDeploymentsContext();
 
     const handleCreate = async () => {
         if (!deploymentName.trim()) {
@@ -20,15 +18,9 @@ const CreateDeploymentModal = ({show, onClose}) => {
             return;
         }
 
-        if (deploymentType === 'persistent' && !selectedNode) {
-            setError('Please select a node for the persistent deployment');
-            return;
-        }
-
         const success = await createDeployment({
             name: deploymentName,
-            type: deploymentType,
-            node: (deploymentType === 'persistent' ? selectedNode : undefined)
+            type: deploymentType
         });
 
         if (success) {
@@ -42,7 +34,6 @@ const CreateDeploymentModal = ({show, onClose}) => {
     const handleClose = () => {
         setDeploymentName('');
         setDeploymentType('');
-        setSelectedNode('');
         setError(null);
         onClose();
     };
@@ -142,28 +133,6 @@ const CreateDeploymentModal = ({show, onClose}) => {
                             </button>
                         </div>
                     </div>
-
-                    {deploymentType === 'persistent' && (
-                        <div className="space-y-2">
-                            <label className="block text-sm font-medium text-gray-700">
-                                Select Node
-                            </label>
-                            <select
-                                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2
-                         focus:ring-blue-500 focus:border-blue-500 outline-none"
-                                value={selectedNode}
-                                onChange={(e) => setSelectedNode(e.target.value)}
-                                disabled={isLoadingNodes}
-                            >
-                                <option value="">Choose a node</option>
-                                {nodes.map((nodeName) => (
-                                    <option key={nodeName} value={nodeName}>
-                                        {nodeName}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
                 </div>
 
                 {/* Footer */}

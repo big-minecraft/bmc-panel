@@ -5,7 +5,9 @@ import Admin from '../features/admin/pages/Admin';
 import ServerInstance from '../features/overview/pages/ServerInstance';
 import NotFound from '../common/pages/NotFound';
 import PrivateRoute from './PrivateRoute';
-import SftpInterface from '../features/sftp/pages/SFTPInterface';
+import FilesPage from '../features/files/pages/FilesPage';
+import FilesInterface from '../features/files/pages/FilesInterface';
+import SessionPage from '../features/files/pages/SessionPage';
 import EditDeployments from "../features/deployments/pages/EditDeployments";
 import Databases from "../features/databases/pages/Databases";
 import Login from "../features/auth/pages/Login";
@@ -19,7 +21,9 @@ const AppRoutes = () => (
                element={<PrivateRoute><NetworkOverview/></PrivateRoute>}/>
         <Route path="/deployments" element={<PrivateRoute><Deployments/></PrivateRoute>}/>
         <Route path="/admin" element={<PrivateRoute><Admin/></PrivateRoute>}/>
-        <Route path="/files/*" element={<PrivateRoute><SftpInterface/></PrivateRoute>}/>
+        <Route path="/files" element={<PrivateRoute><FilesPage/></PrivateRoute>}/>
+        <Route path="/files/session/:deploymentName" element={<PrivateRoute><SessionPage/></PrivateRoute>}/>
+        <Route path="/files/:deploymentName/*" element={<PrivateRoute><FilesInterface/></PrivateRoute>}/>
         <Route path="/databases" element={<PrivateRoute><Databases/></PrivateRoute>}/>
         <Route path="/deployments/:name/edit" element={<PrivateRoute><EditDeployments/></PrivateRoute>}/>
         <Route path="/instance/:deploymentName/:instanceUid"

@@ -5,8 +5,7 @@ import {Enum} from "../../../../shared/enum/enum";
 
 const createDeploymentSchema = z.object({
     name: z.string().min(1),
-    type: z.enum(Enum.DeploymentType.values().map(type => type.identifier) as [string, ...string[]]),
-    node: z.string().min(1).optional(),
+    type: z.enum(Enum.DeploymentType.values().map(type => type.identifier) as [string, ...string[]])
 }).strict();
 
 export type CreateDeploymentRequest = z.infer<typeof createDeploymentSchema>;
@@ -22,7 +21,7 @@ export const createDeploymentEndpoint: ApiEndpoint<CreateDeploymentRequest, Crea
     handler: async (req, res) => {
         try {
             const data: CreateDeploymentRequest = createDeploymentSchema.parse(req.body);
-            await DeploymentManager.createDeployment(data.name, Enum.DeploymentType.fromString(data.type), data.node);
+            await DeploymentManager.createDeployment(data.name, Enum.DeploymentType.fromString(data.type));
             res.json({
                 success: true,
                 data: {

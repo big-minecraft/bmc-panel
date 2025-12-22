@@ -4,7 +4,7 @@ export class BackupService {
     private static instance: BackupService;
 
     public getBackupFolder() :string {
-        return ConfigManager.getString("bmc-path") + "/backups";
+        return ConfigManager.getString("storage-path") + "/backups";
     }
 
     public static getInstance(): BackupService {

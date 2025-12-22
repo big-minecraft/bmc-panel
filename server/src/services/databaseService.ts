@@ -17,6 +17,10 @@ class DatabaseService {
             connectionLimit: 5
         });
 
+        console.log("------------")
+        console.log(config.mariadb)
+        console.log("------------")
+
         this.databaseInit();
     }
 

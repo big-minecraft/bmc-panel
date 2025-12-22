@@ -23,16 +23,17 @@ interface MongoDBConfig {
     database: string;
 }
 
-interface SFTPConfig {
-    host: string;
-    port: number;
-    username: string;
-    password: string;
-}
-
 interface PrometheusConfig {
     host: string;
     port: number;
+}
+
+interface FileEditSessionConfig {
+    timeoutMinutes: number;
+    maxSessionsPerDeployment: number;
+    maxSessionsPerUser: number;
+    podImage: string;
+    podNamespace: string;
 }
 
 export default interface AppConfig extends Record<string, unknown> {
@@ -40,13 +41,13 @@ export default interface AppConfig extends Record<string, unknown> {
     'panel-host': string;
     'panel-secret': string;
     'k8s-dashboard-host': string;
-    'bmc-path': string;
+    'storage-path': string;
     'token-secret': string;
     'invite-code-expiry-days': number;
     redis: RedisConfig;
     k8s: KubernetesConfig;
     mariadb: MariaDBConfig;
     mongodb: MongoDBConfig;
-    sftp: SFTPConfig;
     prometheus: PrometheusConfig;
+    fileEditSession?: FileEditSessionConfig;
 }

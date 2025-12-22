@@ -31,27 +31,35 @@ import {resetPasswordEndpoint} from "../../../api/users/resetPassword";
 import {deleteUserEndpoint} from "../../../api/users/deleteUser";
 import {getCpuMetricsEndpoint} from "../../../api/metrics/getCpuMetrics";
 import {getMemoryMetricsEndpoint} from "../../../api/metrics/getMemoryMetrics";
-import {archiveFileEndpoint} from "../../../api/sftp/archiveFile";
-import {archiveMultipleEndpoint} from "../../../api/sftp/archiveMultiple";
-import {createDirectoryEndpoint} from "../../../api/sftp/createDirectory";
-import {createFileEndpoint} from "../../../api/sftp/createFile";
-import {deleteDirectoryEndpoint} from "../../../api/sftp/deleteDirectory";
-import {downloadFileEndpoint} from "../../../api/sftp/downloadFile";
-import {deleteFileEndpoint} from "../../../api/sftp/deleteFile";
-import {downloadMultipleEndpoint} from "../../../api/sftp/downloadMultiple";
-import {getFileContentEndpoint} from "../../../api/sftp/getFileContent";
-import {getFilesEndpoint} from "../../../api/sftp/getFiles";
-import {unarchiveFileEndpoint} from "../../../api/sftp/unarchiveFile";
-import {updateFileContentEndpoint} from "../../../api/sftp/updateFileContent";
-import {uploadMultipleEndpoint} from "../../../api/sftp/uploadFiles";
-import {moveFileEndpoint} from "../../../api/sftp/moveFile";
 import {getDeploymentsEndpoint} from "../../../api/deployments/getDeployments";
 import {ApiEndpoint, AuthType} from "../../../api/types";
 import {handleAdminAuth, handleBasicAuth} from "../../../middleware/auth";
 import {getK8sDashboardHostEndpoint} from "../../../api/admin/getK8sDashboardHost";
-import {getNodesEndpoint} from "../../../api/network/getNodes";
 import {getDeploymentInstancesEndpoint} from "../../../api/deployments/getDeploymentInstances";
 import {getManagerTimestampEndpoint} from "../../../api/network/getManagerTimestamp";
+
+// File Sessions
+import {createSessionEndpoint} from "../../../api/files/session/createSession";
+import {endSessionEndpoint} from "../../../api/files/session/endSession";
+import {getSessionStatusEndpoint} from "../../../api/files/session/getSessionStatus";
+import {listSessionsEndpoint} from "../../../api/files/session/listSessions";
+import {refreshSessionEndpoint} from "../../../api/files/session/refreshSession";
+
+// File Operations
+import {listFilesEndpoint as listFilesNewEndpoint} from "../../../api/files/listFiles";
+import {getFileContentEndpoint as getFileContentNewEndpoint} from "../../../api/files/getFileContent";
+import {createFileEndpoint as createFileNewEndpoint} from "../../../api/files/createFile";
+import {updateFileEndpoint} from "../../../api/files/updateFile";
+import {deleteFileEndpoint as deleteFileNewEndpoint} from "../../../api/files/deleteFile";
+import {createDirectoryEndpoint as createDirectoryNewEndpoint} from "../../../api/files/createDirectory";
+import {deleteDirectoryEndpoint as deleteDirectoryNewEndpoint} from "../../../api/files/deleteDirectory";
+import {moveFileEndpoint as moveFileNewEndpoint} from "../../../api/files/moveFile";
+import {uploadFilesEndpoint} from "../../../api/files/uploadFiles";
+import {downloadFileEndpoint as downloadFileNewEndpoint} from "../../../api/files/downloadFile";
+import {downloadMultipleEndpoint as downloadMultipleNewEndpoint} from "../../../api/files/downloadMultiple";
+import {archiveFileEndpoint as archiveFileNewEndpoint} from "../../../api/files/archiveFile";
+import {archiveMultipleEndpoint} from "../../../api/files/archiveMultiple";
+import {unarchiveFileEndpoint as unarchiveFileNewEndpoint} from "../../../api/files/unarchiveFile";
 
 
 export default class ApiManager {
@@ -103,7 +111,6 @@ export default class ApiManager {
         this.addEndpoint(getDeploymentInstancesEndpoint);
 
         //Network
-        this.addEndpoint(getNodesEndpoint);
         this.addEndpoint(getManagerTimestampEndpoint);
 
         //Invite Codes
@@ -121,21 +128,28 @@ export default class ApiManager {
         this.addEndpoint(getCpuMetricsEndpoint);
         this.addEndpoint(getMemoryMetricsEndpoint);
 
-        //SFTP
-        this.addEndpoint(archiveFileEndpoint);
+        //File Sessions
+        this.addEndpoint(createSessionEndpoint);
+        this.addEndpoint(endSessionEndpoint);
+        this.addEndpoint(getSessionStatusEndpoint);
+        this.addEndpoint(listSessionsEndpoint);
+        this.addEndpoint(refreshSessionEndpoint);
+
+        //File Operations (PVC)
+        this.addEndpoint(listFilesNewEndpoint);
+        this.addEndpoint(getFileContentNewEndpoint);
+        this.addEndpoint(createFileNewEndpoint);
+        this.addEndpoint(updateFileEndpoint);
+        this.addEndpoint(deleteFileNewEndpoint);
+        this.addEndpoint(createDirectoryNewEndpoint);
+        this.addEndpoint(deleteDirectoryNewEndpoint);
+        this.addEndpoint(moveFileNewEndpoint);
+        this.addEndpoint(uploadFilesEndpoint);
+        this.addEndpoint(downloadFileNewEndpoint);
+        this.addEndpoint(downloadMultipleNewEndpoint);
+        this.addEndpoint(archiveFileNewEndpoint);
         this.addEndpoint(archiveMultipleEndpoint);
-        this.addEndpoint(createDirectoryEndpoint);
-        this.addEndpoint(createFileEndpoint);
-        this.addEndpoint(deleteDirectoryEndpoint);
-        this.addEndpoint(deleteFileEndpoint);
-        this.addEndpoint(downloadFileEndpoint);
-        this.addEndpoint(downloadMultipleEndpoint);
-        this.addEndpoint(getFileContentEndpoint);
-        this.addEndpoint(getFilesEndpoint);
-        this.addEndpoint(moveFileEndpoint);
-        this.addEndpoint(unarchiveFileEndpoint);
-        this.addEndpoint(updateFileContentEndpoint);
-        this.addEndpoint(uploadMultipleEndpoint);
+        this.addEndpoint(unarchiveFileNewEndpoint);
     }
 
     private setupMiddleware() {

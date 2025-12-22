@@ -69,7 +69,7 @@ const DeploymentCard = ({deployment}) => {
                                 whileHover={{scale: 1.1}}
                                 whileTap={{scale: 0.95}}
                                 className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
-                                onClick={() => navigate(`/files${deployment.dataDirectory}`)}
+                                onClick={() => navigate(`/files/session/${deployment.name}`)}
                             >
                                 <Folder size={18} />
                             </motion.button>

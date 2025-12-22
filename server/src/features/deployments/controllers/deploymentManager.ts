@@ -8,7 +8,6 @@ import Redis from "ioredis";
 import ConfigManager from "../../config/controllers/configManager";
 import RedisService from "../../../services/redisService";
 import KubernetesService from "../../../services/kubernetesService";
-import SftpService from "../../../services/sftpService";
 
 export default class DeploymentManager {
     private static deployments: Deployment[] = [];
@@ -33,20 +32,11 @@ export default class DeploymentManager {
 
     public static async createDeployment(
         name: string,
-        type: DeploymentType,
-        node?: string
+        type: DeploymentType
     ): Promise<Deployment> {
-        if (type == Enum.DeploymentType.PERSISTENT && !node) throw new Error('dedicated node required for persistent deployment');
-
-        const manifestPath = await DeploymentManifestManager.createDeploymentManifest(name, type, node);
+        const manifestPath = await DeploymentManifestManager.createDeploymentManifest(name, type);
         const manifest = await DeploymentManifestManager.getManifest(manifestPath);
         const deployment = new Deployment(manifest);
-        try {
-            await SftpService.getInstance().createSFTPDirectory(`nfsshare${deployment.dataDirectory}`);
-        } catch (error) {
-            console.error(error)
-            throw new Error('failed to create deployment')
-        }
 
         await DeploymentManager.runApplyScript();
         await DeploymentManager.sendRedisUpdates("create");
@@ -63,12 +53,7 @@ export default class DeploymentManager {
             console.error(error);
             throw new Error('failed to delete deployment manifest');
         }
-        try {
-            await SftpService.getInstance().deleteSFTPDirectory(`nfsshare${deployment.dataDirectory}`);
-        } catch (error) {
-            console.error(error);
-            throw new Error('failed to delete sftp directory');
-        }
+
         DeploymentManager.deployments = DeploymentManager.deployments.filter(testDeployment => testDeployment !== deployment);
         await DeploymentManager.runApplyScript();
         await DeploymentManager.sendRedisUpdates(name);
@@ -82,7 +67,7 @@ export default class DeploymentManager {
         let foundDeployment: Deployment;
 
         this.getDeployments().forEach(deployment => {
-            let deploymentPath = "/nfsshare" + deployment.dataDirectory;
+            let deploymentPath = "/minecraft" + deployment.dataDirectory;
             if (path.startsWith(deploymentPath)) foundDeployment = deployment;
         })
 
@@ -90,12 +75,16 @@ export default class DeploymentManager {
     }
 
     public static getDeployments(): Deployment[] {
+        DeploymentManager.deployments.forEach((deployment: Deployment) => {
+            console.log(`Deployment Manager: ${deployment.name}`);
+        })
+
         return DeploymentManager.deployments;
     }
 
     public static async runApplyScript(): Promise<void> {
-        const scriptDir = path.join(ConfigManager.getString("bmc-path"), "scripts");
-        await Util.safelyExecuteShellCommand(`cd "${scriptDir}" && ls && ./apply-deployments.sh`);
+        const scriptDir = path.join(ConfigManager.getString("storage-path"), "scripts");
+        await Util.safelyExecuteShellCommand(`cd "${scriptDir}" && ./apply-deployments.sh`);
     }
 
     public static async sendRedisUpdates(deploymentName: string): Promise<void> {

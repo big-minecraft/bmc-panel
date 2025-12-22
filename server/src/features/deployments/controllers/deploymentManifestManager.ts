@@ -12,14 +12,13 @@ export default class DeploymentManifestManager {
 
     public static async createDeploymentManifest(
         name: string,
-        type: DeploymentType,
-        node?: string
+        type: DeploymentType
     ): Promise<string> {
-        let baseDir: string = path.join(ConfigManager.getString("bmc-path"), "local/deployments");
+        let baseDir: string = path.join(ConfigManager.getString("storage-path"), "manifests");
 
         const workingDir = path.join(baseDir, type.identifier);
         const filePath = path.join(workingDir, `${name}.yaml`);
-        const defaultsDir = `${ConfigManager.getString("bmc-path")}/defaults`;
+        const defaultsDir = path.join(ConfigManager.getString("storage-path"), "default-values");
         const defaultFile = path.join(defaultsDir, `${type.identifier}.yaml`);
 
         if (await Util.fileExists(filePath)) throw new Error('Deployment already exists');
@@ -34,9 +33,6 @@ export default class DeploymentManifestManager {
             } else if (line.trim().startsWith('dataDirectory:')) {
                 const indent = line.match(/^\s*/)[0];
                 return `${indent}dataDirectory: "${name}"`;
-            } else if (type == Enum.DeploymentType.PERSISTENT && line.trim().startsWith('dedicatedNode:')) {
-                const indent = line.match(/^\s*/)[0];
-                return `${indent}dedicatedNode: "${node}"`;
             }
             return line;
         });
@@ -56,7 +52,7 @@ export default class DeploymentManifestManager {
     }
 
     public static async getAllManifests(): Promise<Manifest[]> {
-        let baseDir: string = path.join(ConfigManager.getString("bmc-path"), "local/deployments");
+        let baseDir: string = path.join(ConfigManager.getString("storage-path"), "manifests");
 
         const manifests: Manifest[] = [];
 

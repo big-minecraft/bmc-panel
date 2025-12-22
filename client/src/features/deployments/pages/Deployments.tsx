@@ -3,16 +3,14 @@ import {motion} from 'framer-motion';
 import {Plus} from 'lucide-react';
 import {useDeployments} from '../hooks/useDeployments';
 import {useNotifications} from '../hooks/useNotifications';
-import {DeploymentsProvider, useDeploymentsContext} from '../context/DeploymentsContext';
+import {DeploymentsProvider} from '../context/DeploymentsContext';
 import DeploymentCard from '../components/cards/DeploymentCard';
 import CreateDeploymentModal from '../components/modals/CreateDeploymentModal';
 import DeleteDeploymentModal from '../components/modals/DeleteDeploymentModal';
-import axiosInstance from '../../../utils/auth';
 
 const DeploymentsContent = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [deploymentToDelete, setDeploymentToDelete] = useState(null);
-    const {setNodes, setIsLoadingNodes} = useDeploymentsContext();
 
     const {isLoading, error, fetchDeployments, games, proxy, processes} = useDeployments();
     const {notifications, removeNotification} = useNotifications();
@@ -21,17 +19,8 @@ const DeploymentsContent = () => {
         Promise.all([fetchDeployments()]);
     }, []);
 
-    const handleOpenCreateModal = async () => {
-        setIsLoadingNodes(true);
-        try {
-            const response = await axiosInstance.get('/api/network/nodes');
-            setNodes(response.data.data.nodes);
-            setShowCreateModal(true);
-        } catch (err) {
-            console.error('error fetching nodes:', err);
-        } finally {
-            setIsLoadingNodes(false);
-        }
+    const handleOpenCreateModal = () => {
+        setShowCreateModal(true);
     };
 
     if (isLoading) {
