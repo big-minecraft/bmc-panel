@@ -46,6 +46,9 @@ FROM node:18-slim
 
 WORKDIR /app
 
+# Install git
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+
 # Copy application files from build stage
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/node_modules ./node_modules
