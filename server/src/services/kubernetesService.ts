@@ -167,30 +167,6 @@ class KubernetesClient {
         };
     }
 
-    public async listNodeNames(): Promise<string[]> {
-        this.ensureInitialized();
-
-        if (!this.coreV1Api) {
-            throw new Error('CoreV1Api is not initialized');
-        }
-
-        try {
-            const res = await this.coreV1Api.listNode();
-            const nodes = res.body.items;
-
-            return nodes.map(node => {
-                if (!node.metadata?.name) {
-                    throw new Error('Node metadata or name is undefined');
-                }
-                return node.metadata.name;
-            });
-        } catch (error) {
-            const err = error instanceof Error ? error : new Error('Unknown error occurred');
-            console.error('Error fetching nodes:', err);
-            return [];
-        }
-    }
-
     public async killPod(podName: string, namespace: string = 'default'): Promise<void> {
         this.ensureInitialized();
 

@@ -23,6 +23,7 @@ import MariadbService from "./services/mariadbService";
 import FileSessionService from "./services/fileSessionService";
 import PVCFileOperationsService from "./services/pvcFileOperationsService";
 import SocketManager from "./features/socket/controllers/socket-manager";
+import StorageInitService from "./services/storageInitService";
 
 class App {
     private readonly app: Application;
@@ -40,7 +41,6 @@ class App {
         this.server = new HttpServer(this.app);
         this.configureMiddleware();
         this.configureRoutes();
-        this.initializeServices();
     }
 
     private configureMiddleware(): void {
@@ -54,6 +54,9 @@ class App {
     }
 
     private async initializeServices(): Promise<void> {
+        // Initialize storage first
+        await StorageInitService.init();
+
         RedisService.init();
         KubernetesService.init();
         DatabaseService.init();
@@ -75,6 +78,9 @@ class App {
     }
 
     public async start() {
+        // Initialize all services first (including storage)
+        await this.initializeServices();
+
         await DeploymentManager.init();
 
         if (process.env.NODE_ENV === 'development') {

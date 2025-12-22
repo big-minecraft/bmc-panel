@@ -53,6 +53,7 @@ export default class DeploymentManifestManager {
 
     public static async getAllManifests(): Promise<Manifest[]> {
         let baseDir: string = path.join(ConfigManager.getString("storage-path"), "manifests");
+        if (!existsSync(baseDir)) mkdirSync(baseDir);
 
         const manifests: Manifest[] = [];
 

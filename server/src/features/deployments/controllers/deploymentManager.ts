@@ -25,7 +25,6 @@ export default class DeploymentManager {
     }
 
     public static async loadDeployments() {
-        await KubernetesService.getInstance().listNodeNames();
         const manifestFiles = await DeploymentManifestManager.getAllManifests();
         DeploymentManager.deployments = manifestFiles.map(manifest => new Deployment(manifest));
     }
