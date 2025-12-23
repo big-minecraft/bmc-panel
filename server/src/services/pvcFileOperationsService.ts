@@ -248,10 +248,17 @@ export default class PVCFileOperationsService {
             const result = await this.execInPod(session.podName, session.namespace, command);
 
             if (result.exitCode !== 0) {
-                throw new FileOperationError(
-                    `Failed to delete file ${filePath}: ${result.stderr}`,
-                    FileOperationErrorCode.POD_EXEC_FAILED
-                );
+                // Check if error is due to NFS lock files (.nfs* files)
+                if (result.stderr.includes('.nfs') && result.stderr.includes('Resource busy')) {
+                    console.warn(`Cannot delete ${filePath}: File is in use (NFS lock file). It will be cleaned up automatically when closed.`);
+                    // Don't throw an error for NFS lock files - they'll be cleaned up automatically
+                    // when the file handle is closed by the process using it
+                } else {
+                    throw new FileOperationError(
+                        `Failed to delete file ${filePath}: ${result.stderr}`,
+                        FileOperationErrorCode.POD_EXEC_FAILED
+                    );
+                }
             }
 
             await this.refreshSessionActivity(sessionId);
@@ -288,14 +295,61 @@ export default class PVCFileOperationsService {
         const session = await this.validateAndGetSession(sessionId);
 
         try {
+            // First attempt: try normal rm -rf
             const command = ['rm', '-rf', dirPath];
             const result = await this.execInPod(session.podName, session.namespace, command);
 
             if (result.exitCode !== 0) {
-                throw new FileOperationError(
-                    `Failed to delete directory ${dirPath}: ${result.stderr}`,
-                    FileOperationErrorCode.POD_EXEC_FAILED
-                );
+                // Check if error is due to NFS lock files (.nfs* files)
+                if (result.stderr.includes('.nfs') && result.stderr.includes('Resource busy')) {
+                    console.warn(`NFS lock files detected in ${dirPath}, attempting cleanup with best effort`);
+
+                    // Second attempt: Delete contents but skip locked NFS files
+                    // This script will delete everything it can and ignore errors for .nfs files
+                    const cleanupScript = `
+                        # Try to delete directory contents, ignoring NFS lock file errors
+                        find "${dirPath}" -mindepth 1 ! -name '.nfs*' -delete 2>/dev/null || true
+                        # Try to remove any remaining .nfs files (will silently fail if locked)
+                        find "${dirPath}" -name '.nfs*' -delete 2>/dev/null || true
+                        # Finally try to remove the directory itself
+                        rmdir "${dirPath}" 2>/dev/null || rm -rf "${dirPath}" 2>/dev/null || true
+                    `.trim();
+
+                    const cleanupCommand = ['sh', '-c', cleanupScript];
+                    const cleanupResult = await this.execInPod(session.podName, session.namespace, cleanupCommand);
+
+                    // Check if directory still exists
+                    const checkCommand = ['sh', '-c', `test -e "${dirPath}" && echo "exists" || echo "deleted"`];
+                    const checkResult = await this.execInPod(session.podName, session.namespace, checkCommand);
+
+                    if (checkResult.stdout.trim() === 'exists') {
+                        // Directory still exists, but we've done our best to clean it
+                        // Check what's left
+                        const listCommand = ['sh', '-c', `find "${dirPath}" -type f -name '.nfs*' | wc -l`];
+                        const listResult = await this.execInPod(session.podName, session.namespace, listCommand);
+                        const nfsFileCount = parseInt(listResult.stdout.trim()) || 0;
+
+                        if (nfsFileCount > 0) {
+                            console.warn(`${nfsFileCount} NFS lock files remain in ${dirPath} (files are in use by running processes)`);
+                            // Don't throw an error - the directory has been cleaned as much as possible
+                            // The .nfs files will be automatically cleaned up when the file handles are closed
+                        } else {
+                            // Something else is preventing deletion
+                            throw new FileOperationError(
+                                `Failed to delete directory ${dirPath}: ${result.stderr}`,
+                                FileOperationErrorCode.POD_EXEC_FAILED
+                            );
+                        }
+                    }
+
+                    console.log(`Successfully cleaned directory ${dirPath} (NFS lock files will be cleaned up automatically)`);
+                } else {
+                    // Different error, throw it
+                    throw new FileOperationError(
+                        `Failed to delete directory ${dirPath}: ${result.stderr}`,
+                        FileOperationErrorCode.POD_EXEC_FAILED
+                    );
+                }
             }
 
             await this.refreshSessionActivity(sessionId);
