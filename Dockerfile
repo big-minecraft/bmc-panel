@@ -46,8 +46,8 @@ FROM node:18-slim
 
 WORKDIR /app
 
-# Install git
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+# Install git and jq
+RUN apt-get update && apt-get install -y git jq && rm -rf /var/lib/apt/lists/*
 
 # Copy application files from build stage
 COPY --from=build /app/dist ./dist
@@ -58,7 +58,6 @@ COPY --from=build /app/server/node_modules ./server/node_modules
 COPY --from=tools /tools/kubectl /usr/local/bin/
 COPY --from=tools /tools/helm /usr/local/bin/
 COPY --from=tools /tools/helmfile /usr/local/bin/
-COPY --from=tools /usr/bin/jq /usr/local/bin/
 COPY --from=tools /tools/helm-plugins/diff /root/.local/share/helm/plugins/diff
 
 ENV NODE_ENV=production
