@@ -136,7 +136,8 @@ export class PulumiDeploymentService {
                         {
                             path: chartPath,
                             namespace: "default",
-                            values: values
+                            values: values,
+                            skipAwait: true
                         },
                         { provider: k8sProvider }
                     );
