@@ -181,10 +181,18 @@ class MongodbService {
 
             const username = `${name}_user`;
 
+            // Try to drop user from admin db (for old databases)
             try {
                 await this.adminDb.command({dropUser: username});
             } catch (error) {
-                // User might not exist in admin (created in own db) or already deleted
+                // User might not exist in admin
+            }
+
+            // Try to drop user from the specific database (for new databases)
+            try {
+                await this.client.db(name).command({dropUser: username});
+            } catch (error) {
+                // User might not exist in this db
             }
 
             await this.client.db(name).dropDatabase();
