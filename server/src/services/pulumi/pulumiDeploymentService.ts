@@ -116,8 +116,7 @@ export class PulumiDeploymentService {
     ): () => Promise<void> {
         return async () => {
             const k8sProvider = new k8s.Provider("k8s-provider", {
-                enableServerSideApply: true,
-                resolveConflictsOnUpdate: true
+                enableServerSideApply: true
             });
 
             const chartPath = this.getChartPath(deploymentType);
@@ -140,7 +139,16 @@ export class PulumiDeploymentService {
                             path: chartPath,
                             namespace: "default",
                             values: values,
-                            skipAwait: true
+                            skipAwait: true,
+                            transformations: [
+                                (obj: any) => {
+                                    if (obj.metadata && obj.metadata.annotations) {
+                                        obj.metadata.annotations["pulumi.com/patchForce"] = "true";
+                                    } else if (obj.metadata) {
+                                        obj.metadata.annotations = { "pulumi.com/patchForce": "true" };
+                                    }
+                                }
+                            ]
                         },
                         { provider: k8sProvider }
                     );
