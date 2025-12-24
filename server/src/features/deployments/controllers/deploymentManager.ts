@@ -8,6 +8,7 @@ import Redis from "ioredis";
 import ConfigManager from "../../config/controllers/configManager";
 import RedisService from "../../../services/redisService";
 import KubernetesService from "../../../services/kubernetesService";
+import { PulumiDeploymentService } from "../../../services/pulumi/pulumiDeploymentService";
 
 export default class DeploymentManager {
     private static deployments: Deployment[] = [];
@@ -82,8 +83,16 @@ export default class DeploymentManager {
     }
 
     public static async runApplyScript(): Promise<void> {
-        const scriptDir = path.join(ConfigManager.getString("storage-path"), "scripts");
-        await Util.safelyExecuteShellCommand(`cd "${scriptDir}" && ./apply-deployments.sh`);
+        console.log("[DeploymentManager] Applying deployments via Pulumi...");
+        const pulumiService = PulumiDeploymentService.getInstance();
+        const result = await pulumiService.applyDeployments();
+
+        if (!result.success) {
+            console.error("[DeploymentManager] Pulumi deployment failed:", result.error);
+            throw new Error(`Failed to apply deployments: ${result.error?.message}`);
+        }
+
+        console.log("[DeploymentManager] Deployments applied successfully via Pulumi");
     }
 
     public static async sendRedisUpdates(deploymentName: string): Promise<void> {
