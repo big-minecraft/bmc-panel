@@ -7,7 +7,6 @@ import {Enum} from "../../../../../shared/enum/enum";
 import Redis from "ioredis";
 import ConfigManager from "../../config/controllers/configManager";
 import RedisService from "../../../services/redisService";
-import KubernetesService from "../../../services/kubernetesService";
 import { PulumiDeploymentService } from "../../../services/pulumi/pulumiDeploymentService";
 
 export default class DeploymentManager {
@@ -38,7 +37,17 @@ export default class DeploymentManager {
         const manifest = await DeploymentManifestManager.getManifest(manifestPath);
         const deployment = new Deployment(manifest);
 
-        await DeploymentManager.runApplyScript();
+        console.log(`[DeploymentManager] Applying new deployment ${name} via Pulumi...`);
+        const pulumiService = PulumiDeploymentService.getInstance();
+        const result = await pulumiService.applySingleDeployment(manifest);
+
+        if (!result.success) {
+            console.error(`[DeploymentManager] Failed to apply deployment ${name}:`, result.error);
+            throw new Error(`Failed to apply deployment ${name}: ${result.error?.message}`);
+        }
+
+        console.log(`[DeploymentManager] Deployment ${name} applied successfully`);
+
         await DeploymentManager.sendRedisUpdates("create");
         DeploymentManager.deployments.push(deployment);
 
@@ -47,6 +56,7 @@ export default class DeploymentManager {
 
     public static async deleteDeployment(name: string) {
         const deployment = this.getDeploymentByName(name);
+
         try {
             await DeploymentManifestManager.deleteDeploymentManifest(deployment);
         } catch (error) {
@@ -54,8 +64,18 @@ export default class DeploymentManager {
             throw new Error('failed to delete deployment manifest');
         }
 
+        console.log(`[DeploymentManager] Destroying deployment ${name} via Pulumi...`);
+        const pulumiService = PulumiDeploymentService.getInstance();
+        const result = await pulumiService.destroySingleDeployment(name, deployment.type);
+
+        if (!result.success) {
+            console.error(`[DeploymentManager] Failed to destroy deployment ${name}:`, result.error);
+            throw new Error(`Failed to destroy deployment ${name}: ${result.error?.message}`);
+        }
+
+        console.log(`[DeploymentManager] Deployment ${name} destroyed successfully`);
+
         DeploymentManager.deployments = DeploymentManager.deployments.filter(testDeployment => testDeployment !== deployment);
-        await DeploymentManager.runApplyScript();
         await DeploymentManager.sendRedisUpdates(name);
     }
 
@@ -81,6 +101,7 @@ export default class DeploymentManager {
 
         return DeploymentManager.deployments;
     }
+
 
     public static async runApplyScript(): Promise<void> {
         console.log("[DeploymentManager] Applying deployments via Pulumi...");

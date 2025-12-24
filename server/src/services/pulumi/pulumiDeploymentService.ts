@@ -213,6 +213,92 @@ export class PulumiDeploymentService {
         return grouped;
     }
 
+    public async applySingleDeployment(manifest: Manifest): Promise<DeploymentResult> {
+        try {
+            console.log(`[Pulumi] Applying single deployment: ${manifest.name} (${manifest.type.identifier})`);
+
+            this.loadGlobalValues();
+
+            const program = this.createHelmChartProgram(manifest.type, [manifest]);
+            const stackName = `${manifest.type.identifier}-${manifest.name}`;
+            const stack = await this.stateManager.createOrSelectStack(stackName, program);
+
+            console.log(`[Pulumi] Previewing changes for ${manifest.name}...`);
+            const preview = await stack.preview({ onOutput: console.log });
+            console.log(`[Pulumi] Preview: ${preview.changeSummary.create || 0} to create, ${preview.changeSummary.update || 0} to update, ${preview.changeSummary.delete || 0} to delete`);
+
+            console.log(`[Pulumi] Applying deployment ${manifest.name}...`);
+            const upResult = await stack.up({ onOutput: console.log });
+
+            if (upResult.summary.result === "failed") {
+                throw new Error(`Pulumi up failed for ${manifest.name}: ${upResult.summary.message}`);
+            }
+
+            const result = {
+                success: true,
+                summary: {
+                    created: upResult.summary.resourceChanges?.create || 0,
+                    updated: upResult.summary.resourceChanges?.update || 0,
+                    deleted: upResult.summary.resourceChanges?.delete || 0,
+                    unchanged: upResult.summary.resourceChanges?.same || 0
+                }
+            };
+
+            console.log(`[Pulumi] Deployment ${manifest.name} applied successfully`);
+            console.log(`[Pulumi] Summary: ${result.summary.created} created, ${result.summary.updated} updated, ${result.summary.deleted} deleted, ${result.summary.unchanged} unchanged`);
+
+            return result;
+        } catch (error) {
+            console.error(`[Pulumi] Failed to apply deployment ${manifest.name}:`, error);
+            return {
+                success: false,
+                error: error as Error
+            };
+        }
+    }
+
+    public async destroySingleDeployment(deploymentName: string, deploymentType: DeploymentType): Promise<DeploymentResult> {
+        try {
+            console.log(`[Pulumi] Destroying deployment: ${deploymentName} (${deploymentType.identifier})`);
+
+            const stackName = `${deploymentType.identifier}-${deploymentName}`;
+
+            // Create an empty program to destroy the stack
+            const emptyProgram = async () => {
+                // Empty program - this will cause all resources to be destroyed
+            };
+
+            const stack = await this.stateManager.createOrSelectStack(stackName, emptyProgram);
+
+            console.log(`[Pulumi] Destroying stack ${stackName}...`);
+            const destroyResult = await stack.destroy({ onOutput: console.log });
+
+            if (destroyResult.summary.result === "failed") {
+                throw new Error(`Pulumi destroy failed for ${deploymentName}: ${destroyResult.summary.message}`);
+            }
+
+            const result = {
+                success: true,
+                summary: {
+                    created: 0,
+                    updated: 0,
+                    deleted: destroyResult.summary.resourceChanges?.delete || 0,
+                    unchanged: 0
+                }
+            };
+
+            console.log(`[Pulumi] Deployment ${deploymentName} destroyed successfully (${result.summary.deleted} resources deleted)`);
+
+            return result;
+        } catch (error) {
+            console.error(`[Pulumi] Failed to destroy deployment ${deploymentName}:`, error);
+            return {
+                success: false,
+                error: error as Error
+            };
+        }
+    }
+
     public static reset(): void {
         PulumiDeploymentService.instance = null;
     }

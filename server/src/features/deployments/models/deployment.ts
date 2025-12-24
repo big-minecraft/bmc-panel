@@ -6,6 +6,7 @@ import {Enum} from "../../../../../shared/enum/enum";
 import {Instance} from "../../../../../shared/model/instance";
 import RedisService from "../../../services/redisService";
 import KubernetesService from "../../../services/kubernetesService";
+import { PulumiDeploymentService } from "../../../services/pulumi/pulumiDeploymentService";
 
 export default class Deployment {
     public readonly name: string;
@@ -75,7 +76,20 @@ export default class Deployment {
 
     public async updateContent(content: string): Promise<void> {
         await DeploymentManifestManager.updateDeploymentContent(this, content);
-        await DeploymentManager.runApplyScript();
+
+        const updatedManifest = await DeploymentManifestManager.getManifest(this.manifest.path);
+
+        console.log(`[Deployment] Applying updated content for ${this.name} via Pulumi...`);
+        const pulumiService = PulumiDeploymentService.getInstance();
+        const result = await pulumiService.applySingleDeployment(updatedManifest);
+
+        if (!result.success) {
+            console.error(`[Deployment] Failed to apply updated content for ${this.name}:`, result.error);
+            throw new Error(`Failed to apply updated content: ${result.error?.message}`);
+        }
+
+        console.log(`[Deployment] Updated content for ${this.name} applied successfully`);
+
         await DeploymentManager.sendRedisUpdates(this.name);
     }
 
