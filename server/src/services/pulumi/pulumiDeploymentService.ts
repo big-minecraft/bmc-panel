@@ -116,8 +116,7 @@ export class PulumiDeploymentService {
     ): () => Promise<void> {
         return async () => {
             const k8sProvider = new k8s.Provider("k8s-provider", {
-                enableServerSideApply: true,
-                enableReplaceCRDs: true
+                enableServerSideApply: true
             });
 
             const chartPath = this.getChartPath(deploymentType);
