@@ -136,7 +136,7 @@ export class PulumiDeploymentService {
                     new k8s.helm.v3.Chart(
                         releaseName,
                         {
-                            chart: chartPath,
+                            path: chartPath,
                             namespace: "default",
                             values: values
                         },
