@@ -51,13 +51,11 @@ export class PulumiDeploymentService {
 
                 console.log(`[Pulumi] Processing ${deploymentType.identifier}: ${enabledManifests.length} enabled`);
 
-                if (enabledManifests.length > 0) {
-                    const result = await this.applyDeploymentType(deploymentType, enabledManifests);
-                    results.created += result.summary?.created || 0;
-                    results.updated += result.summary?.updated || 0;
-                    results.deleted += result.summary?.deleted || 0;
-                    results.unchanged += result.summary?.unchanged || 0;
-                }
+                const result = await this.applyDeploymentType(deploymentType, enabledManifests);
+                results.created += result.summary?.created || 0;
+                results.updated += result.summary?.updated || 0;
+                results.deleted += result.summary?.deleted || 0;
+                results.unchanged += result.summary?.unchanged || 0;
             }
 
             console.log("[Pulumi] Deployment process completed successfully");
