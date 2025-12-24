@@ -264,18 +264,18 @@ export class PulumiDeploymentService {
 
             const stackName = `${deploymentType.identifier}-${deploymentName}`;
 
-            // Create an empty program to destroy the stack
+            // Create an empty program - when applied, this will remove all resources
             const emptyProgram = async () => {
-                // Empty program - this will cause all resources to be destroyed
+                // Empty program - this will cause all resources to be destroyed when up() is called
             };
 
             const stack = await this.stateManager.createOrSelectStack(stackName, emptyProgram);
 
-            console.log(`[Pulumi] Destroying stack ${stackName}...`);
-            const destroyResult = await stack.destroy({ onOutput: console.log });
+            console.log(`[Pulumi] Applying empty state to destroy resources in stack ${stackName}...`);
+            const upResult = await stack.up({ onOutput: console.log });
 
-            if (destroyResult.summary.result === "failed") {
-                throw new Error(`Pulumi destroy failed for ${deploymentName}: ${destroyResult.summary.message}`);
+            if (upResult.summary.result === "failed") {
+                throw new Error(`Pulumi destroy failed for ${deploymentName}: ${upResult.summary.message}`);
             }
 
             const result = {
@@ -283,7 +283,7 @@ export class PulumiDeploymentService {
                 summary: {
                     created: 0,
                     updated: 0,
-                    deleted: destroyResult.summary.resourceChanges?.delete || 0,
+                    deleted: upResult.summary.resourceChanges?.delete || 0,
                     unchanged: 0
                 }
             };
