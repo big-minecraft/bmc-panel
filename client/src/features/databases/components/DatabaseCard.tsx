@@ -1,6 +1,6 @@
 import {useState, forwardRef} from 'react';
 import {motion, AnimatePresence} from 'framer-motion';
-import {KeySquare, Trash2, ChevronRight, Database, Copy, Check, Terminal, Link2} from 'lucide-react';
+import {KeySquare, Trash2, ChevronRight, Database, Copy, Check, Link2} from 'lucide-react';
 import {DatabaseCardProps} from "../types/types";
 
 export const DatabaseCard = forwardRef<HTMLDivElement, DatabaseCardProps>(
@@ -25,15 +25,7 @@ export const DatabaseCard = forwardRef<HTMLDivElement, DatabaseCardProps>(
             if (databaseType === 'mongo') {
                 return `mongodb://${username}:${password}@${host}:${port}/${name}`;
             }
-            return `postgresql://${username}:${password}@${host}:${port}/${name}`;
-        };
-
-        const generateConnectionCommand = () => {
-            const {username, host, port} = credentials;
-            if (databaseType === 'mongo') {
-                return `mongosh --host ${host} --port ${port} -u ${username} ${name}`;
-            }
-            return `psql -h ${host} -p ${port} -U ${username} ${name}`;
+            return `mariadb://${username}:${password}@${host}:${port}/${name}`;
         };
 
         const renderField = (label: string, value: string, canCopy = true, key: string) => (

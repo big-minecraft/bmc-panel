@@ -75,9 +75,6 @@ export class StorageInitService {
 
             console.log('big-minecraft repository cloned successfully');
 
-            // Set execute permissions on scripts
-            await this.setScriptPermissions(storagePath);
-
             // Verify critical directories exist
             this.verifyCriticalDirectories(storagePath);
 
@@ -89,23 +86,6 @@ export class StorageInitService {
                 fs.rmSync(tempDir, { recursive: true, force: true });
             }
             throw error;
-        }
-    }
-
-    private async setScriptPermissions(storagePath: string): Promise<void> {
-        const scriptsDir = path.join(storagePath, 'scripts');
-
-        if (!fs.existsSync(scriptsDir)) {
-            console.warn('Scripts directory not found, skipping permission setup');
-            return;
-        }
-
-        try {
-            // Set execute permissions on all .sh files in scripts directory
-            await execAsync(`chmod +x "${scriptsDir}"/*.sh`);
-            console.log('Set execute permissions on script files');
-        } catch (error) {
-            console.warn('Failed to set script permissions:', error.message);
         }
     }
 

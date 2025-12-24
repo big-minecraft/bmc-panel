@@ -80,14 +80,6 @@ class MongodbService {
 
             const username = `${name}_user`;
 
-            try {
-                const users = await this.adminDb.command({usersInfo: {user: username}});
-                if (users.users.length > 0) {
-                    throw new Error(`User '${username}' already exists`);
-                }
-            } catch (error) {
-            }
-
             const credentialsDb = this.client.db('admin');
             const existingCreds = await credentialsDb
                 .collection('database_credentials')
@@ -101,7 +93,7 @@ class MongodbService {
             await newDb.createCollection('_init');
 
             const password = generatePassword();
-            await this.adminDb.command({
+            await newDb.command({
                 createUser: username,
                 pwd: password,
                 roles: [{role: 'dbOwner', db: name}]
@@ -123,7 +115,6 @@ class MongodbService {
             };
         } catch (error) {
             try {
-                await this.adminDb.command({dropUser: `${name}_user`});
                 await this.client.db(name).dropDatabase();
                 await this.client.db('admin').collection('database_credentials')
                     .deleteOne({database_name: name});
@@ -167,7 +158,7 @@ class MongodbService {
                             username: `${db.name}_user`,
                             password: creds.password,
                             host: ConfigManager.getString('panel-host'),
-                            port: ConfigManager.getConfig().mongodb.port
+                            port: 30017
                         } : null
                     };
                 }));
@@ -188,7 +179,6 @@ class MongodbService {
         try {
             await this.connect();
 
-            await this.adminDb.command({dropUser: `${name}_user`});
             await this.client.db(name).dropDatabase();
             await this.client.db('admin').collection('database_credentials')
                 .deleteOne({database_name: name});
@@ -212,7 +202,7 @@ class MongodbService {
             const username = `${name}_user`;
             const newPassword = generatePassword();
 
-            await this.adminDb.command({
+            await this.client.db(name).command({
                 updateUser: username,
                 pwd: newPassword
             });
