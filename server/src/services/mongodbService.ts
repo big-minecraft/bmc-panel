@@ -179,6 +179,14 @@ class MongodbService {
         try {
             await this.connect();
 
+            const username = `${name}_user`;
+
+            try {
+                await this.adminDb.command({dropUser: username});
+            } catch (error) {
+                // User might not exist in admin (created in own db) or already deleted
+            }
+
             await this.client.db(name).dropDatabase();
             await this.client.db('admin').collection('database_credentials')
                 .deleteOne({database_name: name});
