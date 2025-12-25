@@ -19,6 +19,7 @@ async function stopPod(
     user: User
 ): Promise<void> {
     await executeCommand(ws, 'stop', podName, cluster, user, true);
+    await executeCommand(ws, 'touch /tmp/shutdown_in_progress', podName, cluster, user, false);
     await executeCommand(ws, 'rm /tmp/should_run', podName, cluster, user, false);
     await updatePod(deploymentName, podName, Enum.InstanceState.STOPPING);
 }
