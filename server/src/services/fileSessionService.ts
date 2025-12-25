@@ -4,6 +4,7 @@ import { FileEditSession, FileOperationError, FileOperationErrorCode } from '../
 import KubernetesService from './kubernetesService';
 import { RedisManager } from './redisService';
 import DeploymentManager from '../features/deployments/controllers/deploymentManager';
+import { PulumiDeploymentService } from './pulumi/pulumiDeploymentService';
 import Redis from 'ioredis';
 
 export default class FileSessionService {
@@ -11,7 +12,6 @@ export default class FileSessionService {
     private timeoutChecker: NodeJS.Timeout | null = null;
     private readonly TIMEOUT_MINUTES = 15;
     private readonly REDIS_TTL_SECONDS = 30 * 60; // 30 minutes
-    private readonly POD_IMAGE = 'alpine:latest';
     private readonly POD_NAMESPACE = 'default';
 
     private constructor() {
@@ -62,8 +62,33 @@ export default class FileSessionService {
             // Store session in Redis
             await this.storeSession(session);
 
-            // Create pod
-            await this.createSessionPod(session);
+            // Get SFTP port from deployment
+            const sftpPort = deployment.getSftpPort();
+            if (!sftpPort) {
+                throw new FileOperationError(
+                    `Deployment ${deploymentName} does not have an SFTP port assigned`,
+                    FileOperationErrorCode.DEPLOYMENT_NOT_FOUND
+                );
+            }
+
+            // Create pod using Pulumi
+            const pulumiService = PulumiDeploymentService.getInstance();
+            const result = await pulumiService.createFileSession(
+                sessionId,
+                podName,
+                deploymentName,
+                pvcName,
+                sftpPort
+            );
+
+            if (!result.success) {
+                session.status = 'error';
+                await this.updateSessionStatus(sessionId, 'error');
+                throw new FileOperationError(
+                    `Failed to create file session pods: ${result.error?.message}`,
+                    FileOperationErrorCode.POD_NOT_READY
+                );
+            }
 
             // Wait for pod to be ready
             const isReady = await this.waitForPodReady(podName, this.POD_NAMESPACE, 60000);
@@ -101,17 +126,13 @@ export default class FileSessionService {
             // Update status to terminating
             await this.updateSessionStatus(sessionId, 'terminating');
 
-            // Delete pod
-            const k8s = KubernetesService.getInstance();
-            const coreV1Api = k8s.kc.makeApiClient(K8s.CoreV1Api);
+            // Destroy file session using Pulumi
+            const pulumiService = PulumiDeploymentService.getInstance();
+            const result = await pulumiService.destroyFileSession(sessionId);
 
-            try {
-                await coreV1Api.deleteNamespacedPod(session.podName, session.namespace);
-                console.log(`Deleted pod ${session.podName}`);
-            } catch (error: any) {
-                if (error.statusCode !== 404) {
-                    console.error(`Error deleting pod ${session.podName}:`, error);
-                }
+            if (!result.success) {
+                console.error(`Failed to destroy file session ${sessionId} via Pulumi:`, result.error);
+                // Continue with cleanup even if Pulumi fails
             }
 
             // Remove session from Redis
@@ -428,65 +449,6 @@ export default class FileSessionService {
                 `Failed to find PVC for deployment ${deploymentName} (type: ${deploymentType}): ${error.message}`,
                 FileOperationErrorCode.PVC_NOT_FOUND
             );
-        }
-    }
-
-    private async createSessionPod(session: FileEditSession): Promise<void> {
-        const k8s = KubernetesService.getInstance();
-        const coreV1Api = k8s.kc.makeApiClient(K8s.CoreV1Api);
-
-        const podSpec: K8s.V1Pod = {
-            metadata: {
-                name: session.podName,
-                namespace: session.namespace,
-                labels: {
-                    app: 'file-edit-session',
-                    deployment: session.deploymentName,
-                    'session-id': session.id,
-                },
-            },
-            spec: {
-                restartPolicy: 'Never',
-                containers: [
-                    {
-                        name: 'file-editor',
-                        image: this.POD_IMAGE,
-                        command: ['/bin/sh', '-c', 'sleep infinity'],
-                        resources: {
-                            requests: {
-                                memory: '64Mi',
-                                cpu: '50m',
-                            },
-                            limits: {
-                                memory: '256Mi',
-                                cpu: '200m',
-                            },
-                        },
-                        volumeMounts: [
-                            {
-                                name: 'pvc-data',
-                                mountPath: '/minecraft',
-                            },
-                        ],
-                    },
-                ],
-                volumes: [
-                    {
-                        name: 'pvc-data',
-                        persistentVolumeClaim: {
-                            claimName: session.pvcName,
-                        },
-                    },
-                ],
-            },
-        };
-
-        try {
-            await coreV1Api.createNamespacedPod(session.namespace, podSpec);
-            console.log(`Created pod ${session.podName}`);
-        } catch (error) {
-            console.error(`Error creating pod ${session.podName}:`, error);
-            throw error;
         }
     }
 

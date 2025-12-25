@@ -311,6 +311,159 @@ export class PulumiDeploymentService {
         }
     }
 
+    public async createFileSession(
+        sessionId: string,
+        sessionPodName: string,
+        deploymentName: string,
+        pvcName: string,
+        sftpPort: number
+    ): Promise<DeploymentResult> {
+        try {
+            console.log(`[Pulumi] Creating file session: ${sessionId} for deployment ${deploymentName}`);
+
+            const program = this.createFileSessionProgram(
+                sessionId,
+                sessionPodName,
+                deploymentName,
+                pvcName,
+                sftpPort
+            );
+
+            const stackName = `file-session-${sessionId}`;
+            const stack = await this.stateManager.createOrSelectStack(stackName, program);
+
+            console.log(`[Pulumi] Applying file session ${sessionId}...`);
+            const upResult = await stack.up({ onOutput: console.log });
+
+            if (upResult.summary.result === "failed") {
+                throw new Error(`Pulumi up failed for file session ${sessionId}: ${upResult.summary.message}`);
+            }
+
+            const result = {
+                success: true,
+                summary: {
+                    created: upResult.summary.resourceChanges?.create || 0,
+                    updated: upResult.summary.resourceChanges?.update || 0,
+                    deleted: upResult.summary.resourceChanges?.delete || 0,
+                    unchanged: upResult.summary.resourceChanges?.same || 0
+                }
+            };
+
+            console.log(`[Pulumi] File session ${sessionId} created successfully`);
+            return result;
+        } catch (error) {
+            console.error(`[Pulumi] Failed to create file session ${sessionId}:`, error);
+            return {
+                success: false,
+                error: error as Error
+            };
+        }
+    }
+
+    public async destroyFileSession(sessionId: string): Promise<DeploymentResult> {
+        try {
+            console.log(`[Pulumi] Destroying file session: ${sessionId}`);
+
+            const stackName = `file-session-${sessionId}`;
+
+            // Create an empty program - when applied, this will remove all resources
+            const emptyProgram = async () => {
+                // Empty program - this will cause all resources to be destroyed when up() is called
+            };
+
+            const stack = await this.stateManager.createOrSelectStack(stackName, emptyProgram);
+
+            console.log(`[Pulumi] Applying empty state to destroy file session ${sessionId}...`);
+            const upResult = await stack.up({ onOutput: console.log });
+
+            if (upResult.summary.result === "failed") {
+                throw new Error(`Pulumi destroy failed for file session ${sessionId}: ${upResult.summary.message}`);
+            }
+
+            const result = {
+                success: true,
+                summary: {
+                    created: 0,
+                    updated: 0,
+                    deleted: upResult.summary.resourceChanges?.delete || 0,
+                    unchanged: 0
+                }
+            };
+
+            console.log(`[Pulumi] File session ${sessionId} destroyed successfully (${result.summary.deleted} resources deleted)`);
+
+            return result;
+        } catch (error) {
+            console.error(`[Pulumi] Failed to destroy file session ${sessionId}:`, error);
+            return {
+                success: false,
+                error: error as Error
+            };
+        }
+    }
+
+    private createFileSessionProgram(
+        sessionId: string,
+        sessionPodName: string,
+        deploymentName: string,
+        pvcName: string,
+        sftpPort: number
+    ): () => Promise<void> {
+        return async () => {
+            const k8sProvider = new k8s.Provider("k8s-provider", {
+                enableServerSideApply: true
+            });
+
+            const chartPath = path.join(this.chartBasePath, "file-session-chart");
+
+            if (!existsSync(chartPath)) {
+                throw new Error(`File session chart not found at ${chartPath}`);
+            }
+
+            const sftpPodName = `sftp-${deploymentName}-${sessionId.substring(0, 8)}`;
+
+            const values = {
+                fileSession: {
+                    podName: sessionPodName,
+                    deploymentName: deploymentName,
+                    mountPath: "/minecraft",
+                    pvcName: pvcName
+                },
+                sftp: {
+                    podName: sftpPodName,
+                    username: "user",
+                    password: "password",
+                    port: 22,
+                    rootPath: "data",
+                    pvcName: pvcName,
+                    nodePort: sftpPort
+                }
+            };
+
+            console.log(`[Pulumi] Deploying file session Helm chart for ${sessionPodName}`);
+
+            new k8s.helm.v3.Chart(
+                `file-session-${sessionId}`,
+                {
+                    path: chartPath,
+                    namespace: "default",
+                    values: values,
+                    skipAwait: false,
+                    transformations: [
+                        (obj: any) => {
+                            if (obj.metadata && obj.metadata.annotations) {
+                                obj.metadata.annotations["pulumi.com/patchForce"] = "true";
+                            } else if (obj.metadata) {
+                                obj.metadata.annotations = { "pulumi.com/patchForce": "true" };
+                            }
+                        }
+                    ]
+                },
+                { provider: k8sProvider }
+            );
+        };
+    }
+
     public static reset(): void {
         PulumiDeploymentService.instance = null;
     }
