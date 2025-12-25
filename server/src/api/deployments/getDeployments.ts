@@ -7,7 +7,6 @@ export interface GetDeploymentsResponse {
         name: string;
         path: string;
         enabled: boolean;
-        dataDirectory: string;
         typeIndex: number;
     }[];
 }

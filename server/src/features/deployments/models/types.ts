@@ -1,9 +1,6 @@
 import {DeploymentType} from "../../../../../shared/enum/enums/deployment-type";
 
 export interface DeploymentValues {
-    volume: {
-        dataDirectory?: string;
-    };
     scaling: {
         minInstances?: number;
     };
