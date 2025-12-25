@@ -448,7 +448,7 @@ export class PulumiDeploymentService {
                     path: chartPath,
                     namespace: "default",
                     values: values,
-                    skipAwait: false,
+                    skipAwait: true,
                     transformations: [
                         (obj: any) => {
                             if (obj.metadata && obj.metadata.annotations) {
