@@ -20,11 +20,6 @@ export interface FileMetadata {
     isText: boolean;
 }
 
-export interface FileSpec {
-    path: string;
-    name: string;
-}
-
 export interface SessionListResponse {
     sessions: FileEditSession[];
 }
@@ -33,15 +28,3 @@ export interface SessionStatusResponse {
     session: FileEditSession;
 }
 
-export interface ListFilesResponse {
-    files: FileMetadata[];
-    deploymentTypeIndex: number | null;
-}
-
-export interface FileContentResponse {
-    content: string;
-}
-
-export interface UploadResponse {
-    message: string;
-}

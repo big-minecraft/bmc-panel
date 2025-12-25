@@ -4,13 +4,13 @@ export interface DeploymentValues {
     volume: {
         dataDirectory?: string;
     };
-    dedicatedNode?: string;
     scaling: {
         minInstances?: number;
     };
     queuing: {
         requireStartupConfirmation?: string;
     };
+    sftpPort?: number;
 }
 
 export interface Manifest {
@@ -18,5 +18,6 @@ export interface Manifest {
     path: string;
     content: DeploymentValues;
     isEnabled: boolean;
+    sftpPort?: number;
     type: DeploymentType;
 }

@@ -5,7 +5,6 @@ import { FileMetadata } from '../../types/fileSession';
 
 interface ListFilesResponse {
     files: FileMetadata[];
-    deploymentTypeIndex: number | null;
 }
 
 export const listFilesEndpoint: ApiEndpoint<unknown, ListFilesResponse> = {
@@ -28,15 +27,13 @@ export const listFilesEndpoint: ApiEndpoint<unknown, ListFilesResponse> = {
             }
 
             const files = await PVCFileOperationsService.getInstance().listFiles(sessionId, path);
-            const deployment = DeploymentManager.getDeploymentByPath(path);
 
-            console.log(`[listFiles API] returning ${files.length} files, deployment: ${deployment?.name}`);
+            console.log(`[listFiles API] returning ${files.length} files`);
 
             res.json({
                 success: true,
                 data: {
                     files,
-                    deploymentTypeIndex: deployment ? deployment.type.getIndex() : null,
                 },
             });
         } catch (error) {

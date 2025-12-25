@@ -1,15 +1,15 @@
-import path from 'path';
-import Util from "../../../misc/util";
 import DeploymentManifestManager from './deploymentManifestManager';
 import Deployment from '../models/deployment';
 import {DeploymentType} from "../../../../../shared/enum/enums/deployment-type";
 import {Enum} from "../../../../../shared/enum/enum";
 import Redis from "ioredis";
-import ConfigManager from "../../config/controllers/configManager";
 import RedisService from "../../../services/redisService";
 import { PulumiDeploymentService } from "../../../services/pulumi/pulumiDeploymentService";
 
 export default class DeploymentManager {
+    public static readonly MIN_SFTP_PORT_RANGE = 31400;
+    public static readonly MAX_SFTP_PORT_RANGE = 31599;
+
     private static deployments: Deployment[] = [];
 
     public static async init() {
@@ -83,37 +83,12 @@ export default class DeploymentManager {
         return this.getDeployments().find(deployment => deployment.name === name);
     }
 
-    public static getDeploymentByPath(path: string) {
-        let foundDeployment: Deployment;
-
-        this.getDeployments().forEach(deployment => {
-            let deploymentPath = "/minecraft" + deployment.dataDirectory;
-            if (path.startsWith(deploymentPath)) foundDeployment = deployment;
-        })
-
-        return foundDeployment;
-    }
-
     public static getDeployments(): Deployment[] {
         DeploymentManager.deployments.forEach((deployment: Deployment) => {
             console.log(`Deployment Manager: ${deployment.name}`);
         })
 
         return DeploymentManager.deployments;
-    }
-
-
-    public static async runApplyScript(): Promise<void> {
-        console.log("[DeploymentManager] Applying deployments via Pulumi...");
-        const pulumiService = PulumiDeploymentService.getInstance();
-        const result = await pulumiService.applyDeployments();
-
-        if (!result.success) {
-            console.error("[DeploymentManager] Pulumi deployment failed:", result.error);
-            throw new Error(`Failed to apply deployments: ${result.error?.message}`);
-        }
-
-        console.log("[DeploymentManager] Deployments applied successfully via Pulumi");
     }
 
     public static async sendRedisUpdates(deploymentName: string): Promise<void> {
@@ -123,5 +98,19 @@ export default class DeploymentManager {
         } finally {
             await RedisService.getInstance().redisPool.release(client);
         }
+    }
+
+    public static getAvailableSftpPort(): number {
+        const usedPorts: number[] = [];
+
+        this.deployments.forEach((deployment: Deployment) => {
+            if (deployment.getSftpPort()) usedPorts.push(deployment.getSftpPort());
+        })
+
+        for (let port = this.MIN_SFTP_PORT_RANGE; port <= this.MAX_SFTP_PORT_RANGE; port++) {
+            if (!usedPorts.includes(port)) return port;
+        }
+
+        throw new Error('No available SFTP ports');
     }
 }

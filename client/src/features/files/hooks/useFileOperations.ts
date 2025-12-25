@@ -1,8 +1,7 @@
 import { useCallback } from 'react';
-import axiosInstance, { getToken } from '../../../utils/auth';
+import axiosInstance from '../../../utils/auth';
 import { useFilesState, useFilesDispatch } from '../context/FilesContext';
 import { useFileNavigation } from "./useFileNavigation";
-import { Enum } from "../../../../../shared/enum/enum.ts";
 
 export function useFileOperations() {
     const state = useFilesState();
@@ -41,12 +40,8 @@ export function useFileOperations() {
                     return a.name.localeCompare(b.name);
                 });
 
-            const deploymentTypeIndex = response.data.data.deploymentTypeIndex;
-            const deploymentType = deploymentTypeIndex === null ? null : Enum.DeploymentType.fromIndex(deploymentTypeIndex)
-
             dispatch({ type: 'SET_FILES', payload: processedFiles });
             dispatch({ type: 'SET_SELECTED_FILES', payload: [] });
-            dispatch({ type: 'SET_CURRENT_DIRECTORY_DEPLOYMENT_TYPE', payload: deploymentType });
         } catch (error) {
             console.error('error fetching files:', error);
         } finally {

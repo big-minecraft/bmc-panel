@@ -7,6 +7,7 @@ import Deployment from "../models/deployment";
 import {DeploymentType} from "../../../../../shared/enum/enums/deployment-type";
 import {Enum} from "../../../../../shared/enum/enum";
 import ConfigManager from "../../config/controllers/configManager";
+import DeploymentManager from "./deploymentManager";
 
 export default class DeploymentManifestManager {
 
@@ -30,9 +31,9 @@ export default class DeploymentManifestManager {
         const updatedLines = lines.map(line => {
             if (line.trim().startsWith('name:')) {
                 return line.replace(/name:.*/, `name: "${name}"`);
-            } else if (line.trim().startsWith('dataDirectory:')) {
+            } else if (line.trim().startsWith('sftpPort:')) {
                 const indent = line.match(/^\s*/)[0];
-                return `${indent}dataDirectory: "${name}"`;
+                return `${indent}sftpPort: ${DeploymentManager.getAvailableSftpPort()}`;
             }
             return line;
         });
@@ -41,6 +42,8 @@ export default class DeploymentManifestManager {
         await fs.writeFile(filePath, updatedContent, 'utf8');
         return filePath;
     }
+
+
 
     public static async deleteDeploymentManifest(deployment: Deployment) {
         const filePath = deployment.manifest.path;
@@ -92,12 +95,15 @@ export default class DeploymentManifestManager {
             const fileContent = await fs.readFile(filePath, 'utf8');
             const yamlContent = yaml.load(fileContent) as DeploymentValues;
 
+            const sftpPort = yamlContent.sftpPort;
+
             return {
                 name,
                 path: filePath,
                 content: yamlContent,
                 isEnabled,
-                type
+                type,
+                sftpPort
             };
         } catch (error) {
             console.error(`error reading manifest ${filePath}:`, error);

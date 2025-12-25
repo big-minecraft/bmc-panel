@@ -13,19 +13,14 @@ export default class Deployment {
     public readonly manifest: Manifest;
     public readonly type: DeploymentType;
     private isEnabled: boolean;
-    public dataDirectory: string;
+    private sftpPort: number;
 
     constructor(manifest: Manifest) {
         this.name = manifest.name;
         this.manifest = manifest;
         this.type = manifest.type;
         this.isEnabled = manifest.isEnabled;
-
-        this.dataDirectory = `/deployments/${manifest.content.volume.dataDirectory}`;
-        if (manifest.type == Enum.DeploymentType.PERSISTENT) {
-            const node = manifest.content.dedicatedNode;
-            this.dataDirectory = `/nodes/${node}/deployments/${manifest.content.volume.dataDirectory}`;
-        }
+        this.sftpPort = manifest.sftpPort;
     }
 
     public async setEnabled(enabled: boolean): Promise<void> {
@@ -74,6 +69,10 @@ export default class Deployment {
         return await DeploymentManifestManager.getDeploymentContent(this);
     }
 
+    public getSftpPort(): number | undefined {
+        return this.sftpPort;
+    }
+
     public async updateContent(content: string): Promise<void> {
         await DeploymentManifestManager.updateDeploymentContent(this, content);
 
@@ -101,7 +100,6 @@ export default class Deployment {
         return {
             name: this.name,
             enabled: this.isEnabled,
-            dataDirectory: this.dataDirectory,
             typeIndex: this.type.getIndex(),
             path: this.manifest.path,
         };
