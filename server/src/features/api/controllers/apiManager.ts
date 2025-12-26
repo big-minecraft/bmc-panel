@@ -31,6 +31,7 @@ import {resetPasswordEndpoint} from "../../../api/users/resetPassword";
 import {deleteUserEndpoint} from "../../../api/users/deleteUser";
 import {getCpuMetricsEndpoint} from "../../../api/metrics/getCpuMetrics";
 import {getMemoryMetricsEndpoint} from "../../../api/metrics/getMemoryMetrics";
+import {getInstanceMetricsEndpoint} from "../../../api/metrics/getInstanceMetrics";
 import {getDeploymentsEndpoint} from "../../../api/deployments/getDeployments";
 import {ApiEndpoint, AuthType} from "../../../api/types";
 import {handleAdminAuth, handleBasicAuth} from "../../../middleware/auth";
@@ -127,6 +128,7 @@ export default class ApiManager {
         //Metrics
         this.addEndpoint(getCpuMetricsEndpoint);
         this.addEndpoint(getMemoryMetricsEndpoint);
+        this.addEndpoint(getInstanceMetricsEndpoint);
 
         //File Sessions
         this.addEndpoint(createSessionEndpoint);

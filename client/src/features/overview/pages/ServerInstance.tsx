@@ -28,6 +28,21 @@ function ServerInstance() {
     useEffect(() => {
         if (!instance) return;
 
+        // Fetch metrics immediately on page load
+        const fetchMetrics = async () => {
+            try {
+                const response = await axiosInstance.get(`/api/metrics/instance?pod=${instance.podName}`);
+                if (response.data.success) {
+                    setMetrics(response.data.data.metrics);
+                }
+            } catch (error) {
+                console.error('Failed to fetch initial metrics:', error);
+            }
+        };
+
+        fetchMetrics();
+
+        // Set up WebSocket listener for real-time updates
         const metricsListener = new InstanceMetricsListener((data) => {
             if (data.podName === instance.podName) {
                 setMetrics(data.metrics);

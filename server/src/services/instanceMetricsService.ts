@@ -54,6 +54,11 @@ class InstanceMetricsService {
         }
     }
 
+    public async getMetricsForPod(podName: string, namespace: string = 'default'): Promise<InstanceResourceMetrics> {
+        const instance = { podName } as Instance;
+        return await this.getInstanceMetrics(instance);
+    }
+
     private async broadcastMetrics(): Promise<void> {
         if (!this.socketManager) {
             console.warn('SocketManager not set, skipping metrics broadcast');
