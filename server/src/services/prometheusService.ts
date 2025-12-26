@@ -35,7 +35,7 @@ class PrometheusService {
         }
     }
 
-    public async getPodCPUUsageForGraph(podName: string, namespace: string): Promise<TimeSeriesData[]> {
+    public async getPodCPUUsageForGraph(podName: string, namespace: string = "default"): Promise<TimeSeriesData[]> {
         const query = `sum(irate(container_cpu_usage_seconds_total{pod="${podName}", namespace="${namespace}", container!=""}[2m]))`;
 
         const endTime = Math.floor(Date.now() / 1000);
@@ -57,7 +57,7 @@ class PrometheusService {
         }));
     }
 
-    public async getPodMemoryUsageForGraph(podName: string, namespace: string): Promise<TimeSeriesData[]> {
+    public async getPodMemoryUsageForGraph(podName: string, namespace: string = "default"): Promise<TimeSeriesData[]> {
         const query = `sum(container_memory_working_set_bytes{pod="${podName}", namespace="${namespace}", container!=""})`;
 
         const endTime = Math.floor(Date.now() / 1000);
