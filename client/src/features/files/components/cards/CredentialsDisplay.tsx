@@ -49,7 +49,7 @@ const CredentialsDisplay: React.FC<CredentialsDisplayProps> = ({ credentials }) 
     );
 
     return (
-        <div className="border-t border-gray-100 pt-4 mb-5">
+        <div className="pt-4 mb-5">
             <button
                 onClick={() => setExpanded(!expanded)}
                 className="w-full flex items-center justify-between text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors mb-2"
