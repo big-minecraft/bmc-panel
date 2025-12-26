@@ -3,6 +3,7 @@ import KubernetesClient from './kubernetesService';
 import RedisService from './redisService';
 import { getPodConnections } from './podService';
 import SocketManager from '../features/socket/controllers/socket-manager';
+import DeploymentManager from '../features/deployments/controllers/deploymentManager';
 import { Instance, InstanceResourceMetrics } from '../../../shared/model/instance';
 import { Enum } from '../../../shared/enum/enum';
 
@@ -60,10 +61,10 @@ class InstanceMetricsService {
         }
 
         try {
-            const deploymentNames = await this.redisService.getDeploymentNames();
+            const deployments = DeploymentManager.getDeployments();
 
-            for (const deploymentName of deploymentNames) {
-                const instances = await this.redisService.getInstances(deploymentName);
+            for (const deployment of deployments) {
+                const instances = await this.redisService.getInstances(deployment);
 
                 for (const instance of instances) {
                     const metrics = await this.getInstanceMetrics(instance);
