@@ -22,7 +22,7 @@ const CPUChart = ({podName}) => {
                 const response = await axiosInstance.get(`/api/metrics/cpu?pod=${podName}`);
                 const formattedData = response.data.data.data.map(point => ({
                     timestamp: new Date(point.timestamp).toLocaleTimeString(),
-                    value: parseFloat(point.value)
+                    value: parseFloat((point.value * 1000).toFixed(2))
                 }));
                 setData(formattedData);
             } catch (err) {
@@ -67,7 +67,7 @@ const CPUChart = ({podName}) => {
                         label={{value: 'CPU Usage (mCPU)', angle: -90, position: 'left', offset: 40}}
                         domain={['auto', 'auto']}
                     />
-                    <Tooltip/>
+                    <Tooltip formatter={(value) => [`${value} mCPU`, 'CPU Usage']}/>
                     <Line
                         type="monotone"
                         dataKey="value"
