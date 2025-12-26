@@ -434,7 +434,7 @@ export class PulumiDeploymentService {
                     username: "user",
                     password: "password",
                     port: 22,
-                    rootPath: "data",
+                    rootPath: "/",
                     pvcName: pvcName,
                     nodePort: sftpPort
                 }
