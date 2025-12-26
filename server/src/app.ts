@@ -76,7 +76,7 @@ class App {
         // Initialize instance metrics broadcasting
         const metricsService = InstanceMetricsService.getInstance();
         metricsService.setSocketManager(this.socketManager);
-        metricsService.startBroadcasting();
+        await metricsService.startBroadcasting();
 
         setupWebSocket(this.server);
     }
