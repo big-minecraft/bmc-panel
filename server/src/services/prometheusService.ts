@@ -58,7 +58,7 @@ class PrometheusService {
     }
 
     public async getPodMemoryUsageForGraph(podName: string, namespace: string = "default"): Promise<TimeSeriesData[]> {
-        const query = `sum(container_memory_working_set_bytes{pod="${podName}", namespace="${namespace}", container!=""})`;
+            const query = `sum(container_memory_working_set_bytes{pod="${podName}", namespace="${namespace}", container!=""})`;
 
         const endTime = Math.floor(Date.now() / 1000);
         const startTime = endTime - 60 * 5;
