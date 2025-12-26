@@ -5,6 +5,7 @@ import { Play, Square, Loader2, Clock, Activity } from 'lucide-react';
 import { useFileSessions } from '../hooks/useFileSessions';
 import { FileEditSession } from '../types/fileTypes';
 import { useFilesDispatch, FilesProvider } from '../context/FilesContext';
+import CredentialsDisplay from '../components/cards/CredentialsDisplay';
 
 const SessionPageContent: React.FC = () => {
     const { deploymentName } = useParams<{ deploymentName: string }>();
@@ -203,6 +204,11 @@ const SessionPageContent: React.FC = () => {
                                 </span>
                             </div>
                         </div>
+
+                        {/* SFTP Credentials - Only show when ready and credentials exist */}
+                        {session.status === 'ready' && session.sftpCredentials && (
+                            <CredentialsDisplay credentials={session.sftpCredentials} />
+                        )}
 
                         <div className="flex gap-3">
                             <motion.button
