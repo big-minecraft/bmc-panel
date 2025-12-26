@@ -28,21 +28,14 @@ function ServerInstance() {
     useEffect(() => {
         if (!instance) return;
 
-        console.log('Setting up metrics listener for pod:', instance.podName);
-
         const metricsListener = new InstanceMetricsListener((data) => {
-            console.log('Metrics update for', data.podName, '- Current pod:', instance.podName);
             if (data.podName === instance.podName) {
-                console.log('Updating metrics state:', data.metrics);
                 setMetrics(data.metrics);
             }
         });
 
         addListener(metricsListener);
-        return () => {
-            console.log('Removing metrics listener for pod:', instance.podName);
-            removeListener(metricsListener);
-        };
+        return () => removeListener(metricsListener);
     }, [instance?.podName, addListener, removeListener]);
 
     const handleStateUpdate = (newState) => {
@@ -189,7 +182,7 @@ function ServerInstance() {
                                         <span className="text-2xl font-semibold text-gray-900">
                                             {metrics.cpu.usage.toFixed(2)}
                                         </span>
-                                        {(metrics.cpu.limit && metrics.cpu.limit > 0) && (
+                                        {(metrics.cpu.limit !== undefined && metrics.cpu.limit > 0) && (
                                             <>
                                                 <span className="text-gray-500 mx-1">/</span>
                                                 <span className="text-xl font-medium text-gray-700">
@@ -198,13 +191,13 @@ function ServerInstance() {
                                             </>
                                         )}
                                         <span className="text-gray-500 ml-1">vCPU</span>
-                                        {(metrics.cpu.limit && metrics.cpu.limit > 0) && (
+                                        {(metrics.cpu.limit !== undefined && metrics.cpu.limit > 0) && (
                                             <span className="text-sm text-gray-500 ml-2">
                                                 ({((metrics.cpu.usage / metrics.cpu.limit) * 100).toFixed(0)}%)
                                             </span>
                                         )}
                                     </div>
-                                    {(metrics.cpu.request && metrics.cpu.request > 0) && (
+                                    {(metrics.cpu.request !== undefined && metrics.cpu.request > 0) && (
                                         <span className="text-xs text-gray-500 mt-1">
                                             Guaranteed: {metrics.cpu.request.toFixed(2)} vCPU
                                         </span>
@@ -228,7 +221,7 @@ function ServerInstance() {
                                         <span className="text-2xl font-semibold text-gray-900">
                                             {metrics.memory.usage.toFixed(0)}
                                         </span>
-                                        {(metrics.memory.limit && metrics.memory.limit > 0) && (
+                                        {(metrics.memory.limit !== undefined && metrics.memory.limit > 0) && (
                                             <>
                                                 <span className="text-gray-500 mx-1">/</span>
                                                 <span className="text-xl font-medium text-gray-700">
@@ -237,13 +230,13 @@ function ServerInstance() {
                                             </>
                                         )}
                                         <span className="text-gray-500 ml-1">MB</span>
-                                        {(metrics.memory.limit && metrics.memory.limit > 0) && (
+                                        {(metrics.memory.limit !== undefined && metrics.memory.limit > 0) && (
                                             <span className="text-sm text-gray-500 ml-2">
                                                 ({((metrics.memory.usage / metrics.memory.limit) * 100).toFixed(0)}%)
                                             </span>
                                         )}
                                     </div>
-                                    {(metrics.memory.request && metrics.memory.request > 0) && (
+                                    {(metrics.memory.request !== undefined && metrics.memory.request > 0) && (
                                         <span className="text-xs text-gray-500 mt-1">
                                             Guaranteed: {metrics.memory.request.toFixed(0)} MB
                                         </span>

@@ -14,7 +14,7 @@ class InstanceMetricsService {
     private redisService: RedisService;
     private socketManager: SocketManager | null = null;
     private updateInterval: NodeJS.Timeout | null = null;
-    private readonly UPDATE_INTERVAL_MS = 15000; // 15 seconds
+    private readonly UPDATE_INTERVAL_MS = 5000; // 5 seconds
 
     private constructor() {
         this.prometheusService = PrometheusService.getInstance();
@@ -62,17 +62,13 @@ class InstanceMetricsService {
 
         try {
             const deployments = DeploymentManager.getDeployments();
-            console.log(`Broadcasting metrics for ${deployments.length} deployments`);
 
             for (const deployment of deployments) {
                 const instances = await this.redisService.getInstances(deployment);
-                console.log(`Deployment ${deployment.name}: ${instances.length} instances`);
 
                 for (const instance of instances) {
                     const metrics = await this.getInstanceMetrics(instance);
                     instance.metrics = metrics;
-
-                    console.log(`Broadcasting metrics for ${instance.podName}:`, JSON.stringify(metrics, null, 2));
 
                     this.socketManager.sendAll(
                         Enum.SocketMessageType.INSTANCE_METRICS_UPDATE,
@@ -129,12 +125,7 @@ class InstanceMetricsService {
 
     private async getCurrentCPU(podName: string, namespace: string): Promise<number> {
         try {
-            const cpuData = await this.prometheusService.getPodCPUUsageForGraph(podName, namespace);
-            if (cpuData.length > 0) {
-                const latestValue = cpuData[cpuData.length - 1].value;
-                return parseFloat(latestValue);
-            }
-            return 0;
+            return await this.prometheusService.getCurrentCPUUsage(podName, namespace);
         } catch (error) {
             console.error(`Error fetching CPU for ${podName}:`, error);
             return 0;
@@ -143,12 +134,7 @@ class InstanceMetricsService {
 
     private async getCurrentMemory(podName: string, namespace: string): Promise<number> {
         try {
-            const memoryData = await this.prometheusService.getPodMemoryUsageForGraph(podName, namespace);
-            if (memoryData.length > 0) {
-                const latestValue = memoryData[memoryData.length - 1].value;
-                return parseFloat(latestValue);
-            }
-            return 0;
+            return await this.prometheusService.getCurrentMemoryUsage(podName, namespace);
         } catch (error) {
             console.error(`Error fetching memory for ${podName}:`, error);
             return 0;

@@ -9,10 +9,13 @@ export interface TimeSeriesData {
 class PrometheusService {
     private static instance: PrometheusService;
     private readonly PROMETHEUS_API_URL: string;
+    private readonly PROMETHEUS_INSTANT_URL: string;
 
     private constructor() {
         let config = ConfigManager.getConfig();
-        this.PROMETHEUS_API_URL = `http://${config.prometheus.host}:${config.prometheus.port}/api/v1/query_range`;
+        const baseUrl = `http://${config.prometheus.host}:${config.prometheus.port}/api/v1`;
+        this.PROMETHEUS_API_URL = `${baseUrl}/query_range`;
+        this.PROMETHEUS_INSTANT_URL = `${baseUrl}/query`;
     }
 
     public static getInstance(): PrometheusService {
@@ -32,6 +35,22 @@ class PrometheusService {
         } catch (error) {
             console.log('error fetching metrics:', error.message);
             return [];
+        }
+    }
+
+    private async fetchInstantMetric(query: string): Promise<number> {
+        try {
+            const response = await axios.get(this.PROMETHEUS_INSTANT_URL, {
+                params: { query },
+            });
+            const result = response?.data?.data?.result;
+            if (result && result.length > 0 && result[0].value) {
+                return parseFloat(result[0].value[1]);
+            }
+            return 0;
+        } catch (error) {
+            console.log('error fetching instant metric:', error.message);
+            return 0;
         }
     }
 
@@ -77,6 +96,17 @@ class PrometheusService {
             timestamp: timestamp * 1000,
             value: (parseFloat(value) / (1024 * 1024)).toFixed(2),
         }));
+    }
+
+    public async getCurrentCPUUsage(podName: string, namespace: string = "default"): Promise<number> {
+        const query = `sum(irate(container_cpu_usage_seconds_total{pod="${podName}", namespace="${namespace}", container!=""}[2m]))`;
+        return await this.fetchInstantMetric(query);
+    }
+
+    public async getCurrentMemoryUsage(podName: string, namespace: string = "default"): Promise<number> {
+        const query = `sum(container_memory_working_set_bytes{pod="${podName}", namespace="${namespace}", container!=""})`;
+        const bytes = await this.fetchInstantMetric(query);
+        return bytes / (1024 * 1024); // Convert to MB
     }
 }
 
