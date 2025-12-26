@@ -7,18 +7,36 @@ import MetricsSection from "../components/MetricsSection";
 import axiosInstance from "../../../utils/auth.ts";
 import {Enum} from "../../../../../shared/enum/enum.ts";
 import {getInstanceStateDetails} from "../constants/instanceState.ts";
+import {useSocket} from "../../socket/context/SocketContext.tsx";
+import InstanceMetricsListener from "../listeners/InstanceMetricsListener.ts";
+import {InstanceResourceMetrics} from "../../../../../shared/model/instance.ts";
 
 function ServerInstance() {
     const {deploymentName, instanceUid} = useParams();
     const navigate = useNavigate();
+    const {addListener, removeListener} = useSocket();
     const [activeTab, setActiveTab] = useState('console');
     const [websocket, setWebsocket] = useState(null);
     const [instance, setInstance] = useState(null);
     const [instanceState, setInstanceState] = useState(null);
+    const [metrics, setMetrics] = useState<InstanceResourceMetrics | null>(null);
 
     useEffect(() => {
         fetchInstance();
     }, []);
+
+    useEffect(() => {
+        if (!instance) return;
+
+        const metricsListener = new InstanceMetricsListener((data) => {
+            if (data.podName === instance.podName) {
+                setMetrics(data.metrics);
+            }
+        });
+
+        addListener(metricsListener);
+        return () => removeListener(metricsListener);
+    }, [instance?.podName, addListener, removeListener]);
 
     const handleStateUpdate = (newState) => {
         setInstanceState(Enum.InstanceState.fromString(newState));
@@ -138,7 +156,7 @@ function ServerInstance() {
                                 </p>
                             </div>
                             <div className="flex items-center text-gray-600">
-                                <span className="font-medium mr-1.5">{instance.connections || 0}</span>
+                                <span className="font-medium mr-1.5">{metrics?.connections ?? 0}</span>
                                 <Users size={16}/>
                             </div>
                         </div>
@@ -149,7 +167,7 @@ function ServerInstance() {
                             <Activity size={20} className="mr-2"/>
                             <h3 className="font-medium">Uptime</h3>
                         </div>
-                        <p className="text-2xl font-semibold text-gray-900">{instance.uptime || '0s'}</p>
+                        <p className="text-2xl font-semibold text-gray-900">{metrics?.uptime || 'Unknown'}</p>
                     </div>
 
                     <div className="bg-white p-4 rounded-lg shadow-sm">
@@ -157,9 +175,37 @@ function ServerInstance() {
                             <Activity size={20} className="mr-2"/>
                             <h3 className="font-medium">CPU Usage</h3>
                         </div>
-                        <div className="flex items-baseline">
-                            <span className="text-2xl font-semibold text-gray-900">{instance.cpu || '0'}%</span>
-                            <span className="text-gray-500 ml-1">/ 100%</span>
+                        <div className="flex flex-col">
+                            {metrics?.cpu ? (
+                                <>
+                                    <div className="flex items-baseline">
+                                        <span className="text-2xl font-semibold text-gray-900">
+                                            {metrics.cpu.usage.toFixed(2)}
+                                        </span>
+                                        {metrics.cpu.limit && (
+                                            <>
+                                                <span className="text-gray-500 mx-1">/</span>
+                                                <span className="text-xl font-medium text-gray-700">
+                                                    {metrics.cpu.limit.toFixed(2)}
+                                                </span>
+                                            </>
+                                        )}
+                                        <span className="text-gray-500 ml-1">vCPU</span>
+                                        {metrics.cpu.limit && (
+                                            <span className="text-sm text-gray-500 ml-2">
+                                                ({((metrics.cpu.usage / metrics.cpu.limit) * 100).toFixed(0)}%)
+                                            </span>
+                                        )}
+                                    </div>
+                                    {metrics.cpu.request && (
+                                        <span className="text-xs text-gray-500 mt-1">
+                                            Guaranteed: {metrics.cpu.request.toFixed(2)} vCPU
+                                        </span>
+                                    )}
+                                </>
+                            ) : (
+                                <span className="text-2xl font-semibold text-gray-900">Loading...</span>
+                            )}
                         </div>
                     </div>
 
@@ -168,9 +214,37 @@ function ServerInstance() {
                             <Activity size={20} className="mr-2"/>
                             <h3 className="font-medium">Memory Usage</h3>
                         </div>
-                        <div className="flex items-baseline">
-                            <span className="text-2xl font-semibold text-gray-900">{instance.memory?.used || '0'}</span>
-                            <span className="text-gray-500 ml-1">/ {instance.memory?.total || '0'} GiB</span>
+                        <div className="flex flex-col">
+                            {metrics?.memory ? (
+                                <>
+                                    <div className="flex items-baseline">
+                                        <span className="text-2xl font-semibold text-gray-900">
+                                            {metrics.memory.usage.toFixed(0)}
+                                        </span>
+                                        {metrics.memory.limit && (
+                                            <>
+                                                <span className="text-gray-500 mx-1">/</span>
+                                                <span className="text-xl font-medium text-gray-700">
+                                                    {metrics.memory.limit.toFixed(0)}
+                                                </span>
+                                            </>
+                                        )}
+                                        <span className="text-gray-500 ml-1">MB</span>
+                                        {metrics.memory.limit && (
+                                            <span className="text-sm text-gray-500 ml-2">
+                                                ({((metrics.memory.usage / metrics.memory.limit) * 100).toFixed(0)}%)
+                                            </span>
+                                        )}
+                                    </div>
+                                    {metrics.memory.request && (
+                                        <span className="text-xs text-gray-500 mt-1">
+                                            Guaranteed: {metrics.memory.request.toFixed(0)} MB
+                                        </span>
+                                    )}
+                                </>
+                            ) : (
+                                <span className="text-2xl font-semibold text-gray-900">Loading...</span>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -187,6 +187,88 @@ class KubernetesClient {
             throw new Error(`Failed to delete pod: ${err.message}`);
         }
     }
+
+    public async getPodResourceSpecs(podName: string, namespace: string = 'default'): Promise<{
+        cpuRequest?: number;
+        cpuLimit?: number;
+        memoryRequest?: number;
+        memoryLimit?: number;
+        startTime?: Date;
+    }> {
+        this.ensureInitialized();
+
+        if (!this.coreV1Api) {
+            throw new Error('CoreV1Api is not initialized');
+        }
+
+        try {
+            const response = await this.coreV1Api.readNamespacedPod(podName, namespace);
+            const pod = response.body;
+
+            let cpuRequest: number | undefined;
+            let cpuLimit: number | undefined;
+            let memoryRequest: number | undefined;
+            let memoryLimit: number | undefined;
+
+            if (pod.spec?.containers) {
+                for (const container of pod.spec.containers) {
+                    const resources = container.resources;
+
+                    if (resources?.requests?.cpu) {
+                        cpuRequest = (cpuRequest || 0) + this.parseCPU(resources.requests.cpu);
+                    }
+                    if (resources?.limits?.cpu) {
+                        cpuLimit = (cpuLimit || 0) + this.parseCPU(resources.limits.cpu);
+                    }
+                    if (resources?.requests?.memory) {
+                        memoryRequest = (memoryRequest || 0) + this.parseMemory(resources.requests.memory);
+                    }
+                    if (resources?.limits?.memory) {
+                        memoryLimit = (memoryLimit || 0) + this.parseMemory(resources.limits.memory);
+                    }
+                }
+            }
+
+            return {
+                cpuRequest,
+                cpuLimit,
+                memoryRequest,
+                memoryLimit,
+                startTime: pod.status?.startTime ? new Date(pod.status.startTime) : undefined
+            };
+        } catch (error) {
+            const err = error instanceof Error ? error : new Error('Unknown error occurred');
+            console.error(`Error fetching pod resource specs for ${podName}:`, err);
+            throw new Error(`Failed to fetch pod resource specs: ${err.message}`);
+        }
+    }
+
+    private parseCPU(cpu: string): number {
+        if (cpu.endsWith('m')) {
+            return parseFloat(cpu.slice(0, -1)) / 1000;
+        }
+        return parseFloat(cpu);
+    }
+
+    private parseMemory(memory: string): number {
+        const units: { [key: string]: number } = {
+            'Ki': 1024,
+            'Mi': 1024 * 1024,
+            'Gi': 1024 * 1024 * 1024,
+            'K': 1000,
+            'M': 1000 * 1000,
+            'G': 1000 * 1000 * 1000,
+        };
+
+        for (const [suffix, multiplier] of Object.entries(units)) {
+            if (memory.endsWith(suffix)) {
+                const value = parseFloat(memory.slice(0, -suffix.length));
+                return (value * multiplier) / (1024 * 1024);
+            }
+        }
+
+        return parseFloat(memory) / (1024 * 1024);
+    }
 }
 
 export default KubernetesClient;

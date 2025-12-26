@@ -21,6 +21,7 @@ import FileSessionService from "./services/fileSessionService";
 import PVCFileOperationsService from "./services/pvcFileOperationsService";
 import SocketManager from "./features/socket/controllers/socket-manager";
 import StorageInitService from "./services/storageInitService";
+import InstanceMetricsService from "./services/instanceMetricsService";
 
 class App {
     private readonly app: Application;
@@ -71,6 +72,12 @@ class App {
 
         this.socketManager = new SocketManager(this.server);
         PVCFileOperationsService.getInstance().setSocketManager(this.socketManager);
+
+        // Initialize instance metrics broadcasting
+        const metricsService = InstanceMetricsService.getInstance();
+        metricsService.setSocketManager(this.socketManager);
+        metricsService.startBroadcasting();
+
         setupWebSocket(this.server);
     }
 
