@@ -182,7 +182,7 @@ function ServerInstance() {
                                         <span className="text-2xl font-semibold text-gray-900">
                                             {metrics.cpu.usage.toFixed(2)}
                                         </span>
-                                        {metrics.cpu.limit && (
+                                        {(metrics.cpu.limit && metrics.cpu.limit > 0) && (
                                             <>
                                                 <span className="text-gray-500 mx-1">/</span>
                                                 <span className="text-xl font-medium text-gray-700">
@@ -191,13 +191,13 @@ function ServerInstance() {
                                             </>
                                         )}
                                         <span className="text-gray-500 ml-1">vCPU</span>
-                                        {metrics.cpu.limit && (
+                                        {(metrics.cpu.limit && metrics.cpu.limit > 0) && (
                                             <span className="text-sm text-gray-500 ml-2">
                                                 ({((metrics.cpu.usage / metrics.cpu.limit) * 100).toFixed(0)}%)
                                             </span>
                                         )}
                                     </div>
-                                    {metrics.cpu.request && (
+                                    {(metrics.cpu.request && metrics.cpu.request > 0) && (
                                         <span className="text-xs text-gray-500 mt-1">
                                             Guaranteed: {metrics.cpu.request.toFixed(2)} vCPU
                                         </span>
@@ -221,7 +221,7 @@ function ServerInstance() {
                                         <span className="text-2xl font-semibold text-gray-900">
                                             {metrics.memory.usage.toFixed(0)}
                                         </span>
-                                        {metrics.memory.limit && (
+                                        {(metrics.memory.limit && metrics.memory.limit > 0) && (
                                             <>
                                                 <span className="text-gray-500 mx-1">/</span>
                                                 <span className="text-xl font-medium text-gray-700">
@@ -230,13 +230,13 @@ function ServerInstance() {
                                             </>
                                         )}
                                         <span className="text-gray-500 ml-1">MB</span>
-                                        {metrics.memory.limit && (
+                                        {(metrics.memory.limit && metrics.memory.limit > 0) && (
                                             <span className="text-sm text-gray-500 ml-2">
                                                 ({((metrics.memory.usage / metrics.memory.limit) * 100).toFixed(0)}%)
                                             </span>
                                         )}
                                     </div>
-                                    {metrics.memory.request && (
+                                    {(metrics.memory.request && metrics.memory.request > 0) && (
                                         <span className="text-xs text-gray-500 mt-1">
                                             Guaranteed: {metrics.memory.request.toFixed(0)} MB
                                         </span>

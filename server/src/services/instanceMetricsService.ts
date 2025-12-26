@@ -33,14 +33,14 @@ class InstanceMetricsService {
         this.socketManager = socketManager;
     }
 
-    public startBroadcasting(): void {
+    public async startBroadcasting(): Promise<void> {
         if (this.updateInterval) {
             console.log('Instance metrics broadcasting already started');
             return;
         }
 
         console.log('Starting instance metrics broadcasting...');
-        this.broadcastMetrics();
+        await this.broadcastMetrics();
         this.updateInterval = setInterval(() => {
             this.broadcastMetrics();
         }, this.UPDATE_INTERVAL_MS);
