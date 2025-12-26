@@ -9,17 +9,13 @@ class DatabaseService {
         let config = ConfigManager.getConfig();
 
         this.pool = mariadb.createPool({
-            host: config.mariadb.host,
-            port: config.mariadb.port,
-            user: config.mariadb.username,
-            password: config.mariadb.password,
-            database: config.mariadb.database,
+            host: config.mariaDB.host,
+            port: config.mariaDB.port,
+            user: config.mariaDB.username,
+            password: config.mariaDB.initPassword,
+            database: config.mariaDB.database,
             connectionLimit: 5
         });
-
-        console.log("------------")
-        console.log(config.mariadb)
-        console.log("------------")
 
         this.databaseInit();
     }
@@ -230,7 +226,7 @@ class DatabaseService {
     }
 
     public async isCodeExpired(code: string): Promise<boolean> {
-        let expiryDays = ConfigManager.getInt('invite-code-expiry-days');
+        let expiryDays = ConfigManager.getConfig().panel.inviteCodeExpiryDays;
 
         let conn;
         try {
@@ -307,7 +303,7 @@ class DatabaseService {
         let inviteCodes = await this.getInviteCodes();
 
         if (users.length === 0 && inviteCodes.length === 0) {
-            let initialCode = process.env.INITIAL_INVITE_CODE;
+            let initialCode = ConfigManager.getConfig().panel.initialInviteCode;
 
             if (!initialCode) {
                 console.error('No initial invite code found in environment variables');

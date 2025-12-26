@@ -16,7 +16,7 @@ class InviteCodeService {
     }
 
     async verifyInvite(code: string): Promise<string> {
-        const environment = ConfigManager.getString("environment");
+        const environment = ConfigManager.getConfig().environment;
 
         if (environment === 'production') {
             if (await DatabaseService.getInstance().isCodeExpired(code)) throw new Error('Invite code expired');

@@ -33,11 +33,11 @@ class MongodbService {
     private constructor() {
         let config = ConfigManager.getConfig();
 
-        const adminUsername = config.mongodb.username;
-        const adminPassword = config.mongodb.password;
-        const host = config.mongodb.host;
-        const port = config.mongodb.port;
-        const defaultDatabase = config.mongodb.database;
+        const adminUsername = config.mongoDB.username;
+        const adminPassword = config.mongoDB.initPassword;
+        const host = config.mongoDB.host;
+        const port = config.mongoDB.port;
+        const defaultDatabase = config.mongoDB.database;
 
         this.uri = `mongodb://${adminUsername}:${adminPassword}@${host}:${port}/${defaultDatabase}`;
         this.client = new MongoClient(this.uri);
@@ -157,7 +157,7 @@ class MongodbService {
                         credentials: creds ? {
                             username: `${db.name}_user`,
                             password: creds.password,
-                            host: ConfigManager.getString('panel-host'),
+                            host: ConfigManager.getConfig().panel.panelHost,
                             port: 30017
                         } : null
                     };

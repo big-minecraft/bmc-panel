@@ -6,13 +6,17 @@ import { RedisManager } from './redisService';
 import DeploymentManager from '../features/deployments/controllers/deploymentManager';
 import { PulumiDeploymentService } from './pulumi/pulumiDeploymentService';
 import Redis from 'ioredis';
+import ConfigManager from '../features/config/controllers/configManager';
 
 export default class FileSessionService {
     private static instance: FileSessionService;
     private timeoutChecker: NodeJS.Timeout | null = null;
-    private readonly TIMEOUT_MINUTES = 15;
     private readonly REDIS_TTL_SECONDS = 30 * 60; // 30 minutes
     private readonly POD_NAMESPACE = 'default';
+
+    private get TIMEOUT_MINUTES(): number {
+        return ConfigManager.getConfig().fileEditSession?.timeoutMinutes || 15;
+    }
 
     private constructor() {
         console.log('FileSessionService initialized');

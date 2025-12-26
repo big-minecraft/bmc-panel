@@ -22,7 +22,7 @@ export class StorageInitService {
     }
 
     private async initializeStorage(): Promise<void> {
-        const storagePath = ConfigManager.getConfig()['storage-path'];
+        const storagePath = ConfigManager.getConfig().panel.storagePath;
 
         console.log('Initializing storage at:', storagePath);
 

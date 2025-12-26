@@ -1,53 +1,70 @@
-interface RedisConfig {
-    host: string;
-    port: number;
-}
+export default interface AppConfig {
+    environment : string;
 
-interface KubernetesConfig {
-    configPath: string;
-}
+    panel: {
+        initialInviteCode: string;
+        panelSecret: string;
+        storagePath: string;
+        panelHost: string;
+        k8sDashboardHost: string;
+        inviteCodeExpiryDays: number;
+    };
 
-interface MariaDBConfig {
-    host: string;
-    port: number;
-    username: string;
-    password: string;
-    database: string;
-}
+    loadBalancer: {
+        type: string;
+        entrypointIP?: string;
+    };
 
-interface MongoDBConfig {
-    host: string;
-    port: number;
-    username: string;
-    password: string;
-    database: string;
-}
+    ingress: {
+        ingressClass: string;
+        panelDomain: string;
+    };
 
-interface PrometheusConfig {
-    host: string;
-    port: number;
-}
+    storage: {
+        storageClass: string;
+        reclaimPolicy: string;
+        volumeSize: {
+            persistent: string;
+            scalable: string;
+            proxy: string;
+            process: string;
+            manifests: string;
+            mariaDB: string;
+            mongoDB: string;
+        };
+    };
 
-interface FileEditSessionConfig {
-    timeoutMinutes: number;
-    maxSessionsPerDeployment: number;
-    maxSessionsPerUser: number;
-    podImage: string;
-    podNamespace: string;
-}
+    redis: {
+        host : string;
+        port : number;
+    };
+    mariaDB: {
+        host : string;
+        port : number;
+        username : string;
+        initPassword : string;
+        database : string;
+    };
+    mongoDB: {
+        host : string;
+        port : number;
+        username : string;
+        initPassword: string;
+        database : string;
+    };
+    prometheus : {
+        host: string;
+        port: number;
+    };
 
-export default interface AppConfig extends Record<string, unknown> {
-    'environment': string;
-    'panel-host': string;
-    'panel-secret': string;
-    'k8s-dashboard-host': string;
-    'storage-path': string;
-    'token-secret': string;
-    'invite-code-expiry-days': number;
-    redis: RedisConfig;
-    k8s: KubernetesConfig;
-    mariadb: MariaDBConfig;
-    mongodb: MongoDBConfig;
-    prometheus: PrometheusConfig;
-    fileEditSession?: FileEditSessionConfig;
+    k8s : {
+        configPath: string;
+    };
+
+    fileEditSession : {
+        timeoutMinutes: number;
+    };
+    sftp: {
+        password: string;
+    };
 }

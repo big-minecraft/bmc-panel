@@ -15,11 +15,11 @@ export default class DeploymentManifestManager {
         name: string,
         type: DeploymentType
     ): Promise<string> {
-        let baseDir: string = path.join(ConfigManager.getString("storage-path"), "manifests");
+        let baseDir: string = path.join(ConfigManager.getConfig().panel.storagePath, "manifests");
 
         const workingDir = path.join(baseDir, type.identifier);
         const filePath = path.join(workingDir, `${name}.yaml`);
-        const defaultsDir = path.join(ConfigManager.getString("storage-path"), "default-values");
+        const defaultsDir = path.join(ConfigManager.getConfig().panel.storagePath, "default-values");
         const defaultFile = path.join(defaultsDir, `${type.identifier}.yaml`);
 
         if (await Util.fileExists(filePath)) throw new Error('Deployment already exists');
@@ -55,7 +55,7 @@ export default class DeploymentManifestManager {
     }
 
     public static async getAllManifests(): Promise<Manifest[]> {
-        let baseDir: string = path.join(ConfigManager.getString("storage-path"), "manifests");
+        let baseDir: string = path.join(ConfigManager.getConfig().panel.storagePath, "manifests");
         if (!existsSync(baseDir)) mkdirSync(baseDir);
 
         const manifests: Manifest[] = [];

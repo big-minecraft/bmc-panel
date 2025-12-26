@@ -1,0 +1,43 @@
+{
+  "environment": "development",
+
+  "panel": {
+    "initialInviteCode": "your-invite-code",
+    "panelSecret": "your-secret-key",
+    "storagePath": "/data",
+    "panelHost": "0.0.0.0",
+    "k8sDashboardHost": "0.0.0.0",
+    "inviteCodeExpiryDays": 7
+  },
+  "redis": {
+    "host": "redis-service",
+    "port": 6379
+  },
+  "mariaDB": {
+    "host": "mariadb-service",
+    "port": 3306,
+    "username": "root",
+    "initPassword": "your-mariadb-password",
+    "database": "bmc"
+  },
+  "mongoDB": {
+    "host": "mongodb-service",
+    "port": 27017,
+    "username": "admin",
+    "initPassword": "your-mongodb-password",
+    "database": "admin"
+  },
+  "prometheus": {
+    "host": "prometheus-service",
+    "port": 9090
+  },
+  "k8s": {
+    "configPath": "/etc/rancher/k3s/k3s.yaml"
+  },
+  "fileEditSession": {
+    "timeoutMinutes": 15
+  },
+  "sftp": {
+    "password": "your-sftp-password"
+  }
+}

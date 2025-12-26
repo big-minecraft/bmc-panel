@@ -3,9 +3,6 @@ import {Server as HttpServer} from 'http';
 import cors from 'cors';
 import path, {resolve} from 'path';
 
-// import files that should be included in build
-import '../config.example.json';
-
 // Import local modules
 import {setupWebSocket} from './services/websocketService';
 import ApiManager from "./features/api/controllers/apiManager";

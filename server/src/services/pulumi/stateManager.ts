@@ -9,7 +9,7 @@ export class StateManager {
     private readonly config: PulumiStackConfig;
 
     private constructor() {
-        const storagePath = ConfigManager.getString("storage-path");
+        const storagePath = ConfigManager.getConfig().panel.storagePath;
         const statePath = path.join(storagePath, "pulumi-state");
 
         this.config = {

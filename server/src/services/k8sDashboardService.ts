@@ -92,7 +92,7 @@ class K8sDashboardTokenManager {
     }
 
     public getK8sDashboardHost() {
-        return ConfigManager.getString("k8s-dashboard-host");
+        return ConfigManager.getConfig().panel.k8sDashboardHost;
     }
 }
 

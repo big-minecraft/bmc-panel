@@ -115,7 +115,7 @@ class AuthService {
         const payload = {username: username};
         const options = {expiresIn: "7d"};
 
-        return jwt.sign(payload, ConfigManager.getString("panel-secret"), options);
+        return jwt.sign(payload, ConfigManager.getConfig().panel.panelSecret, options);
     }
 
     public static getInstance(): AuthService {

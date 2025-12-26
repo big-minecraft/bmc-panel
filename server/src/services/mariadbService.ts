@@ -158,7 +158,7 @@ class MariadbService {
                 credentials: {
                     username: `${db.name}_user`,
                     password: db.password,
-                    host: ConfigManager.getString('panel-host'),
+                    host: ConfigManager.getConfig().panel.panelHost,
                     port: 30036
                 }
             }));

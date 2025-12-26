@@ -1,71 +1,63 @@
-import {join} from "path";
 import AppConfig from "../models/appConfig";
-import {existsSync} from "fs";
 
 let configManager: ConfigManager;
-
-const CONFIG_PATH = join(__dirname, '../../../../config.json');
-const EXAMPLE_CONFIG_PATH = join(__dirname, '../../../../config.example.json');
-
 
 class ConfigManager {
     private readonly config: AppConfig;
 
     constructor() {
         console.log('Loading configuration...');
-        
-        let configPath = CONFIG_PATH;
-        if (existsSync(CONFIG_PATH)) {
-            console.log('Loading local development configuration');
-            configPath = CONFIG_PATH;
-        } else if (existsSync(EXAMPLE_CONFIG_PATH)) {
-            console.log('Loading production configuration');
-            configPath = EXAMPLE_CONFIG_PATH;
-        } else {
-            console.error('No configuration file found. Cannot proceed with configuration setup.');
+
+        if (!process.env.GLOBAL_VALUES_JSON) {
+            console.error('GLOBAL_VALUES_JSON environment variable is required');
+            console.error('Please set GLOBAL_VALUES_JSON with your configuration');
             process.exit(1);
         }
 
-        this.config = require(configPath) as AppConfig;
-
-        this.addEnvVariables();
+        this.config = this.parseGlobalValuesJson();
+        console.log('[ConfigManager] Configuration loaded successfully from GLOBAL_VALUES_JSON');
     }
 
-    public addEnvVariables(): void {
-        //These values are required for the application to run both on production and local development
-        if (process.env.STORAGE_PATH) this.config["storage-path"] = process.env.STORAGE_PATH;
-        if (process.env.MARIADB_PASSWORD) this.config.mariadb.password = process.env.MARIADB_PASSWORD;
-        if (process.env.MONGO_INITDB_ROOT_PASSWORD) this.config.mongodb.password = process.env.MONGO_INITDB_ROOT_PASSWORD;
-        if (process.env.PANEL_HOST) this.config['panel-host'] = process.env.PANEL_HOST;
-        if (process.env.PANEL_SECRET) this.config['panel-secret'] = process.env.PANEL_SECRET;
-        if (process.env.K8S_DASHBOARD_HOST) this.config['k8s-dashboard-host'] = process.env.K8S_DASHBOARD_HOST;
-        if (process.env.ENVIRONMENT) this.config.environment = process.env.ENVIRONMENT;
+    private parseGlobalValuesJson(): AppConfig {
+        try {
+            const config: AppConfig = JSON.parse(process.env.GLOBAL_VALUES_JSON!);
 
-        //These values only need to be modified for local development
-        if (process.env.MONGODB_HOST) this.config.mongodb.host = process.env.MONGODB_HOST;
-        if (process.env.MONGODB_PORT) this.config.mongodb.port = parseInt(process.env.MONGODB_PORT);
-        if (process.env.PROMETHEUS_HOST) this.config.prometheus.host = process.env.PROMETHEUS_HOST;
-        if (process.env.PROMETHEUS_PORT) this.config.prometheus.port = parseInt(process.env.PROMETHEUS_PORT);
-        if (process.env.REDIS_HOST) this.config.redis.host = process.env.REDIS_HOST;
-        if (process.env.REDIS_PORT) this.config.redis.port = parseInt(process.env.REDIS_PORT);
-        if (process.env.MARIADB_HOST) this.config.mariadb.host = process.env.MARIADB_HOST;
-        if (process.env.MARIADB_PORT) this.config.mariadb.port = parseInt(process.env.MARIADB_PORT);
-    };
+            return {
+                ...config,
+                panel: {
+                    initialInviteCode: config.panel.initialInviteCode,
+                    storagePath: config.panel.storagePath || '/data',
+                    panelHost: config.panel.panelHost || '0.0.0.0',
+                    panelSecret: config.panel.panelSecret,
+                    k8sDashboardHost: config.panel.k8sDashboardHost || '0.0.0.0',
+                    inviteCodeExpiryDays: config.panel.inviteCodeExpiryDays || 7,
+                },
+                k8s: config.k8s || { configPath: '/etc/rancher/k3s/k3s.yaml' },
+                mariaDB: {
+                    initPassword: config.mariaDB.initPassword,
+                    host: config.mariaDB?.host || 'mariadb-service',
+                    port: config.mariaDB?.port || 3306,
+                    username: config.mariaDB?.username || 'root',
+                    database: config.mariaDB?.database || 'bmc'
+                },
+                mongoDB: {
+                    initPassword: config.mongoDB.initPassword,
+                    host: config.mongoDB?.host || 'mongodb-service',
+                    port: config.mongoDB?.port || 27017,
+                    username: config.mongoDB?.username || 'admin',
+                    database: config.mongoDB?.database || 'admin'
+                },
+                prometheus: config.prometheus || { host: 'prometheus-service', port: 9090 }
+            };
+        } catch (error) {
+            console.error('[ConfigManager] Failed to parse GLOBAL_VALUES_JSON:', error);
+            console.error('Please ensure GLOBAL_VALUES_JSON is valid JSON');
+            process.exit(1);
+        }
+    }
 
-    public static getConfig() {
+    public static getConfig(): AppConfig {
         return configManager.config;
-    }
-
-    public static get(key: keyof AppConfig) {
-        return configManager.config[key];
-    }
-
-    public static getString(key: keyof AppConfig) {
-        return configManager.config[key] as string;
-    }
-
-    public static getInt(key: keyof AppConfig) {
-        return configManager.config[key] as number;
     }
 
     public static init() {

@@ -7,18 +7,19 @@ import { Manifest } from "../../features/deployments/models/types";
 import { DeploymentType } from "../../../../shared/enum/enums/deployment-type";
 import { Enum } from "../../../../shared/enum/enum";
 import { StateManager } from "./stateManager";
-import { GlobalValues, DeploymentResult } from "./types";
+import { DeploymentResult } from "./types";
+import AppConfig from "../../features/config/models/appConfig";
 
 export class PulumiDeploymentService {
     private static instance: PulumiDeploymentService | null = null;
     private stateManager: StateManager;
-    private globalValues: GlobalValues | null = null;
+    private globalValues: AppConfig | null = null;
     private readonly storagePath: string;
     private readonly chartBasePath: string;
 
     private constructor() {
         this.stateManager = StateManager.getInstance();
-        this.storagePath = ConfigManager.getString("storage-path");
+        this.storagePath = ConfigManager.getConfig().panel.storagePath;
         this.chartBasePath = path.join(this.storagePath, "chart-templates");
     }
 
@@ -191,24 +192,7 @@ export class PulumiDeploymentService {
     }
 
     private loadGlobalValues(): void {
-        let values: GlobalValues = null;
-
-        try {
-            const globalValuesJson = process.env.GLOBAL_VALUES_JSON;
-            if (globalValuesJson) {
-                const globalValues = JSON.parse(globalValuesJson) as GlobalValues;
-                console.log("[GlobalValuesLoader] Loaded global values from environment");
-                values = globalValues;
-            }
-        } catch (error) {
-            console.error("[GlobalValuesLoader] Failed to parse GLOBAL_VALUES_JSON:", error);
-            return;
-        }
-
-        if (values) {
-            this.globalValues = values;
-            return;
-        }
+        this.globalValues = ConfigManager.getConfig();
     }
 
     private groupManifestsByType(manifests: Manifest[]): Record<string, Manifest[]> {
@@ -321,6 +305,8 @@ export class PulumiDeploymentService {
         try {
             console.log(`[Pulumi] Creating file session: ${sessionId} for deployment ${deploymentName}`);
 
+            this.loadGlobalValues();
+
             const program = this.createFileSessionProgram(
                 sessionId,
                 sessionPodName,
@@ -431,8 +417,8 @@ export class PulumiDeploymentService {
                 },
                 sftp: {
                     podName: sftpPodName,
-                    username: "user",
-                    password: "password",
+                    username: `${deploymentName}_user`,
+                    password: this.globalValues?.sftp?.password || "password",
                     port: 22,
                     rootPath: "/",
                     pvcName: pvcName,
