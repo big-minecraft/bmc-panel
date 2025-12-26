@@ -62,13 +62,17 @@ class InstanceMetricsService {
 
         try {
             const deployments = DeploymentManager.getDeployments();
+            console.log(`Broadcasting metrics for ${deployments.length} deployments`);
 
             for (const deployment of deployments) {
                 const instances = await this.redisService.getInstances(deployment);
+                console.log(`Deployment ${deployment.name}: ${instances.length} instances`);
 
                 for (const instance of instances) {
                     const metrics = await this.getInstanceMetrics(instance);
                     instance.metrics = metrics;
+
+                    console.log(`Broadcasting metrics for ${instance.podName}:`, JSON.stringify(metrics, null, 2));
 
                     this.socketManager.sendAll(
                         Enum.SocketMessageType.INSTANCE_METRICS_UPDATE,
