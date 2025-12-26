@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Play, Square, Clock, Activity, Server } from 'lucide-react';
 import { FileEditSession } from '../../types/fileTypes';
 import { useFileSessions } from '../../hooks/useFileSessions';
+import CredentialsDisplay from './CredentialsDisplay';
 
 interface SessionCardProps {
     session: FileEditSession;
@@ -102,6 +103,11 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onSessionEnded }) =>
                         </span>
                     </div>
                 </div>
+
+                {/* SFTP Credentials - Only show when ready and credentials exist */}
+                {session.status === 'ready' && session.sftpCredentials && (
+                    <CredentialsDisplay credentials={session.sftpCredentials} />
+                )}
 
                 {/* Actions */}
                 <div className="flex gap-2">

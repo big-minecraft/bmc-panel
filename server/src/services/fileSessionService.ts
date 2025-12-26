@@ -177,7 +177,7 @@ export default class FileSessionService {
                 return null;
             }
 
-            return {
+            const session: FileEditSession = {
                 id: sessionData.id,
                 deploymentName: sessionData.deploymentName,
                 podName: sessionData.podName,
@@ -188,6 +188,13 @@ export default class FileSessionService {
                 status: sessionData.status as FileEditSession['status'],
                 namespace: sessionData.namespace,
             };
+
+            // Add SFTP credentials if session is ready
+            if (session.status === 'ready') {
+                session.sftpCredentials = this.assembleSftpCredentials(session.deploymentName);
+            }
+
+            return session;
         } finally {
             await RedisManager.getInstance().redisPool.release(redis);
         }
@@ -343,6 +350,30 @@ export default class FileSessionService {
     }
 
     // Private helper methods
+
+    private assembleSftpCredentials(deploymentName: string): { host: string; port: number; username: string; password: string } | undefined {
+        try {
+            const deployment = DeploymentManager.getDeploymentByName(deploymentName);
+            if (!deployment) return undefined;
+
+            const sftpPort = deployment.getSftpPort();
+            if (!sftpPort) return undefined;
+
+            const config = ConfigManager.getConfig();
+            const host = config.panel.panelHost;
+            if (!host) return undefined;
+
+            return {
+                host,
+                port: sftpPort,
+                username: `${deploymentName}_user`,
+                password: config.sftp.password
+            };
+        } catch (error) {
+            console.error('Error assembling SFTP credentials:', error);
+            return undefined;
+        }
+    }
 
     private async storeSession(session: FileEditSession): Promise<void> {
         const redis: Redis = await RedisManager.getInstance().redisPool.acquire();

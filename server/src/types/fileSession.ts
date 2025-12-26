@@ -8,6 +8,12 @@ export interface FileEditSession {
     lastActivity: number;
     status: 'creating' | 'ready' | 'error' | 'terminating';
     namespace: string;
+    sftpCredentials?: {
+        host: string;
+        port: number;
+        username: string;
+        password: string;
+    };
 }
 
 export interface FileMetadata {
