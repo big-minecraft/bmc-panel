@@ -8,7 +8,7 @@ export interface TimeSeriesData {
 
 class PrometheusService {
     private static instance: PrometheusService;
-    private PROMETHEUS_API_URL: string;
+    private readonly PROMETHEUS_API_URL: string;
 
     private constructor() {
         let config = ConfigManager.getConfig();
@@ -35,70 +35,48 @@ class PrometheusService {
         }
     }
 
-    public async getPodCPUUsageForGraph(podName: string): Promise<TimeSeriesData[]> {
-        const query = `rate(container_cpu_usage_seconds_total{pod="${podName}"}[1m]) * 1000`;
+    public async getPodCPUUsageForGraph(podName: string, namespace: string): Promise<TimeSeriesData[]> {
+        const query = `sum(irate(container_cpu_usage_seconds_total{pod="${podName}", namespace="${namespace}", container!=""}[2m]))`;
+
         const endTime = Math.floor(Date.now() / 1000);
         const startTime = endTime - 60 * 5;
         const step = 15;
 
         const results = await this.fetchMetrics(query, startTime, endTime, step);
 
-        if (results.length === 0) {
-            console.log(`no cpu data found for pod: ${podName}`);
+        if (!results || results.length === 0) {
+            console.log(`no cpu data found for pod: ${podName} in namespace: ${namespace}`);
             return [];
         }
 
-        const timeSeriesMap = new Map<number, number>();
+        const podData = results[0];
 
-        results.forEach((result: any) => {
-            if (result.values) {
-                result.values.forEach(([timestamp, value]: [number, string]) => {
-                    const ts = timestamp * 1000; // Convert to milliseconds
-                    const currentValue = timeSeriesMap.get(ts) || 0;
-                    timeSeriesMap.set(ts, currentValue + (parseFloat(value) || 0));
-                });
-            }
-        });
-
-        return Array.from(timeSeriesMap.entries())
-            .sort(([a], [b]) => a - b)
-            .map(([timestamp, value]) => ({
-                timestamp,
-                value: value.toFixed(3),
-            }));
+        return podData.values.map(([timestamp, value]: [number, string]) => ({
+            timestamp: timestamp * 1000,
+            value: parseFloat(value).toFixed(3),
+        }));
     }
 
-    public async getPodMemoryUsageForGraph(podName: string): Promise<TimeSeriesData[]> {
-        const query = `container_memory_working_set_bytes{pod="${podName}"}`;
+    public async getPodMemoryUsageForGraph(podName: string, namespace: string): Promise<TimeSeriesData[]> {
+        const query = `sum(container_memory_working_set_bytes{pod="${podName}", namespace="${namespace}", container!=""})`;
+
         const endTime = Math.floor(Date.now() / 1000);
         const startTime = endTime - 60 * 5;
         const step = 15;
 
         const results = await this.fetchMetrics(query, startTime, endTime, step);
 
-        if (results.length === 0) {
-            console.log(`no memory data found for pod: ${podName}`);
+        if (!results || results.length === 0) {
+            console.log(`no memory data found for pod: ${podName} in namespace: ${namespace}`);
             return [];
         }
 
-        const timeSeriesMap = new Map<number, number>();
+        const podData = results[0];
 
-        results.forEach((result: any) => {
-            if (result.values) {
-                result.values.forEach(([timestamp, value]: [number, string]) => {
-                    const ts = timestamp * 1000; // Convert to milliseconds
-                    const currentValue = timeSeriesMap.get(ts) || 0;
-                    timeSeriesMap.set(ts, currentValue + (parseFloat(value) || 0));
-                });
-            }
-        });
-
-        return Array.from(timeSeriesMap.entries())
-            .sort(([a], [b]) => a - b)
-            .map(([timestamp, value]) => ({
-                timestamp,
-                value: (value / (1024 * 1024)).toFixed(2),
-            }));
+        return podData.values.map(([timestamp, value]: [number, string]) => ({
+            timestamp: timestamp * 1000,
+            value: (parseFloat(value) / (1024 * 1024)).toFixed(2),
+        }));
     }
 }
 
