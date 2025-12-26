@@ -418,9 +418,8 @@ export class PulumiDeploymentService {
                 sftp: {
                     podName: sftpPodName,
                     username: `${deploymentName}_user`,
-                    password: this.globalValues?.sftp?.password || "password",
+                    password: this.globalValues?.sftp?.password,
                     port: 22,
-                    rootPath: "/",
                     pvcName: pvcName,
                     nodePort: sftpPort
                 }
