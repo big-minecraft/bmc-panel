@@ -26,6 +26,7 @@ export default class InstanceMetricsListener extends SocketListener<InstanceMetr
     }
 
     onMessage(message: InstanceMetricsUpdate): void {
+        console.log('Received instance metrics update:', message);
         this.callback(message);
     }
 }

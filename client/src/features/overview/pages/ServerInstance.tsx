@@ -28,14 +28,21 @@ function ServerInstance() {
     useEffect(() => {
         if (!instance) return;
 
+        console.log('Setting up metrics listener for pod:', instance.podName);
+
         const metricsListener = new InstanceMetricsListener((data) => {
+            console.log('Metrics update for', data.podName, '- Current pod:', instance.podName);
             if (data.podName === instance.podName) {
+                console.log('Updating metrics state:', data.metrics);
                 setMetrics(data.metrics);
             }
         });
 
         addListener(metricsListener);
-        return () => removeListener(metricsListener);
+        return () => {
+            console.log('Removing metrics listener for pod:', instance.podName);
+            removeListener(metricsListener);
+        };
     }, [instance?.podName, addListener, removeListener]);
 
     const handleStateUpdate = (newState) => {
