@@ -420,7 +420,7 @@ export class PulumiDeploymentService {
                     username: `${deploymentName}_user`,
                     password: this.globalValues?.sftp?.password || "password",
                     port: 22,
-                    rootPath: "/",
+                    rootPath: "/data",
                     pvcName: pvcName,
                     nodePort: sftpPort
                 }

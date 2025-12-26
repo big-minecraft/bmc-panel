@@ -6,24 +6,6 @@ import configManager from "../features/config/controllers/configManager";
 import KubernetesService from "../services/kubernetesService";
 import DatabaseService from "../services/databaseService";
 
-export const hasValidBasicAuth = async (token: string): Promise<boolean> => {
-    try {
-        await verifyTokenWithBasicAuth(token);
-        return true;
-    } catch (err) {
-        return false;
-    }
-};
-
-export const hasValidAdminAuth = async (token: string): Promise<boolean> => {
-    try {
-        await verifyTokenWithAdminAuth(token);
-        return true;
-    } catch (err) {
-        return false;
-    }
-};
-
 export const verifyTokenWithBasicAuth = async (token: string): Promise<any> => {
     const decoded = jwt.verify(token, ConfigManager.getConfig().panel.panelSecret);
     const user = decoded.username;
