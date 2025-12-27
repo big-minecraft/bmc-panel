@@ -10,7 +10,7 @@ export interface InstanceResourceMetrics {
         limit?: number;         // Memory limit in MB
     };
     uptime: string;            // Uptime duration string
-    connections: number;       // Number of active connections
+    players: number;       // Number of active connections
 }
 
 export class Instance {

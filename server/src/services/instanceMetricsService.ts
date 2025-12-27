@@ -1,11 +1,13 @@
 import PrometheusService from './prometheusService';
 import KubernetesClient from './kubernetesService';
 import RedisService from './redisService';
-import { getPodConnections } from './podService';
 import SocketManager from '../features/socket/controllers/socket-manager';
 import DeploymentManager from '../features/deployments/controllers/deploymentManager';
+import Deployment from '../features/deployments/models/deployment';
+
 import { Instance, InstanceResourceMetrics } from '../../../shared/model/instance';
 import { Enum } from '../../../shared/enum/enum';
+import {MinecraftInstance} from "../../../shared/model/minecraft-instance";
 
 class InstanceMetricsService {
     private static instance: InstanceMetricsService;
@@ -14,7 +16,7 @@ class InstanceMetricsService {
     private redisService: RedisService;
     private socketManager: SocketManager | null = null;
     private updateInterval: NodeJS.Timeout | null = null;
-    private readonly UPDATE_INTERVAL_MS = 5000; // 5 seconds
+    private readonly UPDATE_INTERVAL_MS = 5000;
 
     private constructor() {
         this.prometheusService = PrometheusService.getInstance();
@@ -54,7 +56,7 @@ class InstanceMetricsService {
         }
     }
 
-    public async getMetricsForPod(podName: string, namespace: string = 'default'): Promise<InstanceResourceMetrics> {
+    public async getMetricsForPod(podName: string): Promise<InstanceResourceMetrics> {
         const instance = { podName } as Instance;
         return await this.getInstanceMetrics(instance);
     }
@@ -94,11 +96,11 @@ class InstanceMetricsService {
         const namespace = 'default';
 
         try {
-            const [currentCpu, currentMemory, resourceSpecs, connections] = await Promise.all([
+            const [currentCpu, currentMemory, resourceSpecs, players] = await Promise.all([
                 this.getCurrentCPU(instance.podName, namespace),
                 this.getCurrentMemory(instance.podName, namespace),
                 this.kubernetesClient.getPodResourceSpecs(instance.podName, namespace),
-                this.getConnectionCount(instance.podName)
+                this.getPlayerCount(instance)
             ]);
 
             const uptime = this.calculateUptime(resourceSpecs.startTime);
@@ -115,7 +117,7 @@ class InstanceMetricsService {
                     limit: resourceSpecs.memoryLimit
                 },
                 uptime,
-                connections
+                players
             };
         } catch (error) {
             console.error(`Error fetching metrics for instance ${instance.podName}:`, error);
@@ -123,7 +125,7 @@ class InstanceMetricsService {
                 cpu: { usage: 0 },
                 memory: { usage: 0 },
                 uptime: 'Unknown',
-                connections: 0
+                players: 0
             };
         }
     }
@@ -146,9 +148,10 @@ class InstanceMetricsService {
         }
     }
 
-    private getConnectionCount(podName: string): number {
-        const connections = getPodConnections(podName);
-        return connections ? connections.size : 0;
+    private getPlayerCount(instance: Instance): number {
+        if (!(instance instanceof MinecraftInstance)) return 0;
+
+        return instance.getPlayers().size;
     }
 
     private calculateUptime(startTime?: Date): string {
