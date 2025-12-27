@@ -21,7 +21,7 @@ export default class InstanceMetricsListener extends SocketListener<InstanceMetr
             'cpu' in (message as any).metrics &&
             'memory' in (message as any).metrics &&
             'uptime' in (message as any).metrics &&
-            'connections' in (message as any).metrics
+            'players' in (message as any).metrics
         );
     }
 

@@ -171,7 +171,7 @@ function ServerInstance() {
                                 </p>
                             </div>
                             <div className="flex items-center text-gray-600">
-                                <span className="font-medium mr-1.5">{metrics?.connections ?? 0}</span>
+                                <span className="font-medium mr-1.5">{metrics?.players ?? 0}</span>
                                 <Users size={16}/>
                             </div>
                         </div>
