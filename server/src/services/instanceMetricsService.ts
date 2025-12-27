@@ -149,6 +149,9 @@ class InstanceMetricsService {
     }
 
     private getPlayerCount(instance: Instance): number {
+        console.log("------------")
+        console.log(instance)
+        console.log("------------")
         if (!(instance instanceof MinecraftInstance)) return 0;
 
         return instance.getPlayers().size;

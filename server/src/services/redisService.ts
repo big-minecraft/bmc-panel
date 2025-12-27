@@ -137,7 +137,7 @@ export class RedisManager {
             };
 
             if (instance instanceof MinecraftInstance) {
-                instanceData.players = JSON.stringify(instance.players);
+                instanceData.players = JSON.stringify(Object.fromEntries(instance.players));
             }
 
             await client.hset(key, instanceData);
