@@ -16,10 +16,11 @@ export const getInstanceMetricsEndpoint: ApiEndpoint<unknown, GetInstanceMetrics
             const { pod } = req.query;
 
             if (!pod || typeof pod !== 'string') {
-                return res.status(400).json({
+                res.status(400).json({
                     success: false,
                     error: 'Pod name is required'
                 });
+                return;
             }
 
             const metricsService = InstanceMetricsService.getInstance();
