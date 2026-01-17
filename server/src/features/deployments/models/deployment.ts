@@ -26,13 +26,7 @@ export default class Deployment {
     public async setEnabled(enabled: boolean): Promise<void> {
         try {
             await DeploymentManifestManager.updateDeploymentState(this, enabled);
-
-            if (enabled) {
-                const minimumInstances = this.manifest?.content?.scaling?.minInstances || 1;
-                await KubernetesService.getInstance().scaleWorkload(this.type.k8sResourceName, this.name, minimumInstances);
-            } else {
-                await KubernetesService.getInstance().scaleWorkload(this.type.k8sResourceName, this.name, 0);
-            }
+            await DeploymentManager.sendRedisToggle(this.name, enabled);
             this.isEnabled = enabled;
         } catch (error) {
             console.error('error in setEnabled:', error)
@@ -88,8 +82,6 @@ export default class Deployment {
         }
 
         console.log(`[Deployment] Updated content for ${this.name} applied successfully`);
-
-        await DeploymentManager.sendRedisUpdates(this.name);
     }
 
     public async getInstances(): Promise<Instance[]> {

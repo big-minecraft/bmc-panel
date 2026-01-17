@@ -48,7 +48,6 @@ export default class DeploymentManager {
 
         console.log(`[DeploymentManager] Deployment ${name} applied successfully`);
 
-        await DeploymentManager.sendRedisUpdates("create");
         DeploymentManager.deployments.push(deployment);
 
         return deployment;
@@ -76,7 +75,6 @@ export default class DeploymentManager {
         console.log(`[DeploymentManager] Deployment ${name} destroyed successfully`);
 
         DeploymentManager.deployments = DeploymentManager.deployments.filter(testDeployment => testDeployment !== deployment);
-        await DeploymentManager.sendRedisUpdates(name);
     }
 
     public static getDeploymentByName(name: string) {
@@ -91,10 +89,10 @@ export default class DeploymentManager {
         return DeploymentManager.deployments;
     }
 
-    public static async sendRedisUpdates(deploymentName: string): Promise<void> {
+    public static async sendRedisToggle(deploymentName: string, enabled: boolean): Promise<void> {
         const client: Redis = await RedisService.getInstance().redisPool.acquire();
         try {
-            await client.publish('deployment-modified', deploymentName);
+            await client.publish('deployment-toggled', deploymentName + ":" + (enabled ? "true" : "false"));
         } finally {
             await RedisService.getInstance().redisPool.release(client);
         }
