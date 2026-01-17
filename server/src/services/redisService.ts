@@ -192,7 +192,7 @@ export class RedisManager {
     public async sendRestartMessage(deploymentName: string): Promise<void> {
         const client: Redis = await this.redisPool.acquire();
         try {
-            await client.publish('INSTANCE_RESTART', deploymentName);
+            await client.publish('DEPLOYMENT_RESTART', deploymentName);
         } catch (error) {
             console.error('Failed to send restart message:', error);
             throw error;
