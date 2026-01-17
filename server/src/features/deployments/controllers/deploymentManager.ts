@@ -2,7 +2,6 @@ import DeploymentManifestManager from './deploymentManifestManager';
 import Deployment from '../models/deployment';
 import {DeploymentType} from "../../../../../shared/enum/enums/deployment-type";
 import {Enum} from "../../../../../shared/enum/enum";
-import Redis from "ioredis";
 import RedisService from "../../../services/redisService";
 import { PulumiDeploymentService } from "../../../services/pulumi/pulumiDeploymentService";
 
@@ -21,7 +20,19 @@ export default class DeploymentManager {
             console.log("Proxy deployment missing, created default deployment");
         }
 
+        await this.syncDeploymentsToRedis();
         console.log("deployments loaded");
+    }
+
+    private static async syncDeploymentsToRedis(): Promise<void> {
+        console.log("syncing deployments to redis");
+        for (const deployment of this.deployments) {
+            await RedisService.getInstance().syncDeploymentToRedis(
+                deployment.name,
+                deployment.toJSON().enabled
+            );
+        }
+        console.log("deployments synced to redis");
     }
 
     public static async loadDeployments() {
@@ -87,15 +98,6 @@ export default class DeploymentManager {
         })
 
         return DeploymentManager.deployments;
-    }
-
-    public static async sendRedisToggle(deploymentName: string, enabled: boolean): Promise<void> {
-        const client: Redis = await RedisService.getInstance().redisPool.acquire();
-        try {
-            await client.publish('deployment-toggled', deploymentName + ":" + (enabled ? "true" : "false"));
-        } finally {
-            await RedisService.getInstance().redisPool.release(client);
-        }
     }
 
     public static getAvailableSftpPort(): number {

@@ -1,11 +1,8 @@
 import DeploymentManifestManager from '../controllers/deploymentManifestManager';
 import {Manifest} from "./types";
-import DeploymentManager from "../controllers/deploymentManager";
 import {DeploymentType} from "../../../../../shared/enum/enums/deployment-type";
-import {Enum} from "../../../../../shared/enum/enum";
 import {Instance} from "../../../../../shared/model/instance";
 import RedisService from "../../../services/redisService";
-import KubernetesService from "../../../services/kubernetesService";
 import { PulumiDeploymentService } from "../../../services/pulumi/pulumiDeploymentService";
 
 export default class Deployment {
@@ -26,7 +23,7 @@ export default class Deployment {
     public async setEnabled(enabled: boolean): Promise<void> {
         try {
             await DeploymentManifestManager.updateDeploymentState(this, enabled);
-            await DeploymentManager.sendRedisToggle(this.name, enabled);
+            await RedisService.getInstance().setDeploymentEnabled(this.name, enabled);
             this.isEnabled = enabled;
         } catch (error) {
             console.error('error in setEnabled:', error)
@@ -35,24 +32,8 @@ export default class Deployment {
     }
 
     public async restart(): Promise<void> {
-        const retryOperation = async (operation: () => Promise<void>) => {
-            let retries = 3;
-            while (retries > 0) {
-                try {
-                    await operation();
-                    break;
-                } catch (err) {
-                    retries--;
-                    if (retries === 0) throw err;
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                }
-            }
-        };
-
         try {
-            await retryOperation(() => this.setEnabled(false));
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            await retryOperation(() => this.setEnabled(true));
+            await RedisService.getInstance().sendRestartMessage(this.name);
         } catch (error) {
             console.error('error during restart:', error)
             throw error;

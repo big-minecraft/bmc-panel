@@ -160,6 +160,50 @@ export class RedisManager {
             await this.redisPool.release(client);
         }
     }
+
+    public async setDeploymentEnabled(deploymentName: string, enabled: boolean): Promise<void> {
+        const client: Redis = await this.redisPool.acquire();
+        try {
+            const key = `deployment:${deploymentName}`;
+            await client.hset(key, 'enabled', enabled ? 'true' : 'false');
+        } catch (error) {
+            console.error('Failed to set deployment enabled state:', error);
+            throw error;
+        } finally {
+            await this.redisPool.release(client);
+        }
+    }
+
+    public async getDeploymentEnabled(deploymentName: string): Promise<boolean | null> {
+        const client: Redis = await this.redisPool.acquire();
+        try {
+            const key = `deployment:${deploymentName}`;
+            const enabled = await client.hget(key, 'enabled');
+            if (enabled === null) return null;
+            return enabled === 'true';
+        } catch (error) {
+            console.error('Failed to get deployment enabled state:', error);
+            throw error;
+        } finally {
+            await this.redisPool.release(client);
+        }
+    }
+
+    public async sendRestartMessage(deploymentName: string): Promise<void> {
+        const client: Redis = await this.redisPool.acquire();
+        try {
+            await client.publish('INSTANCE_RESTART', deploymentName);
+        } catch (error) {
+            console.error('Failed to send restart message:', error);
+            throw error;
+        } finally {
+            await this.redisPool.release(client);
+        }
+    }
+
+    public async syncDeploymentToRedis(deploymentName: string, enabled: boolean): Promise<void> {
+        await this.setDeploymentEnabled(deploymentName, enabled);
+    }
 }
 
 export default RedisManager;
