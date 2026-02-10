@@ -14,6 +14,11 @@ export const InstanceState = {
         display: 'Blocked',
         color: 'text-red-500'
     },
+    DRAINING: {
+        key: 'DRAINING',
+        display: 'Draining',
+        color: 'text-orange-500'
+    },
     STOPPING: {
         key: 'STOPPING',
         display: 'Shutting Down',

@@ -8,6 +8,7 @@ export class InstanceStateEnum extends CustomEnum<InstanceState> {
     public STARTING = this.addValue(new InstanceState('Starting Up', 'STARTING', 'text-yellow-500'));
     public RUNNING = this.addValue(new InstanceState('Online', 'RUNNING', 'text-green-500'));
     public BLOCKED = this.addValue(new InstanceState('Blocked', 'BLOCKED', 'text-red-500'));
+    public DRAINING = this.addValue(new InstanceState('Draining', 'DRAINING', 'text-orange-500'));
     public STOPPING = this.addValue(new InstanceState('Shutting Down', 'STOPPING', 'text-orange-500'));
     public STOPPED = this.addValue(new InstanceState('Offline', 'STOPPED', 'text-gray-500'));
 
