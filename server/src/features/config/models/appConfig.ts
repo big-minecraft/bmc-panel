@@ -6,7 +6,6 @@ export default interface AppConfig {
         panelSecret: string;
         storagePath: string;
         panelHost: string;
-        k8sDashboardHost: string;
         inviteCodeExpiryDays: number;
     };
 

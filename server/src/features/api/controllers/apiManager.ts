@@ -5,9 +5,6 @@ import {logoutEndpoint} from "../../../api/auth/logout";
 import {registerEndpoint} from "../../../api/auth/register";
 import {verifyLoginEndpoint} from "../../../api/auth/verifyLogin";
 import {verifyRegistrationEndpoint} from "../../../api/auth/verifyRegistration";
-import {createK8sTokenEndpoint} from "../../../api/admin/createK8sToken";
-import {getK8sTokenEndpoint} from "../../../api/admin/getK8sToken";
-import {deleteK8sTokenEndpoint} from "../../../api/admin/deleteK8sToken";
 import {listMongoEndpoint} from "../../../api/database/listMongo";
 import {createMongoEndpoint} from "../../../api/database/createMongo";
 import {deleteMongoEndpoint} from "../../../api/database/deleteMongo";
@@ -35,7 +32,6 @@ import {getInstanceMetricsEndpoint} from "../../../api/metrics/getInstanceMetric
 import {getDeploymentsEndpoint} from "../../../api/deployments/getDeployments";
 import {ApiEndpoint, AuthType} from "../../../api/types";
 import {handleAdminAuth, handleBasicAuth, handleServiceTokenAuth} from "../../../middleware/auth";
-import {getK8sDashboardHostEndpoint} from "../../../api/admin/getK8sDashboardHost";
 import {getDeploymentInstancesEndpoint} from "../../../api/deployments/getDeploymentInstances";
 import {getManagerTimestampEndpoint} from "../../../api/network/getManagerTimestamp";
 
@@ -86,10 +82,6 @@ export default class ApiManager {
         this.addEndpoint(verifyRegistrationEndpoint);
 
         //Admin
-        this.addEndpoint(createK8sTokenEndpoint);
-        this.addEndpoint(deleteK8sTokenEndpoint);
-        this.addEndpoint(getK8sDashboardHostEndpoint);
-        this.addEndpoint(getK8sTokenEndpoint);
 
         //Database
         this.addEndpoint(listMongoEndpoint);

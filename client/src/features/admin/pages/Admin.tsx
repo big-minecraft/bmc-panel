@@ -2,8 +2,7 @@ import {useState} from 'react';
 import {motion, AnimatePresence} from 'framer-motion';
 import UsersTab from "../components/users/UserTab";
 import InviteCodesTab from "../components/invite-codes/InviteCodesTab";
-import {Users, Ticket, Key} from 'lucide-react';
-import K8sDashboardTab from "../components/k8sdash/K8sDashboardTab";
+import {Users, Ticket} from 'lucide-react';
 
 export const ADMIN_TABS = [
     {
@@ -18,12 +17,6 @@ export const ADMIN_TABS = [
         component: InviteCodesTab,
         icon: Ticket
     },
-    {
-        id: 'k8sdash',
-        label: 'Kubernetes Dashboard',
-        component: K8sDashboardTab,
-        icon: Key
-    }
 ];
 
 const Admin = () => {

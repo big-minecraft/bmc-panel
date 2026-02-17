@@ -6,7 +6,6 @@
     "panelSecret": "your-secret-key",
     "storagePath": "/data",
     "panelHost": "0.0.0.0",
-    "k8sDashboardHost": "0.0.0.0",
     "inviteCodeExpiryDays": 7
   },
   "redis": {

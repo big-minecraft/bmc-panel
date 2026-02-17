@@ -15,7 +15,6 @@ import AuthService from "./services/authService";
 import MongodbService from "./services/mongodbService";
 import PrometheusService from "./services/prometheusService";
 import InviteCodeService from "./services/inviteCodeService";
-import K8sDashboardService from "./services/k8sDashboardService";
 import MariadbService from "./services/mariadbService";
 import FileSessionService from "./services/fileSessionService";
 import PVCFileOperationsService from "./services/pvcFileOperationsService";
@@ -62,7 +61,6 @@ class App {
         MongodbService.init();
         PrometheusService.init();
         InviteCodeService.init();
-        K8sDashboardService.init();
         MariadbService.init();
         FileSessionService.init();
         PVCFileOperationsService.init();

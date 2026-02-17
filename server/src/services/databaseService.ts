@@ -51,13 +51,6 @@ class DatabaseService {
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
                 )
             `);
-            await conn.query(`
-                CREATE TABLE IF NOT EXISTS k8s_dash (
-                token TEXT NOT NULL,
-                expires_at TIMESTAMP NOT NULL,
-                PRIMARY KEY (token(768))
-                )
-            `);
         } catch (error) {
             console.error('Failed to create tables:', error);
             throw error;
