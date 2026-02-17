@@ -10,7 +10,7 @@ export class DeploymentTypeEnum extends CustomEnum<DeploymentType> {
     public PROXY = this.addValue(new DeploymentType('Proxy', 'proxy', 'server', 'Deployment'));
     public PERSISTENT = this.addValue(new DeploymentType('Persistent', 'persistent', 'server', 'StatefulSet'));
     public SCALABLE = this.addValue(new DeploymentType('Scalable', 'scalable', 'server', 'Deployment'));
-    public PROCESS = this.addValue(new DeploymentType('Process', 'process', 'process', 'Deployment'));
+    public PROCESS = this.addValue(new DeploymentType('Process', 'process', null, 'Deployment'));
 
     public fromString(identifier: string) {
         for (let deploymentType of this.values()) if (deploymentType.identifier === identifier) return deploymentType;
