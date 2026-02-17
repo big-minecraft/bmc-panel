@@ -90,6 +90,32 @@ export const handleBasicAuth: RequestHandler = async (
     }
 };
 
+export const handleServiceTokenAuth: RequestHandler = (
+    req: ApiRequest<unknown>,
+    res: ApiResponse<unknown>,
+    next
+): void => {
+    const token = req.headers['x-service-token'];
+
+    if (!token || typeof token !== 'string') {
+        res.status(403).json({
+            success: false,
+            error: 'No service token provided'
+        });
+        return;
+    }
+
+    if (token !== ConfigManager.getConfig().panel.panelSecret) {
+        res.status(401).json({
+            success: false,
+            error: 'Invalid service token'
+        });
+        return;
+    }
+
+    next();
+};
+
 export const handleAdminAuth: RequestHandler = async (
     req: ApiRequest<unknown>,
     res: ApiResponse<unknown>,

@@ -45,4 +45,5 @@ export enum AuthType {
     None = 'none',
     Basic = 'basic',
     Admin = 'admin',
+    ServiceToken = 'service-token',
 }

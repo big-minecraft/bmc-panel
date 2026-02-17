@@ -408,6 +408,8 @@ export class PulumiDeploymentService {
 
             const sftpPodName = `sftp-${deploymentName}-${sessionId.substring(0, 8)}`;
 
+            const panelHost = ConfigManager.getConfig().panel.panelHost;
+
             const values = {
                 fileSession: {
                     podName: sessionPodName,
@@ -422,6 +424,11 @@ export class PulumiDeploymentService {
                     port: 22,
                     pvcName: pvcName,
                     nodePort: sftpPort
+                },
+                activityWatcher: {
+                    sessionId: sessionId,
+                    serviceToken: ConfigManager.getConfig().panel.panelSecret,
+                    panelUrl: `https://${panelHost}`
                 }
             };
 

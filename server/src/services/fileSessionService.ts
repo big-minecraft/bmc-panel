@@ -360,7 +360,7 @@ export default class FileSessionService {
             if (!sftpPort) return undefined;
 
             const config = ConfigManager.getConfig();
-            const host = config.panel.panelHost;
+            const host = "sftp://" + config.panel.panelHost;
             if (!host) return undefined;
 
             return {

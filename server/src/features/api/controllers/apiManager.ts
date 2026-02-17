@@ -34,7 +34,7 @@ import {getMemoryMetricsEndpoint} from "../../../api/metrics/getMemoryMetrics";
 import {getInstanceMetricsEndpoint} from "../../../api/metrics/getInstanceMetrics";
 import {getDeploymentsEndpoint} from "../../../api/deployments/getDeployments";
 import {ApiEndpoint, AuthType} from "../../../api/types";
-import {handleAdminAuth, handleBasicAuth} from "../../../middleware/auth";
+import {handleAdminAuth, handleBasicAuth, handleServiceTokenAuth} from "../../../middleware/auth";
 import {getK8sDashboardHostEndpoint} from "../../../api/admin/getK8sDashboardHost";
 import {getDeploymentInstancesEndpoint} from "../../../api/deployments/getDeploymentInstances";
 import {getManagerTimestampEndpoint} from "../../../api/network/getManagerTimestamp";
@@ -45,6 +45,7 @@ import {endSessionEndpoint} from "../../../api/files/session/endSession";
 import {getSessionStatusEndpoint} from "../../../api/files/session/getSessionStatus";
 import {listSessionsEndpoint} from "../../../api/files/session/listSessions";
 import {refreshSessionEndpoint} from "../../../api/files/session/refreshSession";
+import {internalRefreshSessionEndpoint} from "../../../api/files/session/internalRefreshSession";
 
 // File Operations
 import {listFilesEndpoint as listFilesNewEndpoint} from "../../../api/files/listFiles";
@@ -136,6 +137,7 @@ export default class ApiManager {
         this.addEndpoint(getSessionStatusEndpoint);
         this.addEndpoint(listSessionsEndpoint);
         this.addEndpoint(refreshSessionEndpoint);
+        this.addEndpoint(internalRefreshSessionEndpoint);
 
         //File Operations (PVC)
         this.addEndpoint(listFilesNewEndpoint);
@@ -193,6 +195,8 @@ export default class ApiManager {
             handlers.push(handleBasicAuth);
         } else if (endpoint.auth === AuthType.Admin) {
             handlers.push(handleAdminAuth);
+        } else if (endpoint.auth === AuthType.ServiceToken) {
+            handlers.push(handleServiceTokenAuth);
         }
 
         handlers.push(endpoint.handler);
