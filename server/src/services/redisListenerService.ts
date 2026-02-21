@@ -67,7 +67,7 @@ export class RedisListenerService {
                 try {
                     let parts = message.split(':');
                     let ipAddress = parts[0];
-                    let state = Enum.InstanceState.fromString(ipAddress);
+                    let state = Enum.InstanceState.fromString(parts[1]);
 
                     RedisService.getInstance().getInstanceFromIp(ipAddress).then((instance) => {
                         updateStateForClients(instance.podName, state);
