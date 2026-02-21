@@ -142,7 +142,10 @@ async function updatePod(deploymentName: string, podName: string, state: Instanc
     podStatusMap.set(podName, state.identifier);
 
     await RedisService.getInstance().setPodState(deploymentName, podName, state);
+    await updateStateForClients(podName, state);
+}
 
+async function updateStateForClients(podName: string, state: InstanceState) {
     let podConnections = getPodConnections(podName);
     if (podConnections === undefined) return;
 
@@ -155,5 +158,6 @@ async function updatePod(deploymentName: string, podName: string, state: Instanc
 
 export {
     executePowerAction,
-    updatePod
+    updatePod,
+    updateStateForClients
 };

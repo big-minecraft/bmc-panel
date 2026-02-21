@@ -1,8 +1,8 @@
 import Redis from 'ioredis';
-import {updatePod} from "./powerActionService";
-import {RedisManager} from "./redisService";
+import {updatePod, updateStateForClients} from "./powerActionService";
+import RedisService, {RedisManager} from "./redisService";
 import {Enum} from "../../../shared/enum/enum";
-import { app} from "../app";
+import {InstanceState} from "../../../shared/enum/enums/instance-state";
 
 interface ServerShutdownEvent {
     server: string;
@@ -46,6 +46,13 @@ export class RedisListenerService {
             }
         });
 
+        await this.subscriber.subscribe('instance-state-change', (err, count) => {
+           if (err) {
+                console.error('Failed to subscribe to instance-state-change:', err);
+                return;
+           }
+        });
+
         this.subscriber.on('message', (channel: string, message: string) => {
             if (channel === 'server-status') {
                 try {
@@ -53,6 +60,19 @@ export class RedisListenerService {
                     this.handleServerShutdownEvent(event);
                 } catch (error) {
                     console.error('Error parsing server shutdown message:', error);
+                }
+            } else if (channel === 'instance-state-change') {
+                try {
+                    let parts = message.split(':');
+                    let ipAddress = parts[0];
+                    let state = Enum.InstanceState.fromString(ipAddress);
+
+                    RedisService.getInstance().getInstanceFromIp(ipAddress).then((instance) => {
+                        updateStateForClients(instance.podName, state);
+                    });
+
+                } catch (error) {
+                    console.error('Error parsing instance state change message:', error);
                 }
             }
         });

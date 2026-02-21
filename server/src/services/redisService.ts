@@ -49,6 +49,46 @@ export class RedisManager {
         RedisManager.instance = new RedisManager();
     }
 
+    private convertInstanceDataToInstance(instanceData: any, deploymentName: string): Instance | MinecraftInstance | null {
+        if (!instanceData || Object.keys(instanceData).length === 0) return null;
+
+        if (instanceData.players !== undefined) {
+            const minecraftInstance = new MinecraftInstance(
+                instanceData.uid,
+                instanceData.name,
+                instanceData.podName,
+                instanceData.ip,
+                instanceData.state,
+                instanceData.deployment
+            );
+
+            try {
+                const playersData = typeof instanceData.players === 'string'
+                    ? JSON.parse(instanceData.players)
+                    : instanceData.players;
+
+                if (typeof playersData === 'object') {
+                    Object.entries(playersData).forEach(([playerUuid, playerName]) => {
+                        minecraftInstance.addPlayer(playerUuid, playerName as string);
+                    });
+                }
+            } catch (err) {
+                console.warn(`Failed to parse players data for instance ${instanceData.uid}:`, err);
+            }
+
+            return minecraftInstance;
+        } else {
+            return new Instance(
+                instanceData.uid,
+                instanceData.name,
+                instanceData.podName,
+                instanceData.ip,
+                instanceData.state,
+                deploymentName
+            );
+        }
+    }
+
     public async getInstances(deployment: Deployment): Promise<Instance[]> {
         const client: Redis = await this.redisPool.acquire();
         try {
@@ -63,43 +103,8 @@ export class RedisManager {
                 if (keys.length > 0) {
                     for (const key of keys) {
                         const instanceData = await client.hgetall(key);
-                        if (!instanceData || Object.keys(instanceData).length === 0) continue;
-
-                        if (instanceData.players !== undefined) {
-                            const minecraftInstance = new MinecraftInstance(
-                                instanceData.uid,
-                                instanceData.name,
-                                instanceData.podName,
-                                instanceData.ip,
-                                instanceData.state,
-                                instanceData.deployment
-                            );
-
-                            try {
-                                const playersData = typeof instanceData.players === 'string'
-                                    ? JSON.parse(instanceData.players)
-                                    : instanceData.players;
-
-                                if (typeof playersData === 'object') {
-                                    Object.entries(playersData).forEach(([playerUuid, playerName]) => {
-                                        minecraftInstance.addPlayer(playerUuid, playerName as string);
-                                    });
-                                }
-                            } catch (err) {
-                                console.warn(`Failed to parse players data for instance ${instanceData.uid}:`, err);
-                            }
-
-                            instances.push(minecraftInstance);
-                        } else {
-                            instances.push(new Instance(
-                                instanceData.uid,
-                                instanceData.name,
-                                instanceData.podName,
-                                instanceData.ip,
-                                instanceData.state,
-                                deployment.name
-                            ));
-                        }
+                        const instance = this.convertInstanceDataToInstance(instanceData, deployment.name);
+                        if (instance) instances.push(instance);
                     }
                 }
             } while (cursor !== '0');
@@ -107,6 +112,37 @@ export class RedisManager {
             return instances;
         } catch (error) {
             console.error('Failed to fetch instances:', error);
+            throw error;
+        } finally {
+            await this.redisPool.release(client);
+        }
+    }
+
+    public async getInstanceFromIp(ipAddress: string): Promise<Instance | MinecraftInstance | null> {
+        const client: Redis = await this.redisPool.acquire();
+        try {
+            let cursor = '0';
+            const pattern = `instance:*`;
+
+            do {
+                const [nextCursor, keys] = await client.scan(cursor, 'MATCH', pattern);
+                cursor = nextCursor;
+
+                if (keys.length > 0) {
+                    for (const key of keys) {
+                        const instanceData = await client.hgetall(key);
+                        if (!instanceData || Object.keys(instanceData).length === 0) continue;
+
+                        if (instanceData.ip === ipAddress) {
+                            return this.convertInstanceDataToInstance(instanceData, instanceData.deployment);
+                        }
+                    }
+                }
+            } while (cursor !== '0');
+
+            return null;
+        } catch (error) {
+            console.error('Failed to fetch instance by IP:', error);
             throw error;
         } finally {
             await this.redisPool.release(client);

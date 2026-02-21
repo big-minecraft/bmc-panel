@@ -39,7 +39,7 @@ interface PodConnection {
 
 class WebSocketRegistry {
     private static instance: WebSocketRegistry;
-    private connections: Map<string, Set<PodConnection>>;
+    private readonly connections: Map<string, Set<PodConnection>>;
 
     private constructor() {
         this.connections = new Map();
