@@ -62,6 +62,8 @@ export class RedisListenerService {
                     console.error('Error parsing server shutdown message:', error);
                 }
             } else if (channel === 'instance-state-change') {
+                console.log("INSTANCE STATE DEBUG :" + message);
+
                 try {
                     let parts = message.split(':');
                     let ipAddress = parts[0];
