@@ -158,7 +158,7 @@ class MongodbService {
                             username: `${db.name}_user`,
                             password: creds.password,
                             host: ConfigManager.getConfig().panel.panelHost,
-                            port: 30017
+                            port: 27017
                         } : null
                     };
                 }));

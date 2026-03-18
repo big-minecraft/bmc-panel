@@ -29,11 +29,28 @@ class DatabaseService {
     }
 
     private async databaseInit(): Promise<void> {
-        try {
-            await this.createTables();
-            await this.checkAndCreateInitialInviteCode();
-        } catch (error) {
-            console.error('Failed to initialize database:', error);
+        const maxRetries = 10;
+        const initialDelay = 1000;
+
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                console.log(`Attempting database initialization (attempt ${attempt}/${maxRetries})...`);
+                await this.createTables();
+                await this.checkAndCreateInitialInviteCode();
+                console.log('Database initialization completed successfully');
+                return;
+            } catch (error) {
+                const delay = initialDelay * Math.pow(2, attempt - 1);
+                console.error(`Database initialization failed (attempt ${attempt}/${maxRetries}):`, error.message);
+
+                if (attempt === maxRetries) {
+                    console.error('Max retries reached. Database initialization failed permanently.');
+                    throw error;
+                }
+
+                console.log(`Retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
         }
     }
 
