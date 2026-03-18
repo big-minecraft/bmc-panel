@@ -159,7 +159,7 @@ class MariadbService {
                     username: `${db.name}_user`,
                     password: db.password,
                     host: ConfigManager.getConfig().panel.panelHost,
-                    port: 3036
+                    port: 3306
                 }
             }));
         } catch (error) {
