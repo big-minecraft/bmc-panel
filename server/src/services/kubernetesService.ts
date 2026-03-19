@@ -2,12 +2,6 @@ import * as K8s from '@kubernetes/client-node';
 import ConfigManager from "../features/config/controllers/configManager";
 import {ScalableKind} from "../../../shared/enum/enums/deployment-type";
 
-interface KubernetesConfig {
-    k8s: {
-        configPath: string;
-    };
-}
-
 class KubernetesClient {
     private static instance: KubernetesClient;
     kc: K8s.KubeConfig;
@@ -78,10 +72,9 @@ class KubernetesClient {
     }
 
     private loadLocalConfig(): void {
-        const typedConfig = ConfigManager.getConfig() as KubernetesConfig;
         const pathsToTry: string[] = [
-            typedConfig.k8s.configPath,
             `${process.env.HOME || ''}/.kube/config`,
+            '/etc/rancher/k3s/k3s.yaml',
         ];
 
         let lastError: Error | null = null;

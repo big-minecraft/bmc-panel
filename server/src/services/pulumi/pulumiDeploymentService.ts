@@ -134,24 +134,19 @@ export class PulumiDeploymentService {
                 console.log(`[Pulumi] Deploying Helm chart for ${releaseName} (${deploymentType.identifier})`);
 
                 try {
-                    const namespace = ConfigManager.getConfig().namespace;
                     new k8s.helm.v3.Chart(
                         releaseName,
                         {
                             path: chartPath,
-                            namespace: namespace,
+                            namespace: ConfigManager.getConfig().namespace,
                             values: values,
                             skipAwait: true,
                             transformations: [
                                 (obj: any) => {
-                                    // Set namespace explicitly on each resource
-                                    if (obj.metadata) {
-                                        obj.metadata.namespace = namespace;
-                                        if (obj.metadata.annotations) {
-                                            obj.metadata.annotations["pulumi.com/patchForce"] = "true";
-                                        } else {
-                                            obj.metadata.annotations = { "pulumi.com/patchForce": "true" };
-                                        }
+                                    if (obj.metadata && obj.metadata.annotations) {
+                                        obj.metadata.annotations["pulumi.com/patchForce"] = "true";
+                                    } else if (obj.metadata) {
+                                        obj.metadata.annotations = { "pulumi.com/patchForce": "true" };
                                     }
                                 }
                             ]
@@ -439,24 +434,19 @@ export class PulumiDeploymentService {
 
             console.log(`[Pulumi] Deploying file session Helm chart for ${sessionPodName}`);
 
-            const namespace = ConfigManager.getConfig().namespace;
             new k8s.helm.v3.Chart(
                 `file-session-${sessionId}`,
                 {
                     path: chartPath,
-                    namespace: namespace,
+                    namespace: ConfigManager.getConfig().namespace,
                     values: values,
                     skipAwait: true,
                     transformations: [
                         (obj: any) => {
-                            // Set namespace explicitly on each resource
-                            if (obj.metadata) {
-                                obj.metadata.namespace = namespace;
-                                if (obj.metadata.annotations) {
-                                    obj.metadata.annotations["pulumi.com/patchForce"] = "true";
-                                } else {
-                                    obj.metadata.annotations = { "pulumi.com/patchForce": "true" };
-                                }
+                            if (obj.metadata && obj.metadata.annotations) {
+                                obj.metadata.annotations["pulumi.com/patchForce"] = "true";
+                            } else if (obj.metadata) {
+                                obj.metadata.annotations = { "pulumi.com/patchForce": "true" };
                             }
                         }
                     ]
