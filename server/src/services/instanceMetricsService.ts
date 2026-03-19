@@ -4,6 +4,7 @@ import RedisService from './redisService';
 import SocketManager from '../features/socket/controllers/socket-manager';
 import DeploymentManager from '../features/deployments/controllers/deploymentManager';
 import Deployment from '../features/deployments/models/deployment';
+import ConfigManager from '../features/config/controllers/configManager';
 
 import { Instance, InstanceResourceMetrics } from '../../../shared/model/instance';
 import { Enum } from '../../../shared/enum/enum';
@@ -93,7 +94,7 @@ class InstanceMetricsService {
     }
 
     private async getInstanceMetrics(instance: Instance): Promise<InstanceResourceMetrics> {
-        const namespace = 'default';
+        const namespace = ConfigManager.getConfig().namespace;
 
         try {
             const [currentCpu, currentMemory, resourceSpecs, players] = await Promise.all([

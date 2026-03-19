@@ -5,6 +5,7 @@ import * as https from 'https';
 import DeploymentManager from "../features/deployments/controllers/deploymentManager";
 import {Enum} from "../../../shared/enum/enum";
 import KubernetesService from "./kubernetesService";
+import ConfigManager from '../features/config/controllers/configManager';
 
 interface LogOptions {
     follow: boolean;
@@ -48,7 +49,7 @@ export async function setupPodLogs(ws: WebSocket, deployment: string, podName: s
     let containerName = deploymentInstance?.type.containerName;
     let containerQuery = containerName ? `container=${containerName}` : '';
 
-    const logUrl = `${cluster.server}/api/v1/namespaces/default/pods/${podName}/log?${containerQuery}&follow=${logOptions.follow}&tailLines=${logOptions.tailLines}&pretty=${logOptions.pretty}`;
+    const logUrl = `${cluster.server}/api/v1/namespaces/${ConfigManager.getConfig().namespace}/pods/${podName}/log?${containerQuery}&follow=${logOptions.follow}&tailLines=${logOptions.tailLines}&pretty=${logOptions.pretty}`;
 
     let httpsAgent: https.Agent | undefined;
     let headers: Record<string, string> = {};

@@ -2,6 +2,7 @@ import WebSocket from 'ws';
 import {Agent} from 'https';
 import * as fs from 'fs';
 import KubernetesService from "./kubernetesService";
+import ConfigManager from '../features/config/controllers/configManager';
 
 interface Cluster {
     server: string;
@@ -45,7 +46,7 @@ async function executeCommand(
         throw new Error('Pod name is required');
     }
 
-    const execUrl = `${cluster.server}/api/v1/namespaces/default/pods/${podName}/exec`;
+    const execUrl = `${cluster.server}/api/v1/namespaces/${ConfigManager.getConfig().namespace}/pods/${podName}/exec`;
     const params = new URLSearchParams();
     params.append('container', 'server');
     params.append('command', 'bash');

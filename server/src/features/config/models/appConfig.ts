@@ -1,5 +1,12 @@
 export default interface AppConfig {
     environment : string;
+    namespace: string;
+
+    certManager?: {
+        clusterIssuerName: string;
+        email: string;
+        installClusterIssuer: boolean;
+    };
 
     panel: {
         initialInviteCode: string;
@@ -10,8 +17,13 @@ export default interface AppConfig {
     };
 
     loadBalancer: {
-        type: string;
-        entrypointIP?: string;
+        provider: string;
+        metallb?: {
+            advertisementMode: string;
+            entrypointIP: string;
+            installResources: boolean;
+            ipAddressPool: string[];
+        };
     };
 
     ingress: {
@@ -56,14 +68,12 @@ export default interface AppConfig {
         port: number;
     };
 
-    k8s : {
-        configPath: string;
-    };
-
     fileEditSession : {
         timeoutMinutes: number;
     };
     sftp: {
+        enabled?: boolean;
+        pass?: boolean;
         password: string;
     };
 }

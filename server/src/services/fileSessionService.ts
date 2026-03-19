@@ -12,7 +12,10 @@ export default class FileSessionService {
     private static instance: FileSessionService;
     private timeoutChecker: NodeJS.Timeout | null = null;
     private readonly REDIS_TTL_SECONDS = 30 * 60; // 30 minutes
-    private readonly POD_NAMESPACE = 'default';
+
+    private get POD_NAMESPACE(): string {
+        return ConfigManager.getConfig().namespace;
+    }
 
     private get TIMEOUT_MINUTES(): number {
         return ConfigManager.getConfig().fileEditSession?.timeoutMinutes || 15;

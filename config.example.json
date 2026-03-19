@@ -1,17 +1,57 @@
 {
   "environment": "development",
+  "namespace": "bmc",
+
+  "certManager": {
+    "clusterIssuerName": "letsencrypt-staging",
+    "email": "your-email@example.com",
+    "installClusterIssuer": true
+  },
 
   "panel": {
     "initialInviteCode": "your-invite-code",
     "panelSecret": "your-secret-key",
     "storagePath": "/data",
-    "panelHost": "0.0.0.0",
+    "panelHost": "localhost",
     "inviteCodeExpiryDays": 7
   },
+
+  "loadBalancer": {
+    "provider": "metallb",
+    "metallb": {
+      "advertisementMode": "l2",
+      "entrypointIP": "192.168.1.100",
+      "installResources": true,
+      "ipAddressPool": [
+        "192.168.1.100/32"
+      ]
+    }
+  },
+
+  "ingress": {
+    "ingressClass": "traefik",
+    "panelDomain": "panel.example.com"
+  },
+
+  "storage": {
+    "storageClass": "local-path",
+    "reclaimPolicy": "Retain",
+    "volumeSize": {
+      "persistent": "10Gi",
+      "scalable": "5Gi",
+      "proxy": "5Gi",
+      "process": "2Gi",
+      "manifests": "1Gi",
+      "mariaDB": "5Gi",
+      "mongoDB": "5Gi"
+    }
+  },
+
   "redis": {
     "host": "redis-service",
     "port": 6379
   },
+
   "mariaDB": {
     "host": "mariadb-service",
     "port": 3306,
@@ -19,6 +59,7 @@
     "initPassword": "your-mariadb-password",
     "database": "bmc"
   },
+
   "mongoDB": {
     "host": "mongodb-service",
     "port": 27017,
@@ -26,17 +67,19 @@
     "initPassword": "your-mongodb-password",
     "database": "admin"
   },
+
   "prometheus": {
     "host": "prometheus-service",
     "port": 9090
   },
-  "k8s": {
-    "configPath": "/etc/rancher/k3s/k3s.yaml"
-  },
+
   "fileEditSession": {
     "timeoutMinutes": 15
   },
+
   "sftp": {
+    "enabled": true,
+    "pass": true,
     "password": "your-sftp-password"
   }
 }

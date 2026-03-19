@@ -2,12 +2,6 @@ import * as K8s from '@kubernetes/client-node';
 import ConfigManager from "../features/config/controllers/configManager";
 import {ScalableKind} from "../../../shared/enum/enums/deployment-type";
 
-interface KubernetesClientStatus {
-    initialized: boolean;
-    hasAppsV1Api: boolean;
-    hasCoreV1Api: boolean;
-}
-
 interface KubernetesConfig {
     k8s: {
         configPath: string;
@@ -119,58 +113,7 @@ class KubernetesClient {
         }
     }
 
-    public async scaleWorkload(
-        kind: ScalableKind,
-        name: string,
-        replicas: number,
-        namespace = 'default'
-    ): Promise<number> {
-        this.ensureInitialized();
-
-        if (!this.appsV1Api) {
-            throw new Error('AppsV1Api is not initialized');
-        }
-
-        let scale;
-
-        if (kind === 'Deployment') {
-            const res = await this.appsV1Api.readNamespacedDeploymentScale(name, namespace);
-            scale = res.body;
-        } else {
-            const res = await this.appsV1Api.readNamespacedStatefulSetScale(name, namespace);
-            scale = res.body;
-        }
-
-        if (!scale.spec) throw new Error('Scale spec is undefined');
-
-        scale.spec.replicas = replicas;
-
-        if (kind === 'Deployment') {
-            const res = await this.appsV1Api.replaceNamespacedDeploymentScale(
-                name,
-                namespace,
-                scale
-            )
-            return res.body.spec!.replicas!;
-        } else {
-            const res = await this.appsV1Api.replaceNamespacedStatefulSetScale(
-                name,
-                namespace,
-                scale
-            )
-            return res.body.spec!.replicas!;
-        }
-    }
-
-    public getStatus(): KubernetesClientStatus {
-        return {
-            initialized: this.initialized,
-            hasAppsV1Api: !!this.appsV1Api,
-            hasCoreV1Api: !!this.coreV1Api,
-        };
-    }
-
-    public async killPod(podName: string, namespace: string = 'default'): Promise<void> {
+    public async killPod(podName: string, namespace: string = ConfigManager.getConfig().namespace): Promise<void> {
         this.ensureInitialized();
 
         if (!this.coreV1Api) {
@@ -188,7 +131,7 @@ class KubernetesClient {
         }
     }
 
-    public async getPodResourceSpecs(podName: string, namespace: string = 'default'): Promise<{
+    public async getPodResourceSpecs(podName: string, namespace: string = ConfigManager.getConfig().namespace): Promise<{
         cpuRequest?: number;
         cpuLimit?: number;
         memoryRequest?: number;

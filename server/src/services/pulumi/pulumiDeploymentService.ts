@@ -138,7 +138,7 @@ export class PulumiDeploymentService {
                         releaseName,
                         {
                             path: chartPath,
-                            namespace: "default",
+                            namespace: ConfigManager.getConfig().namespace,
                             values: values,
                             skipAwait: true,
                             transformations: [
@@ -438,7 +438,7 @@ export class PulumiDeploymentService {
                 `file-session-${sessionId}`,
                 {
                     path: chartPath,
-                    namespace: "default",
+                    namespace: ConfigManager.getConfig().namespace,
                     values: values,
                     skipAwait: true,
                     transformations: [
