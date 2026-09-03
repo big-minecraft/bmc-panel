@@ -14,6 +14,11 @@ RUN npm run build
 # Tools installation stage using Alpine
 FROM alpine:3.19 AS tools
 
+# Populated automatically by BuildKit from the target platform: amd64 | arm64.
+# Must not be given a default -- a default wins over BuildKit's value and would
+# silently pull amd64 tool binaries into the arm64 image.
+ARG TARGETARCH
+
 # Set version constants
 ENV HELM_VERSION="v3.16.2" \
     HELMFILE_VERSION="v0.158.0" \
@@ -25,25 +30,27 @@ RUN apk add --no-cache curl tar jq
 WORKDIR /tools
 
 # Install kubectl
-RUN curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" && \
+RUN curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl" && \
     chmod +x kubectl
 
 # Install helm
-RUN curl -L "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz" | tar xz && \
-    mv linux-amd64/helm ./
+RUN curl -L "https://get.helm.sh/helm-${HELM_VERSION}-linux-${TARGETARCH}.tar.gz" | tar xz && \
+    mv linux-${TARGETARCH}/helm ./
 
 # Install helmfile
-RUN curl -L "https://github.com/helmfile/helmfile/releases/download/${HELMFILE_VERSION}/helmfile_${HELMFILE_VERSION#v}_linux_amd64.tar.gz" | \
+RUN curl -L "https://github.com/helmfile/helmfile/releases/download/${HELMFILE_VERSION}/helmfile_${HELMFILE_VERSION#v}_linux_${TARGETARCH}.tar.gz" | \
     tar xz && \
     chmod +x helmfile
 
 # Install helm-dif
 RUN mkdir -p /tools/helm-plugins/diff
-RUN curl -L "https://github.com/databus23/helm-diff/releases/download/${HELM_DIFF_VERSION}/helm-diff-linux-amd64.tgz" | \
+RUN curl -L "https://github.com/databus23/helm-diff/releases/download/${HELM_DIFF_VERSION}/helm-diff-linux-${TARGETARCH}.tgz" | \
     tar xz -C /tools/helm-plugins/diff
 
 # Install pulumi
-RUN curl -L "https://get.pulumi.com/releases/sdk/pulumi-${PULUMI_VERSION}-linux-x64.tar.gz" | \
+# Pulumi uses x64/arm64 rather than amd64/arm64.
+RUN PULUMI_ARCH="$([ "$TARGETARCH" = "arm64" ] && echo arm64 || echo x64)" && \
+    curl -L "https://get.pulumi.com/releases/sdk/pulumi-${PULUMI_VERSION}-linux-${PULUMI_ARCH}.tar.gz" | \
     tar xz --strip-components=1
 
 # Final runtime stage
