@@ -16,24 +16,37 @@ export default interface AppConfig {
         inviteCodeExpiryDays: number;
     };
 
-    loadBalancer: {
-        provider: string;
-        metallb?: {
-            advertisementMode: string;
-            entrypointIP: string;
-            installResources: boolean;
-            ipAddressPool: string[];
+    edge: {
+        game: {
+            type: 'LoadBalancer' | 'NodePort' | 'ClusterIP';
+            annotations?: Record<string, string>;
+            loadBalancerIP?: string;
+            sourceRanges?: string[];
+            java: { port: number };
+            bedrock: { enabled: boolean; port: number };
+        };
+        file: {
+            type: 'LoadBalancer' | 'NodePort' | 'ClusterIP';
+            annotations?: Record<string, string>;
+            sourceRanges?: string[];
         };
     };
 
     ingress: {
-        ingressClass: string;
-        panelDomain: string;
+        className: string;
+        host: string;
+        tls: {
+            mode: 'cluster-issuer' | 'existing-secret' | 'none';
+            issuer?: string;
+            secretName?: string;
+        };
     };
 
     storage: {
-        storageClass: string;
-        reclaimPolicy: string;
+        classes: {
+            shared: { name: string; accessMode: string };
+            database: { name: string; accessMode: string };
+        };
         volumeSize: {
             persistent: string;
             scalable: string;
@@ -45,11 +58,18 @@ export default interface AppConfig {
         };
     };
 
+    metallb?: {
+        installResources: boolean;
+        ipAddressPool: string[];
+        advertisementMode: string;
+    };
+
     redis: {
         host : string;
         port : number;
     };
     mariaDB: {
+        external?: boolean;
         host : string;
         port : number;
         username : string;
@@ -57,6 +77,7 @@ export default interface AppConfig {
         database : string;
     };
     mongoDB: {
+        external?: boolean;
         host : string;
         port : number;
         username : string;
@@ -73,7 +94,6 @@ export default interface AppConfig {
     };
     sftp: {
         enabled?: boolean;
-        pass?: boolean;
         password: string;
     };
 }

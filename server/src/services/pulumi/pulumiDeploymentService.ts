@@ -411,6 +411,8 @@ export class PulumiDeploymentService {
             const panelHost = ConfigManager.getConfig().panel.panelHost;
 
             const values = {
+                global: this.globalValues,
+
                 fileSession: {
                     podName: sessionPodName,
                     deploymentName: deploymentName,
