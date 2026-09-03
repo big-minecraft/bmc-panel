@@ -19,7 +19,8 @@ export default class DeploymentManifestManager {
 
         const workingDir = path.join(baseDir, type.identifier);
         const filePath = path.join(workingDir, `${name}.yaml`);
-        const defaultsDir = path.join(ConfigManager.getConfig().panel.storagePath, "default-values");
+        const defaultsDir = process.env.BMC_DEFAULT_VALUES_PATH
+            || path.join(ConfigManager.getConfig().panel.storagePath, "default-values");
         const defaultFile = path.join(defaultsDir, `${type.identifier}.yaml`);
 
         if (await Util.fileExists(filePath)) throw new Error('Deployment already exists');

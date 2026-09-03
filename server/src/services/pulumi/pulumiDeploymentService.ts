@@ -20,7 +20,8 @@ export class PulumiDeploymentService {
     private constructor() {
         this.stateManager = StateManager.getInstance();
         this.storagePath = ConfigManager.getConfig().panel.storagePath;
-        this.chartBasePath = path.join(this.storagePath, "chart-templates");
+        this.chartBasePath = process.env.BMC_RUNTIME_CHARTS_PATH
+            || path.join(this.storagePath, "chart-templates");
     }
 
     public static getInstance(): PulumiDeploymentService {
@@ -86,11 +87,11 @@ export class PulumiDeploymentService {
             const stack = await this.stateManager.createOrSelectStack(stackName, program);
 
             console.log(`[Pulumi] Previewing changes for ${deploymentType.identifier}...`);
-            const preview = await stack.preview({ onOutput: console.log });
+            const preview = await stack.preview({ onOutput: console.log, refresh: true });
             console.log(`[Pulumi] Preview: ${preview.changeSummary.create || 0} to create, ${preview.changeSummary.update || 0} to update, ${preview.changeSummary.delete || 0} to delete`);
 
             console.log(`[Pulumi] Applying ${deploymentType.identifier} deployments...`);
-            const upResult = await stack.up({ onOutput: console.log });
+            const upResult = await stack.up({ onOutput: console.log, refresh: true });
 
             if (upResult.summary.result === "failed") {
                 throw new Error(`Pulumi up failed for ${deploymentType.identifier}: ${upResult.summary.message}`);
@@ -220,11 +221,11 @@ export class PulumiDeploymentService {
             const stack = await this.stateManager.createOrSelectStack(stackName, program);
 
             console.log(`[Pulumi] Previewing changes for ${manifest.name}...`);
-            const preview = await stack.preview({ onOutput: console.log });
+            const preview = await stack.preview({ onOutput: console.log, refresh: true });
             console.log(`[Pulumi] Preview: ${preview.changeSummary.create || 0} to create, ${preview.changeSummary.update || 0} to update, ${preview.changeSummary.delete || 0} to delete`);
 
             console.log(`[Pulumi] Applying deployment ${manifest.name}...`);
-            const upResult = await stack.up({ onOutput: console.log });
+            const upResult = await stack.up({ onOutput: console.log, refresh: true });
 
             if (upResult.summary.result === "failed") {
                 throw new Error(`Pulumi up failed for ${manifest.name}: ${upResult.summary.message}`);
@@ -267,7 +268,7 @@ export class PulumiDeploymentService {
             const stack = await this.stateManager.createOrSelectStack(stackName, emptyProgram);
 
             console.log(`[Pulumi] Applying empty state to destroy resources in stack ${stackName}...`);
-            const upResult = await stack.up({ onOutput: console.log });
+            const upResult = await stack.up({ onOutput: console.log, refresh: true });
 
             if (upResult.summary.result === "failed") {
                 throw new Error(`Pulumi destroy failed for ${deploymentName}: ${upResult.summary.message}`);
@@ -319,7 +320,7 @@ export class PulumiDeploymentService {
             const stack = await this.stateManager.createOrSelectStack(stackName, program);
 
             console.log(`[Pulumi] Applying file session ${sessionId}...`);
-            const upResult = await stack.up({ onOutput: console.log });
+            const upResult = await stack.up({ onOutput: console.log, refresh: true });
 
             if (upResult.summary.result === "failed") {
                 throw new Error(`Pulumi up failed for file session ${sessionId}: ${upResult.summary.message}`);
@@ -360,7 +361,7 @@ export class PulumiDeploymentService {
             const stack = await this.stateManager.createOrSelectStack(stackName, emptyProgram);
 
             console.log(`[Pulumi] Applying empty state to destroy file session ${sessionId}...`);
-            const upResult = await stack.up({ onOutput: console.log });
+            const upResult = await stack.up({ onOutput: console.log, refresh: true });
 
             if (upResult.summary.result === "failed") {
                 throw new Error(`Pulumi destroy failed for file session ${sessionId}: ${upResult.summary.message}`);

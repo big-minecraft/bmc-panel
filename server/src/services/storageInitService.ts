@@ -32,15 +32,7 @@ export class StorageInitService {
             console.log('Created storage directory');
         }
 
-        // Check if storage is already initialized by looking for specific files
-        const gitFolder = path.join(storagePath, '.git');
-        const isAlreadyInitialized = fs.existsSync(gitFolder);
-
-        if (!isAlreadyInitialized) {
-            await this.cloneBigMinecraft(storagePath);
-        } else {
-            console.log('Storage already initialized, skipping big-minecraft clone');
-        }
+        this.verifyRuntimeCharts();
 
         // Create manifests folder structure
         await this.createManifestsFolders(storagePath);
@@ -48,63 +40,40 @@ export class StorageInitService {
         console.log('Storage initialization complete');
     }
 
-    private async cloneBigMinecraft(storagePath: string): Promise<void> {
-        console.log('Cloning big-minecraft repository...');
+    private verifyRuntimeCharts(): void {
+        const chartsPath = process.env.BMC_RUNTIME_CHARTS_PATH
+            || path.join(ConfigManager.getConfig().panel.storagePath, 'chart-templates');
+        const valuesPath = process.env.BMC_DEFAULT_VALUES_PATH
+            || path.join(ConfigManager.getConfig().panel.storagePath, 'default-values');
 
-        const tempDir = path.join(storagePath, 'temp-clone');
+        const requiredCharts = [
+            'proxy-chart',
+            'scalable-deployment-chart',
+            'persistent-deployment-chart',
+            'process-chart',
+            'file-session-chart'
+        ];
 
-        try {
-            // Clone into temp directory
-            await execAsync(`git clone https://github.com/big-minecraft/big-minecraft "${tempDir}"`);
-
-            // Move all files from temp directory to storage root
-            const files = fs.readdirSync(tempDir);
-            for (const file of files) {
-                const sourcePath = path.join(tempDir, file);
-                const destPath = path.join(storagePath, file);
-
-                // Skip if already exists
-                if (!fs.existsSync(destPath)) {
-                    fs.renameSync(sourcePath, destPath);
-                    console.log("Moving file:" + sourcePath + " -> " + destPath);
+        const missing: string[] = [];
+        if (!fs.existsSync(chartsPath)) missing.push(chartsPath);
+        else {
+            for (const chart of requiredCharts) {
+                if (!fs.existsSync(path.join(chartsPath, chart, 'Chart.yaml'))) {
+                    missing.push(path.join(chartsPath, chart));
                 }
             }
-
-            // Remove temp directory
-            fs.rmSync(tempDir, { recursive: true, force: true });
-
-            console.log('big-minecraft repository cloned successfully');
-
-            // Verify critical directories exist
-            this.verifyCriticalDirectories(storagePath);
-
-            console.log('Storage verification complete');
-        } catch (error) {
-            console.error('Failed to clone big-minecraft repository:', error);
-            // Clean up temp directory if it exists
-            if (fs.existsSync(tempDir)) {
-                fs.rmSync(tempDir, { recursive: true, force: true });
-            }
-            throw error;
         }
-    }
+        if (!fs.existsSync(valuesPath)) missing.push(valuesPath);
 
-    private verifyCriticalDirectories(storagePath: string): void {
-        const criticalDirs = ['scripts', 'deployments', 'data'];
-        const missingDirs: string[] = [];
-
-        for (const dir of criticalDirs) {
-            const dirPath = path.join(storagePath, dir);
-            if (!fs.existsSync(dirPath)) {
-                missingDirs.push(dir);
-            }
+        if (missing.length > 0) {
+            console.error('Runtime charts are missing or incomplete:');
+            for (const m of missing) console.error(`  - ${m}`);
+            console.error('These ship with bmc-chart and are mounted by the panel Deployment.');
+            console.error('Check the <release>-runtime-charts ConfigMap and the panel volume mounts.');
+            throw new Error(`Runtime charts unavailable at ${chartsPath} - refusing to start`);
         }
 
-        if (missingDirs.length > 0) {
-            console.warn('Warning: Some expected directories are missing:', missingDirs.join(', '));
-        } else {
-            console.log('All critical directories verified');
-        }
+        console.log(`Runtime charts verified at ${chartsPath}`);
     }
 
     private async createManifestsFolders(storagePath: string): Promise<void> {
