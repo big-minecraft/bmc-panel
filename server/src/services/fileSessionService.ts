@@ -194,7 +194,7 @@ export default class FileSessionService {
 
             // Add SFTP credentials if session is ready
             if (session.status === 'ready') {
-                session.sftpCredentials = this.assembleSftpCredentials(session.deploymentName);
+                session.sftpCredentials = await this.assembleSftpCredentials(session.deploymentName, session.id);
             }
 
             return session;
@@ -354,23 +354,61 @@ export default class FileSessionService {
 
     // Private helper methods
 
-    private assembleSftpCredentials(deploymentName: string): { host: string; port: number; username: string; password: string } | undefined {
+    /**
+     * Where the user should point their SFTP client for this session.
+     *
+     * Two shapes, because the two edge types expose a session completely
+     * differently:
+     *
+     *   NodePort (bare metal)  -- every node listens on the deployment's
+     *     allocated port, and panelHost resolves to an address that reaches a
+     *     node, so "panelHost:sftpPort" is correct.
+     *
+     *   LoadBalancer (cloud)   -- the session gets its own load balancer on
+     *     port 22, at an address that has nothing to do with panelHost. On EKS
+     *     panelHost resolves to the ingress load balancer, which serves only
+     *     80 and 443, so the NodePort form points at a port nothing is
+     *     listening on.
+     *
+     * The Service name mirrors pulumiDeploymentService.createFileSessionProgram,
+     * which names the SFTP pod `sftp-<deployment>-<first 8 of session id>` and
+     * the chart appends "-service". If that naming changes, change it here too.
+     */
+    private async assembleSftpCredentials(
+        deploymentName: string,
+        sessionId: string
+    ): Promise<{ host: string; port: number; username: string; password: string } | undefined> {
         try {
             const deployment = DeploymentManager.getDeploymentByName(deploymentName);
             if (!deployment) return undefined;
 
+            const config = ConfigManager.getConfig();
+            const username = `${deploymentName}_user`;
+            const password = config.sftp.password;
+
+            if (config.edge?.file?.type === 'LoadBalancer') {
+                const serviceName = `sftp-${deploymentName}-${sessionId.substring(0, 8)}-service`;
+                const address = await KubernetesService.getInstance()
+                    .getServiceExternalAddress(serviceName, this.POD_NAMESPACE);
+
+                // Still provisioning. Returning undefined leaves the UI showing
+                // "pending" rather than an address that will not answer.
+                if (!address) {
+                    console.log(`[FileSession] Load balancer for ${serviceName} has no address yet`);
+                    return undefined;
+                }
+
+                return { host: `sftp://${address}`, port: 22, username, password };
+            }
+
             const sftpPort = deployment.getSftpPort();
             if (!sftpPort) return undefined;
 
-            const config = ConfigManager.getConfig();
-            const host = "sftp://" + config.panel.panelHost;
-            if (!host) return undefined;
-
             return {
-                host,
+                host: "sftp://" + config.panel.panelHost,
                 port: sftpPort,
-                username: `${deploymentName}_user`,
-                password: config.sftp.password
+                username,
+                password
             };
         } catch (error) {
             console.error('Error assembling SFTP credentials:', error);

@@ -124,6 +124,34 @@ class KubernetesClient {
         }
     }
 
+    /**
+     * The externally reachable address of a Service, or undefined if it has none yet.
+     *
+     * Only meaningful for type: LoadBalancer. Cloud providers assign either a
+     * hostname (AWS) or an IP (most others), and the assignment is asynchronous
+     * -- a Service can be created and Ready while its load balancer is still
+     * provisioning, so undefined here means "not yet", not "never".
+     */
+    public async getServiceExternalAddress(
+        serviceName: string,
+        namespace: string = ConfigManager.getConfig().namespace
+    ): Promise<string | undefined> {
+        this.ensureInitialized();
+
+        if (!this.coreV1Api) {
+            throw new Error('CoreV1Api is not initialized');
+        }
+
+        try {
+            const response = await this.coreV1Api.readNamespacedService(serviceName, namespace);
+            const ingress = response.body.status?.loadBalancer?.ingress?.[0];
+            return ingress?.hostname || ingress?.ip || undefined;
+        } catch (error) {
+            console.error(`Error reading service ${serviceName} in ${namespace}:`, error);
+            return undefined;
+        }
+    }
+
     public async getPodResourceSpecs(podName: string, namespace: string = ConfigManager.getConfig().namespace): Promise<{
         cpuRequest?: number;
         cpuLimit?: number;
