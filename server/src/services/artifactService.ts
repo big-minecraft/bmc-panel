@@ -21,6 +21,28 @@ export default class ArtifactService {
         return match ? `v${parseInt(match[1], 10) + 1}` : 'v1';
     }
 
+    /**
+     * Publish a deployment that has never been published.
+     *
+     * Enabling the artifact store does not retroactively publish anything, so
+     * without this an existing deployment keeps mounting the shared volume --
+     * which is ReadWriteOnce, and so pins every instance to a single node.
+     */
+    public async publishIfUnpublished(deploymentName: string): Promise<void> {
+        if (!this.isEnabled()) return;
+
+        const deployment = DeploymentManager.getDeploymentByName(deploymentName);
+        if (!deployment || deployment.manifest.artifactVersion) return;
+
+        try {
+            await this.publish(deploymentName);
+        } catch (error) {
+            // Never block a deploy on this: the instance falls back to mounting
+            // the volume, which is what it did before.
+            console.error(`[Artifacts] Initial publish failed for ${deploymentName}:`, error);
+        }
+    }
+
     public async publish(deploymentName: string): Promise<string | undefined> {
         if (!this.isEnabled()) return undefined;
 

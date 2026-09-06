@@ -9,6 +9,7 @@ import { Enum } from "../../../../shared/enum/enum";
 import { StateManager } from "./stateManager";
 import { DeploymentResult } from "./types";
 import AppConfig from "../../features/config/models/appConfig";
+import ArtifactService from "../artifactService";
 
 export class PulumiDeploymentService {
     private static instance: PulumiDeploymentService | null = null;
@@ -58,6 +59,14 @@ export class PulumiDeploymentService {
                 results.updated += result.summary?.updated || 0;
                 results.deleted += result.summary?.deleted || 0;
                 results.unchanged += result.summary?.unchanged || 0;
+            }
+
+            // Migrate any deployment that predates the artifact store, so it
+            // stops mounting the shared volume on its next instance start.
+            for (const manifest of manifests) {
+                if (manifest.isEnabled && !manifest.artifactVersion) {
+                    await ArtifactService.getInstance().publishIfUnpublished(manifest.name);
+                }
             }
 
             console.log("[Pulumi] Deployment process completed successfully");
