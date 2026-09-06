@@ -10,6 +10,8 @@ import { StateManager } from "./stateManager";
 import { DeploymentResult } from "./types";
 import AppConfig from "../../features/config/models/appConfig";
 import ArtifactService from "../artifactService";
+import * as k8sClient from "@kubernetes/client-node";
+import KubernetesService from "../kubernetesService";
 
 export class PulumiDeploymentService {
     private static instance: PulumiDeploymentService | null = null;
@@ -368,7 +370,12 @@ export class PulumiDeploymentService {
 
             this.loadGlobalValues();
 
-            const program = this.createPublishProgram(deploymentName, version, pvcName);
+            const nodeName = await this.findNodeHoldingVolume(pvcName);
+            if (nodeName) {
+                console.log(`[Pulumi] ${pvcName} is attached to ${nodeName}; pinning publish Job there`);
+            }
+
+            const program = this.createPublishProgram(deploymentName, version, pvcName, nodeName);
             const stackName = `artifact-publish-${deploymentName}`;
             const stack = await this.stateManager.createOrSelectStack(stackName, program);
 
@@ -394,10 +401,42 @@ export class PulumiDeploymentService {
         }
     }
 
+    /**
+     * The node a ReadWriteOnce claim is currently attached to, if any.
+     *
+     * Returns undefined when nothing holds it, which lets the scheduler place
+     * the Job wherever it likes.
+     */
+    private async findNodeHoldingVolume(pvcName: string): Promise<string | undefined> {
+        try {
+            const kc = KubernetesService.getInstance().kc;
+            const namespace = ConfigManager.getConfig().namespace;
+
+            const pvc = await kc.makeApiClient(k8sClient.CoreV1Api)
+                .readNamespacedPersistentVolumeClaim(pvcName, namespace);
+            const volumeName = pvc.body.spec?.volumeName;
+            if (!volumeName) return undefined;
+
+            const attachments = await kc.makeApiClient(k8sClient.StorageV1Api)
+                .listVolumeAttachment();
+
+            return attachments.body.items.find(attachment =>
+                attachment.spec.source.persistentVolumeName === volumeName
+                && attachment.status?.attached
+            )?.spec.nodeName;
+        } catch (error) {
+            // Not worth failing a publish over: without a pin the Job still
+            // succeeds whenever the volume happens to be free.
+            console.error(`[Pulumi] Could not resolve the node holding ${pvcName}:`, error);
+            return undefined;
+        }
+    }
+
     private createPublishProgram(
         deploymentName: string,
         version: string,
-        pvcName: string
+        pvcName: string,
+        nodeName?: string
     ): () => Promise<void> {
         return async () => {
             const k8sProvider = new k8s.Provider("k8s-provider", {
@@ -419,6 +458,7 @@ export class PulumiDeploymentService {
                     deploymentName,
                     version,
                     pvcName,
+                    nodeName,
                     mountPath: "/minecraft"
                 }
             };
