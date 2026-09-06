@@ -189,6 +189,13 @@ export class PulumiDeploymentService {
             type: manifest.type.identifier
         };
 
+        // Instances pull this version instead of mounting the shared volume.
+        // Absent until something has been published, which is what keeps the
+        // old path working for deployments that have not been published yet.
+        if (manifest.artifactVersion) {
+            values.artifactVersion = manifest.artifactVersion;
+        }
+
         return values;
     }
 
@@ -345,6 +352,83 @@ export class PulumiDeploymentService {
                 error: error as Error
             };
         }
+    }
+
+    public async publishArtifact(
+        deploymentName: string,
+        version: string,
+        pvcName: string
+    ): Promise<DeploymentResult> {
+        try {
+            console.log(`[Pulumi] Publishing ${deploymentName} ${version}`);
+
+            this.loadGlobalValues();
+
+            const program = this.createPublishProgram(deploymentName, version, pvcName);
+            const stackName = `artifact-publish-${deploymentName}`;
+            const stack = await this.stateManager.createOrSelectStack(stackName, program);
+
+            const upResult = await stack.up({ onOutput: console.log, refresh: true });
+
+            if (upResult.summary.result === "failed") {
+                throw new Error(`Publish failed for ${deploymentName}: ${upResult.summary.message}`);
+            }
+
+            console.log(`[Pulumi] Published ${deploymentName} ${version}`);
+            return {
+                success: true,
+                summary: {
+                    created: upResult.summary.resourceChanges?.create || 0,
+                    updated: upResult.summary.resourceChanges?.update || 0,
+                    deleted: upResult.summary.resourceChanges?.delete || 0,
+                    unchanged: upResult.summary.resourceChanges?.same || 0
+                }
+            };
+        } catch (error) {
+            console.error(`[Pulumi] Failed to publish ${deploymentName} ${version}:`, error);
+            return { success: false, error: error as Error };
+        }
+    }
+
+    private createPublishProgram(
+        deploymentName: string,
+        version: string,
+        pvcName: string
+    ): () => Promise<void> {
+        return async () => {
+            const k8sProvider = new k8s.Provider("k8s-provider", {
+                enableServerSideApply: true
+            });
+
+            const chartPath = path.join(this.chartBasePath, "artifact-publish-chart");
+
+            if (!existsSync(chartPath)) {
+                throw new Error(`Artifact publish chart not found at ${chartPath}`);
+            }
+
+            const values = {
+                global: this.globalValues,
+                publish: {
+                    // Job names must be unique per version, or replacing the
+                    // stack would try to mutate an immutable Job spec.
+                    jobName: `publish-${deploymentName}-${version}`,
+                    deploymentName,
+                    version,
+                    pvcName,
+                    mountPath: "/minecraft"
+                }
+            };
+
+            new k8s.helm.v3.Chart(
+                `artifact-publish-${deploymentName}`,
+                {
+                    path: chartPath,
+                    namespace: ConfigManager.getConfig().namespace,
+                    values: values,
+                },
+                { provider: k8sProvider }
+            );
+        };
     }
 
     public async destroyFileSession(sessionId: string): Promise<DeploymentResult> {

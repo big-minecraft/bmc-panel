@@ -104,12 +104,23 @@ export default class DeploymentManifestManager {
                 content: yamlContent,
                 isEnabled,
                 type,
-                sftpPort
+                sftpPort,
+                artifactVersion: (yamlContent as any).artifactVersion
             };
         } catch (error) {
             console.error(`error reading manifest ${filePath}:`, error);
             return null;
         }
+    }
+
+    public static async setArtifactVersion(deployment: Deployment, version: string): Promise<void> {
+        const filePath = deployment.manifest.path;
+        const parsed = yaml.load(await fs.readFile(filePath, 'utf8')) as Record<string, unknown>;
+
+        parsed.artifactVersion = version;
+
+        await fs.writeFile(filePath, yaml.dump(parsed), 'utf8');
+        deployment.manifest.artifactVersion = version;
     }
 
     public static async getDeploymentContent(deployment: Deployment): Promise<string> {

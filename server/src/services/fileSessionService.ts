@@ -7,6 +7,7 @@ import DeploymentManager from '../features/deployments/controllers/deploymentMan
 import { PulumiDeploymentService } from './pulumi/pulumiDeploymentService';
 import Redis from 'ioredis';
 import ConfigManager from '../features/config/controllers/configManager';
+import ArtifactService from './artifactService';
 
 export default class FileSessionService {
     private static instance: FileSessionService;
@@ -132,6 +133,15 @@ export default class FileSessionService {
 
             // Update status to terminating
             await this.updateSessionStatus(sessionId, 'terminating');
+
+            const artifacts = ArtifactService.getInstance();
+            if (artifacts.isEnabled()) {
+                try {
+                    await artifacts.publish(session.deploymentName);
+                } catch (error) {
+                    console.error(`Failed to publish ${session.deploymentName} on session close:`, error);
+                }
+            }
 
             // Destroy file session using Pulumi
             const pulumiService = PulumiDeploymentService.getInstance();
@@ -478,7 +488,7 @@ export default class FileSessionService {
         }
     }
 
-    private async findPVCByLabels(deploymentName: string, deploymentType: string, namespace: string): Promise<string> {
+    public async findPVCByLabels(deploymentName: string, deploymentType: string, namespace: string): Promise<string> {
         try {
             const k8s = KubernetesService.getInstance();
             const coreV1Api = k8s.kc.makeApiClient(K8s.CoreV1Api);

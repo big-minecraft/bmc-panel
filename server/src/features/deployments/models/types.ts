@@ -17,4 +17,5 @@ export interface Manifest {
     isEnabled: boolean;
     sftpPort?: number;
     type: DeploymentType;
+    artifactVersion?: string;
 }
