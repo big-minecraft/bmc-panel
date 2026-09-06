@@ -39,7 +39,12 @@ class MongodbService {
         const port = config.mongoDB.port;
         const defaultDatabase = config.mongoDB.database;
 
-        this.uri = `mongodb://${adminUsername}:${adminPassword}@${host}:${port}/${defaultDatabase}`;
+        // A replica set cannot be addressed as one host:port -- the driver needs
+        // every member and the set name to do its own failover. When a full URI
+        // is supplied it is used verbatim; otherwise one is built as before.
+        this.uri = config.mongoDB.uri
+            ? config.mongoDB.uri
+            : `mongodb://${adminUsername}:${adminPassword}@${host}:${port}/${defaultDatabase}`;
         this.client = new MongoClient(this.uri);
     }
 

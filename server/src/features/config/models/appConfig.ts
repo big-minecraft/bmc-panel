@@ -32,6 +32,14 @@ export default interface AppConfig {
         };
     };
 
+    artifactStore?: {
+        enabled: boolean;
+        install: boolean;
+        endpoint: string;
+        bucket: string;
+        region: string;
+    };
+
     ingress: {
         className: string;
         host: string;
@@ -77,6 +85,9 @@ export default interface AppConfig {
         database : string;
     };
     mongoDB: {
+        // Full connection string, used verbatim when set. Required for a
+        // replica set, which cannot be expressed as one host and port.
+        uri?: string;
         external?: boolean;
         host : string;
         port : number;
