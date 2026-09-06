@@ -4,6 +4,7 @@ import {DeploymentType} from "../../../../../shared/enum/enums/deployment-type";
 import {Enum} from "../../../../../shared/enum/enum";
 import RedisService from "../../../services/redisService";
 import { PulumiDeploymentService } from "../../../services/pulumi/pulumiDeploymentService";
+import ArtifactService from "../../../services/artifactService";
 
 export default class DeploymentManager {
     public static readonly MIN_SFTP_PORT_RANGE = 31400;
@@ -20,8 +21,33 @@ export default class DeploymentManager {
             console.log("Proxy deployment missing, created default deployment");
         }
 
+        await this.migrateToArtifacts();
         await this.syncDeploymentsToRedis();
         console.log("deployments loaded");
+    }
+
+    /**
+     * Publish deployments that predate the artifact store.
+     *
+     * Until a deployment has an artifact its instances mount the shared volume
+     * directly. That volume is ReadWriteOnce on most clusters, so every replica
+     * landing on a second node fails to attach it and never schedules.
+     */
+    private static async migrateToArtifacts(): Promise<void> {
+        const artifacts = ArtifactService.getInstance();
+        if (!artifacts.isEnabled()) return;
+
+        for (const deployment of this.deployments) {
+            if (!deployment.toJSON().enabled || deployment.manifest.artifactVersion) continue;
+
+            await artifacts.publishIfUnpublished(deployment.name);
+
+            const manifest = await DeploymentManifestManager.getManifest(deployment.manifest.path);
+            if (!manifest.artifactVersion) continue;
+
+            console.log(`[Artifacts] Re-applying ${deployment.name} on ${manifest.artifactVersion}`);
+            await PulumiDeploymentService.getInstance().applySingleDeployment(manifest);
+        }
     }
 
     private static async syncDeploymentsToRedis(): Promise<void> {

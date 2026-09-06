@@ -61,14 +61,6 @@ export class PulumiDeploymentService {
                 results.unchanged += result.summary?.unchanged || 0;
             }
 
-            // Migrate any deployment that predates the artifact store, so it
-            // stops mounting the shared volume on its next instance start.
-            for (const manifest of manifests) {
-                if (manifest.isEnabled && !manifest.artifactVersion) {
-                    await ArtifactService.getInstance().publishIfUnpublished(manifest.name);
-                }
-            }
-
             console.log("[Pulumi] Deployment process completed successfully");
             console.log(`[Pulumi] Summary: ${results.created} created, ${results.updated} updated, ${results.deleted} deleted, ${results.unchanged} unchanged`);
 
@@ -232,7 +224,10 @@ export class PulumiDeploymentService {
 
             this.loadGlobalValues();
 
-            const program = this.createHelmChartProgram(manifest.type, [manifest]);
+            await ArtifactService.getInstance().publishIfUnpublished(manifest.name);
+            const current = await DeploymentManifestManager.getManifest(manifest.path);
+
+            const program = this.createHelmChartProgram(manifest.type, [current]);
             const stackName = `${manifest.type.identifier}-${manifest.name}`;
             const stack = await this.stateManager.createOrSelectStack(stackName, program);
 
