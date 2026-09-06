@@ -67,6 +67,13 @@ export default class ArtifactService {
 
         await DeploymentManifestManager.setArtifactVersion(deployment, version);
 
+        // The version lives in the manifest, but instances only see it once the
+        // GameServer is re-rendered. Without this a publish from a file session
+        // leaves them pulling the previous version -- and on a first publish
+        // that version does not exist at all, so every pod fails to start.
+        const manifest = await DeploymentManifestManager.getManifest(deployment.manifest.path);
+        await PulumiDeploymentService.getInstance().applySingleDeployment(manifest);
+
         console.log(`[Artifacts] Published ${deploymentName} ${version}`);
         return version;
     }

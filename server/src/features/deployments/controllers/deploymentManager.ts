@@ -41,12 +41,6 @@ export default class DeploymentManager {
             if (!deployment.toJSON().enabled || deployment.manifest.artifactVersion) continue;
 
             await artifacts.publishIfUnpublished(deployment.name);
-
-            const manifest = await DeploymentManifestManager.getManifest(deployment.manifest.path);
-            if (!manifest.artifactVersion) continue;
-
-            console.log(`[Artifacts] Re-applying ${deployment.name} on ${manifest.artifactVersion}`);
-            await PulumiDeploymentService.getInstance().applySingleDeployment(manifest);
         }
     }
 

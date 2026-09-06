@@ -9,7 +9,6 @@ import { Enum } from "../../../../shared/enum/enum";
 import { StateManager } from "./stateManager";
 import { DeploymentResult } from "./types";
 import AppConfig from "../../features/config/models/appConfig";
-import ArtifactService from "../artifactService";
 import * as k8sClient from "@kubernetes/client-node";
 import KubernetesService from "../kubernetesService";
 
@@ -226,10 +225,7 @@ export class PulumiDeploymentService {
 
             this.loadGlobalValues();
 
-            await ArtifactService.getInstance().publishIfUnpublished(manifest.name);
-            const current = await DeploymentManifestManager.getManifest(manifest.path);
-
-            const program = this.createHelmChartProgram(manifest.type, [current]);
+            const program = this.createHelmChartProgram(manifest.type, [manifest]);
             const stackName = `${manifest.type.identifier}-${manifest.name}`;
             const stack = await this.stateManager.createOrSelectStack(stackName, program);
 
