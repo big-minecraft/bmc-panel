@@ -1,4 +1,5 @@
 import * as k8s from "@pulumi/kubernetes";
+import * as pulumi from "@pulumi/pulumi";
 import * as path from "path";
 import { existsSync } from "fs";
 import ConfigManager from "../../features/config/controllers/configManager";
@@ -7,12 +8,16 @@ import { Manifest } from "../../features/deployments/models/types";
 import { DeploymentType } from "../../../../shared/enum/enums/deployment-type";
 import { Enum } from "../../../../shared/enum/enum";
 import { StateManager } from "./stateManager";
-import { DeploymentResult } from "./types";
+import { DeploymentResult, PublishResult } from "./types";
 import AppConfig from "../../features/config/models/appConfig";
 import * as k8sClient from "@kubernetes/client-node";
 import KubernetesService from "../kubernetesService";
 
 export class PulumiDeploymentService {
+    private static readonly PUBLISH_SKIP_EXIT_CODE = 3;
+    private static readonly PUBLISH_LOG_TAIL_LINES = 50;
+    private static readonly JOB_DELETE_TIMEOUT_MS = 30000;
+
     private static instance: PulumiDeploymentService | null = null;
     private stateManager: StateManager;
     private globalValues: AppConfig | null = null;
@@ -354,7 +359,9 @@ export class PulumiDeploymentService {
         deploymentName: string,
         version: string,
         pvcName: string
-    ): Promise<DeploymentResult> {
+    ): Promise<PublishResult> {
+        const jobName = `publish-${deploymentName}-${version}`;
+
         try {
             console.log(`[Pulumi] Publishing ${deploymentName} ${version}`);
 
@@ -365,7 +372,9 @@ export class PulumiDeploymentService {
                 console.log(`[Pulumi] ${pvcName} is attached to ${nodeName}; pinning publish Job there`);
             }
 
-            const program = this.createPublishProgram(deploymentName, version, pvcName, nodeName);
+            await this.deletePublishJob(jobName);
+
+            const program = this.createPublishProgram(deploymentName, version, pvcName, jobName, nodeName);
             const stackName = `artifact-publish-${deploymentName}`;
             const stack = await this.stateManager.createOrSelectStack(stackName, program);
 
@@ -386,8 +395,166 @@ export class PulumiDeploymentService {
                 }
             };
         } catch (error) {
+            const outcome = await this.inspectPublishJob(jobName);
+
+            if (outcome.skipped) {
+                console.log(`[Pulumi] ${deploymentName} had no deployment files to publish; skipping ${version}`);
+                return { success: true, skipped: true };
+            }
+
             console.error(`[Pulumi] Failed to publish ${deploymentName} ${version}:`, error);
-            return { success: false, error: error as Error };
+            if (outcome.detail) console.error(outcome.detail);
+
+            const message = (error as Error).message;
+            return {
+                success: false,
+                error: new Error(outcome.detail ? `${message}\n${outcome.detail}` : message)
+            };
+        }
+    }
+
+    private async deletePublishJob(jobName: string): Promise<void> {
+        const namespace = ConfigManager.getConfig().namespace;
+        const batchApi = KubernetesService.getInstance().kc.makeApiClient(k8sClient.BatchV1Api);
+
+        try {
+            await batchApi.deleteNamespacedJob(
+                jobName,
+                namespace,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                "Foreground"
+            );
+            console.log(`[Pulumi] Cleared a previous publish Job ${jobName}`);
+        } catch (error: any) {
+            if (error.statusCode === 404) return;
+
+            console.error(`[Pulumi] Could not delete publish Job ${jobName}:`, error);
+            return;
+        }
+
+        const deadline = Date.now() + PulumiDeploymentService.JOB_DELETE_TIMEOUT_MS;
+        while (Date.now() < deadline) {
+            try {
+                await batchApi.readNamespacedJob(jobName, namespace);
+            } catch (error: any) {
+                if (error.statusCode === 404) return;
+                console.error(`[Pulumi] Could not confirm publish Job ${jobName} is gone:`, error);
+                return;
+            }
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        console.warn(`[Pulumi] Publish Job ${jobName} still exists after deletion; publishing anyway`);
+    }
+
+    private async inspectPublishJob(jobName: string): Promise<{ skipped: boolean; detail?: string }> {
+        try {
+            const namespace = ConfigManager.getConfig().namespace;
+            const coreApi = KubernetesService.getInstance().kc.makeApiClient(k8sClient.CoreV1Api);
+
+            const pods = await coreApi.listNamespacedPod(
+                namespace,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                `job-name=${jobName}`
+            );
+
+            const exitCodes = pods.body.items
+                .flatMap(pod => [
+                    ...(pod.status?.initContainerStatuses || []),
+                    ...(pod.status?.containerStatuses || [])
+                ])
+                .map(status => status.state?.terminated?.exitCode)
+                .filter((code): code is number => code !== undefined && code !== 0);
+
+            if (exitCodes.length) {
+                if (exitCodes.every(code => code === PulumiDeploymentService.PUBLISH_SKIP_EXIT_CODE)) {
+                    return { skipped: true };
+                }
+
+                const logs = await this.readPublishJobLogs(pods.body.items);
+                const codes = `${jobName} exited ${exitCodes.join(", ")}`;
+                return { skipped: false, detail: logs ? `${codes}\n${logs}` : codes };
+            }
+
+            const failure = await this.readPublishJobFailure(jobName);
+            if (failure?.reason === "PodFailurePolicy") return { skipped: true };
+
+            const logs = await this.readPublishJobLogs(pods.body.items);
+            const detail = [
+                failure && `${jobName} failed: ${failure.reason} ${failure.message}`.trim(),
+                logs
+            ].filter(Boolean).join("\n");
+
+            return { skipped: false, detail: detail || undefined };
+        } catch (error) {
+            console.error(`[Pulumi] Could not inspect publish Job ${jobName}:`, error);
+            return { skipped: false };
+        }
+    }
+
+    private async readPublishJobLogs(pods: k8sClient.V1Pod[]): Promise<string> {
+        const namespace = ConfigManager.getConfig().namespace;
+        const coreApi = KubernetesService.getInstance().kc.makeApiClient(k8sClient.CoreV1Api);
+
+        const sections: string[] = [];
+
+        for (const pod of pods) {
+            const podName = pod.metadata?.name;
+            if (!podName) continue;
+
+            const containers = [
+                ...(pod.spec?.initContainers || []),
+                ...(pod.spec?.containers || [])
+            ].map(container => container.name);
+
+            for (const container of containers.length ? containers : [undefined]) {
+                try {
+                    const logs = await coreApi.readNamespacedPodLog(
+                        podName,
+                        namespace,
+                        container,
+                        false,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        PulumiDeploymentService.PUBLISH_LOG_TAIL_LINES
+                    );
+
+                    const body = (logs.body || "").trim();
+                    if (body) sections.push(`--- ${podName}${container ? `/${container}` : ""} ---\n${body}`);
+                } catch (error) {
+                    console.error(`[Pulumi] Could not read logs for ${podName}:`, error);
+                }
+            }
+        }
+
+        return sections.join("\n");
+    }
+
+    private async readPublishJobFailure(jobName: string): Promise<{ reason: string; message: string } | undefined> {
+        const namespace = ConfigManager.getConfig().namespace;
+        const batchApi = KubernetesService.getInstance().kc.makeApiClient(k8sClient.BatchV1Api);
+
+        try {
+            const job = await batchApi.readNamespacedJob(jobName, namespace);
+
+            const condition = (job.body.status?.conditions || [])
+                .find(c => c.type === "Failed" && c.status === "True");
+
+            if (!condition) return undefined;
+            return { reason: condition.reason || "", message: condition.message || "" };
+        } catch (error: any) {
+            if (error.statusCode !== 404) {
+                console.error(`[Pulumi] Could not read publish Job ${jobName}:`, error);
+            }
+            return undefined;
         }
     }
 
@@ -426,6 +593,7 @@ export class PulumiDeploymentService {
         deploymentName: string,
         version: string,
         pvcName: string,
+        jobName: string,
         nodeName?: string
     ): () => Promise<void> {
         return async () => {
@@ -442,9 +610,7 @@ export class PulumiDeploymentService {
             const values = {
                 global: this.globalValues,
                 publish: {
-                    // Job names must be unique per version, or replacing the
-                    // stack would try to mutate an immutable Job spec.
-                    jobName: `publish-${deploymentName}-${version}`,
+                    jobName,
                     deploymentName,
                     version,
                     pvcName,
@@ -459,6 +625,13 @@ export class PulumiDeploymentService {
                     path: chartPath,
                     namespace: ConfigManager.getConfig().namespace,
                     values: values,
+                    transformations: [
+                        (obj: any, opts: pulumi.CustomResourceOptions) => {
+                            if (obj.kind !== "Job") return;
+                            opts.replaceOnChanges = ["*"];
+                            opts.deleteBeforeReplace = true;
+                        }
+                    ]
                 },
                 { provider: k8sProvider }
             );

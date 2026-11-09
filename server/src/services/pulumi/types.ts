@@ -15,3 +15,7 @@ export interface DeploymentResult {
     };
     error?: Error;
 }
+
+export interface PublishResult extends DeploymentResult {
+    skipped?: boolean;
+}

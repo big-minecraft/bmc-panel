@@ -61,6 +61,11 @@ export default class ArtifactService {
         const result = await PulumiDeploymentService.getInstance()
             .publishArtifact(deploymentName, version, pvcName);
 
+        if (result.skipped) {
+            console.log(`[Artifacts] Nothing to publish for ${deploymentName}; ${version} not recorded`);
+            return undefined;
+        }
+
         if (!result.success) {
             throw new Error(`Failed to publish ${deploymentName} ${version}: ${result.error?.message}`);
         }
