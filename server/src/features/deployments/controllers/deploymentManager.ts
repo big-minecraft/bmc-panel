@@ -21,9 +21,21 @@ export default class DeploymentManager {
             console.log("Proxy deployment missing, created default deployment");
         }
 
+        console.log("deployments loaded");
+    }
+
+    /**
+     * Reconcile with the cluster: publish anything that predates the artifact
+     * store, then push the current state to Redis.
+     *
+     * Kept out of init() because both talk to the cluster, and the panel must
+     * not wait on the cluster to start serving -- one slow Pulumi call here
+     * used to mean no UI and no API at all.
+     */
+    public static async reconcile(): Promise<void> {
         await this.migrateToArtifacts();
         await this.syncDeploymentsToRedis();
-        console.log("deployments loaded");
+        console.log("deployments reconciled");
     }
 
     /**

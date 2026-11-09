@@ -9,9 +9,6 @@ env:
   IMAGE: kyrokrypt/bmc-panel
 
 jobs:
-  # Each platform builds natively on its own runner -- no QEMU. Every build
-  # pushes an untagged, digest-only image; the merge job below stitches those
-  # digests into the single multi-arch tag.
   build:
     runs-on: ${{ matrix.runner }}
     strategy:

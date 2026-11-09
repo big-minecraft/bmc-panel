@@ -7,6 +7,7 @@ import DeploymentManifestManager from "../../features/deployments/controllers/de
 import { Manifest } from "../../features/deployments/models/types";
 import { DeploymentType } from "../../../../shared/enum/enums/deployment-type";
 import { Enum } from "../../../../shared/enum/enum";
+import { ConcurrentUpdateError, Stack, UpResult } from "@pulumi/pulumi/automation";
 import { StateManager } from "./stateManager";
 import { DeploymentResult, PublishResult } from "./types";
 import AppConfig from "../../features/config/models/appConfig";
@@ -17,6 +18,12 @@ export class PulumiDeploymentService {
     private static readonly PUBLISH_SKIP_EXIT_CODE = 3;
     private static readonly PUBLISH_LOG_TAIL_LINES = 50;
     private static readonly JOB_DELETE_TIMEOUT_MS = 30000;
+    private static readonly PUBLISH_JOB_TIMEOUT_MS = 600000;
+    private static readonly PUBLISH_JOB_POLL_MS = 2000;
+    private static readonly PUBLISH_JOB_APPEAR_MS = 60000;
+    private static readonly STACK_UP_TIMEOUT_MS = 600000;
+    private static readonly STACK_UP_ATTEMPTS = 5;
+    private static readonly STACK_UP_RETRY_BASE_MS = 2000;
 
     private static instance: PulumiDeploymentService | null = null;
     private stateManager: StateManager;
@@ -95,7 +102,7 @@ export class PulumiDeploymentService {
             console.log(`[Pulumi] Preview: ${preview.changeSummary.create || 0} to create, ${preview.changeSummary.update || 0} to update, ${preview.changeSummary.delete || 0} to delete`);
 
             console.log(`[Pulumi] Applying ${deploymentType.identifier} deployments...`);
-            const upResult = await stack.up({ onOutput: console.log, refresh: true });
+            const upResult = await this.runStackUp(stack, `${deploymentType.identifier} deployments`);
 
             if (upResult.summary.result === "failed") {
                 throw new Error(`Pulumi up failed for ${deploymentType.identifier}: ${upResult.summary.message}`);
@@ -233,7 +240,7 @@ export class PulumiDeploymentService {
             console.log(`[Pulumi] Preview: ${preview.changeSummary.create || 0} to create, ${preview.changeSummary.update || 0} to update, ${preview.changeSummary.delete || 0} to delete`);
 
             console.log(`[Pulumi] Applying deployment ${manifest.name}...`);
-            const upResult = await stack.up({ onOutput: console.log, refresh: true });
+            const upResult = await this.runStackUp(stack, `deployment ${manifest.name}`);
 
             if (upResult.summary.result === "failed") {
                 throw new Error(`Pulumi up failed for ${manifest.name}: ${upResult.summary.message}`);
@@ -276,7 +283,7 @@ export class PulumiDeploymentService {
             const stack = await this.stateManager.createOrSelectStack(stackName, emptyProgram);
 
             console.log(`[Pulumi] Applying empty state to destroy resources in stack ${stackName}...`);
-            const upResult = await stack.up({ onOutput: console.log, refresh: true });
+            const upResult = await this.runStackUp(stack, `destroy of ${deploymentName}`);
 
             if (upResult.summary.result === "failed") {
                 throw new Error(`Pulumi destroy failed for ${deploymentName}: ${upResult.summary.message}`);
@@ -328,7 +335,7 @@ export class PulumiDeploymentService {
             const stack = await this.stateManager.createOrSelectStack(stackName, program);
 
             console.log(`[Pulumi] Applying file session ${sessionId}...`);
-            const upResult = await stack.up({ onOutput: console.log, refresh: true });
+            const upResult = await this.runStackUp(stack, `file session ${sessionId}`);
 
             if (upResult.summary.result === "failed") {
                 throw new Error(`Pulumi up failed for file session ${sessionId}: ${upResult.summary.message}`);
@@ -378,10 +385,28 @@ export class PulumiDeploymentService {
             const stackName = `artifact-publish-${deploymentName}`;
             const stack = await this.stateManager.createOrSelectStack(stackName, program);
 
-            const upResult = await stack.up({ onOutput: console.log, refresh: true });
+            const upResult = await this.runStackUp(stack, `publish ${deploymentName} ${version}`);
 
             if (upResult.summary.result === "failed") {
                 throw new Error(`Publish failed for ${deploymentName}: ${upResult.summary.message}`);
+            }
+
+            const completion = await this.waitForPublishJob(jobName);
+
+            if (completion.skipped) {
+                console.log(`[Pulumi] ${deploymentName} had no deployment files to publish; skipping ${version}`);
+                return { success: true, skipped: true };
+            }
+
+            if (!completion.succeeded) {
+                const message = `Publish failed for ${deploymentName} ${version}`;
+                console.error(`[Pulumi] ${message}`);
+                if (completion.detail) console.error(completion.detail);
+
+                return {
+                    success: false,
+                    error: new Error(completion.detail ? `${message}\n${completion.detail}` : message)
+                };
             }
 
             console.log(`[Pulumi] Published ${deploymentName} ${version}`);
@@ -411,6 +436,57 @@ export class PulumiDeploymentService {
                 error: new Error(outcome.detail ? `${message}\n${outcome.detail}` : message)
             };
         }
+    }
+
+    private async waitForPublishJob(jobName: string): Promise<{ succeeded: boolean; skipped: boolean; detail?: string }> {
+        const namespace = ConfigManager.getConfig().namespace;
+        const batchApi = KubernetesService.getInstance().kc.makeApiClient(k8sClient.BatchV1Api);
+
+        const start = Date.now();
+        const deadline = start + PulumiDeploymentService.PUBLISH_JOB_TIMEOUT_MS;
+        let seen = false;
+
+        while (Date.now() < deadline) {
+            let conditions: k8sClient.V1JobCondition[] | undefined;
+
+            try {
+                const job = await batchApi.readNamespacedJob(jobName, namespace);
+                conditions = job.body.status?.conditions || [];
+                seen = true;
+            } catch (error: any) {
+                if (error.statusCode !== 404) {
+                    console.error(`[Pulumi] Could not read publish Job ${jobName}:`, error);
+                } else if (seen) {
+                    return { succeeded: false, skipped: false, detail: `${jobName} disappeared before it finished` };
+                } else if (Date.now() - start > PulumiDeploymentService.PUBLISH_JOB_APPEAR_MS) {
+                    return { succeeded: false, skipped: false, detail: `${jobName} was never created` };
+                }
+            }
+
+            const failed = conditions?.find(c => c.type === "Failed" && c.status === "True");
+            if (failed) {
+                const outcome = await this.inspectPublishJob(jobName);
+                return {
+                    succeeded: false,
+                    skipped: outcome.skipped,
+                    detail: outcome.detail || `${failed.reason || ""} ${failed.message || ""}`.trim()
+                };
+            }
+
+            if (conditions?.some(c => c.type === "Complete" && c.status === "True")) {
+                return { succeeded: true, skipped: false };
+            }
+
+            await this.sleep(PulumiDeploymentService.PUBLISH_JOB_POLL_MS);
+        }
+
+        const outcome = await this.inspectPublishJob(jobName);
+        const timedOut = `${jobName} did not finish within ${PulumiDeploymentService.PUBLISH_JOB_TIMEOUT_MS}ms`;
+        return {
+            succeeded: false,
+            skipped: false,
+            detail: outcome.detail ? `${timedOut}\n${outcome.detail}` : timedOut
+        };
     }
 
     private async deletePublishJob(jobName: string): Promise<void> {
@@ -625,6 +701,7 @@ export class PulumiDeploymentService {
                     path: chartPath,
                     namespace: ConfigManager.getConfig().namespace,
                     values: values,
+                    skipAwait: true,
                     transformations: [
                         (obj: any, opts: pulumi.CustomResourceOptions) => {
                             if (obj.kind !== "Job") return;
@@ -652,7 +729,7 @@ export class PulumiDeploymentService {
             const stack = await this.stateManager.createOrSelectStack(stackName, emptyProgram);
 
             console.log(`[Pulumi] Applying empty state to destroy file session ${sessionId}...`);
-            const upResult = await stack.up({ onOutput: console.log, refresh: true });
+            const upResult = await this.runStackUp(stack, `destroy of file session ${sessionId}`);
 
             if (upResult.summary.result === "failed") {
                 throw new Error(`Pulumi destroy failed for file session ${sessionId}: ${upResult.summary.message}`);
@@ -748,6 +825,62 @@ export class PulumiDeploymentService {
                 { provider: k8sProvider }
             );
         };
+    }
+
+    private async runStackUp(stack: Stack, label: string): Promise<UpResult> {
+        for (let attempt = 1; ; attempt++) {
+            try {
+                return await this.withTimeout(
+                    stack.up({ onOutput: console.log, refresh: true }),
+                    PulumiDeploymentService.STACK_UP_TIMEOUT_MS,
+                    `Pulumi up for ${label}`,
+                    async () => {
+                        try {
+                            await stack.cancel();
+                        } catch (error) {
+                            console.error(`[Pulumi] Could not cancel the update for ${label}:`, error);
+                        }
+                    }
+                );
+            } catch (error) {
+                if (!(error instanceof ConcurrentUpdateError)
+                    || attempt >= PulumiDeploymentService.STACK_UP_ATTEMPTS) {
+                    throw error;
+                }
+
+                const delay = PulumiDeploymentService.STACK_UP_RETRY_BASE_MS * 2 ** (attempt - 1);
+                console.warn(`[Pulumi] ${label} is locked by another update; retrying in ${delay}ms`);
+                await this.sleep(delay);
+            }
+        }
+    }
+
+    private async withTimeout<T>(
+        work: Promise<T>,
+        timeoutMs: number,
+        label: string,
+        onTimeout: () => Promise<void>
+    ): Promise<T> {
+        let timer: NodeJS.Timeout | undefined;
+
+        const expiry = new Promise<never>((_resolve, reject) => {
+            timer = setTimeout(async () => {
+                await onTimeout();
+                reject(new Error(`${label} timed out after ${timeoutMs}ms`));
+            }, timeoutMs);
+        });
+
+        work.catch(() => undefined);
+
+        try {
+            return await Promise.race([work, expiry]);
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
+    private sleep(ms: number): Promise<void> {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     public static reset(): void {
