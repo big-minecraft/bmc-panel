@@ -78,10 +78,7 @@ export class PulumiDeploymentService {
         }
     }
 
-    private async applyDeploymentType(
-        deploymentType: DeploymentType,
-        manifests: Manifest[]
-    ): Promise<DeploymentResult> {
+    private async applyDeploymentType(deploymentType: DeploymentType, manifests: Manifest[]): Promise<DeploymentResult> {
         try {
             const program = this.createHelmChartProgram(deploymentType, manifests);
 
@@ -114,10 +111,7 @@ export class PulumiDeploymentService {
         }
     }
 
-    private createHelmChartProgram(
-        deploymentType: DeploymentType,
-        manifests: Manifest[]
-    ): () => Promise<void> {
+    private createHelmChartProgram(deploymentType: DeploymentType, manifests: Manifest[]): () => Promise<void> {
         return async () => {
             const k8sProvider = new k8s.Provider("k8s-provider", {
                 enableServerSideApply: true
