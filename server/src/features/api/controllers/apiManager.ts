@@ -5,6 +5,9 @@ import {logoutEndpoint} from "../../../api/auth/logout";
 import {registerEndpoint} from "../../../api/auth/register";
 import {verifyLoginEndpoint} from "../../../api/auth/verifyLogin";
 import {verifyRegistrationEndpoint} from "../../../api/auth/verifyRegistration";
+import {getAuthProvidersEndpoint} from "../../../api/auth/getAuthProviders";
+import {oidcStartEndpoint} from "../../../api/auth/oidcStart";
+import {oidcCallbackEndpoint} from "../../../api/auth/oidcCallback";
 import {listMongoEndpoint} from "../../../api/database/listMongo";
 import {createMongoEndpoint} from "../../../api/database/createMongo";
 import {deleteMongoEndpoint} from "../../../api/database/deleteMongo";
@@ -80,6 +83,9 @@ export default class ApiManager {
         this.addEndpoint(verifyInviteEndpoint);
         this.addEndpoint(verifyLoginEndpoint);
         this.addEndpoint(verifyRegistrationEndpoint);
+        this.addEndpoint(getAuthProvidersEndpoint);
+        this.addEndpoint(oidcStartEndpoint);
+        this.addEndpoint(oidcCallbackEndpoint);
 
         //Admin
 

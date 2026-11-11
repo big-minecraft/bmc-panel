@@ -8,12 +8,26 @@ import LoginForm from '../components/LoginForm';
 import {ForgotPasswordModal} from '../components/ForgotPasswordModal';
 import {checkAuthToken} from '../../../utils/auth';
 import AuthLayout from '../components/AuthLayout';
+import {useAuthProviders} from '../hooks/useAuthProviders';
+
+const OIDC_ERRORS = {
+    oidc_disabled: 'Single sign-on is not enabled for this panel.',
+    oidc_unavailable: 'Could not reach the identity provider. Please try again or use a password.',
+    oidc_denied: 'The identity provider declined the sign-in request.',
+    oidc_not_authorized: 'Your account is not a member of the group required to use this panel.',
+    oidc_no_account: 'No panel account exists for your user. Ask an administrator to create one.',
+    oidc_username_taken: 'Your username is already linked to a different identity.',
+    oidc_failed: 'Single sign-on failed. Please try again.',
+};
 
 const Login = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const {error} = useAuthContext();
+    const {error, setError} = useAuthContext();
     const loginProps = useLogin();
+    const {providers, loaded} = useAuthProviders();
+
+    const returnTo = location.state?.from || '/';
 
     useEffect(() => {
         if (checkAuthToken()) {
@@ -22,8 +36,15 @@ const Login = () => {
         }
     }, [navigate, location]);
 
+    useEffect(() => {
+        const code = new URLSearchParams(location.search).get('error');
+        if (code) setError(OIDC_ERRORS[code] || OIDC_ERRORS.oidc_failed);
+    }, [location.search, setError]);
+
     const getSubtitle = () => {
-        if (loginProps.authStep === 1) return 'Enter your credentials';
+        if (loginProps.authStep === 1) {
+            return providers.localLogin ? 'Enter your credentials' : 'Sign in to continue';
+        }
         if (loginProps.authStep === 2) return 'Enter verification code';
         return '';
     };
@@ -53,6 +74,15 @@ const Login = () => {
                                 <Alert message={error}/>
                             </motion.div>
                         )}
+                        {!loaded ? (
+                            <div className="flex justify-center py-8">
+                                <motion.div
+                                    className="h-8 w-8 rounded-full border-2 border-indigo-500 border-t-transparent"
+                                    animate={{rotate: 360}}
+                                    transition={{duration: 0.8, repeat: Infinity, ease: 'linear'}}
+                                />
+                            </div>
+                        ) : (
                         <LoginForm
                             username={loginProps.username}
                             setUsername={loginProps.setUsername}
@@ -66,7 +96,10 @@ const Login = () => {
                             setShowForgotModal={loginProps.setShowForgotModal}
                             handleLogin={loginProps.handleLogin}
                             handleVerifyToken={loginProps.handleVerifyToken}
+                            providers={providers}
+                            returnTo={returnTo}
                         />
+                        )}
                     </div>
                 </AuthLayout>
 

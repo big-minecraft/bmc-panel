@@ -58,7 +58,7 @@ class DatabaseService {
         let conn;
         try {
             conn = await this.pool.getConnection();
-            await conn.query('CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255), password VARCHAR(255), secret VARCHAR(255), is_admin BOOLEAN DEFAULT FALSE, last_logout TIMESTAMP DEFAULT CURRENT_TIMESTAMP)');
+            await conn.query('CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255), password VARCHAR(255), secret VARCHAR(255), is_admin BOOLEAN DEFAULT FALSE, last_logout TIMESTAMP DEFAULT CURRENT_TIMESTAMP, auth_provider VARCHAR(64) NOT NULL DEFAULT \'local\', external_id VARCHAR(255) DEFAULT NULL)');
             await conn.query('CREATE TABLE IF NOT EXISTS invite_codes (id INT AUTO_INCREMENT PRIMARY KEY, code VARCHAR(255), message TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, used_by VARCHAR(255) DEFAULT NULL)');
             await conn.query(`
                 CREATE TABLE IF NOT EXISTS database_credentials (
@@ -100,6 +100,85 @@ class DatabaseService {
             await conn.query('INSERT INTO users (username, password, secret, is_admin) VALUES (?, ?, ?, ?)', [username, password, secret, isAdmin]);
         } catch (error) {
             console.error('Failed to add user:', error);
+            throw error;
+        } finally {
+            if (conn) await conn.end();
+        }
+    }
+
+
+    public async getUserByExternalId(authProvider: string, externalId: string): Promise<any | null> {
+        let conn;
+        try {
+            conn = await this.pool.getConnection();
+            const rows = await conn.query(
+                'SELECT * FROM users WHERE auth_provider = ? AND external_id = ?',
+                [authProvider, externalId]
+            );
+            return rows.length > 0 ? rows[0] : null;
+        } catch (error) {
+            console.error('Failed to get user by external id:', error);
+            throw error;
+        } finally {
+            if (conn) await conn.end();
+        }
+    }
+
+    public async addExternalUser(username: string, authProvider: string, externalId: string, isAdmin: boolean): Promise<void> {
+        let users = await this.getUsers();
+        let admin = isAdmin || users.length === 0;
+
+        let conn;
+        try {
+            conn = await this.pool.getConnection();
+            await conn.query(
+                'INSERT INTO users (username, password, secret, is_admin, auth_provider, external_id) VALUES (?, NULL, NULL, ?, ?, ?)',
+                [username, admin, authProvider, externalId]
+            );
+        } catch (error) {
+            console.error('Failed to add external user:', error);
+            throw error;
+        } finally {
+            if (conn) await conn.end();
+        }
+    }
+
+    public async setUserAdminByUsername(username: string, isAdmin: boolean): Promise<void> {
+        let conn;
+        try {
+            conn = await this.pool.getConnection();
+            await conn.query('UPDATE users SET is_admin = ? WHERE username = ?', [isAdmin, username]);
+        } catch (error) {
+            console.error('Failed to set admin status:', error);
+            throw error;
+        } finally {
+            if (conn) await conn.end();
+        }
+    }
+
+    public async setUserUsername(userID: number, username: string): Promise<void> {
+        let conn;
+        try {
+            conn = await this.pool.getConnection();
+            await conn.query('UPDATE users SET username = ? WHERE id = ?', [username, userID]);
+        } catch (error) {
+            console.error('Failed to update username:', error);
+            throw error;
+        } finally {
+            if (conn) await conn.end();
+        }
+    }
+
+    public async linkUserToProvider(userID: number, authProvider: string, externalId: string): Promise<void> {
+        let conn;
+        try {
+            conn = await this.pool.getConnection();
+            await conn.query(
+                'UPDATE users SET auth_provider = ?, external_id = ? WHERE id = ?',
+                [authProvider, externalId, userID]
+            );
+        } catch (error) {
+            console.error('Failed to link user to provider:', error);
             throw error;
         } finally {
             if (conn) await conn.end();

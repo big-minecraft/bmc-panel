@@ -21,6 +21,7 @@ import PVCFileOperationsService from "./services/pvcFileOperationsService";
 import SocketManager from "./features/socket/controllers/socket-manager";
 import StorageInitService from "./services/storageInitService";
 import InstanceMetricsService from "./services/instanceMetricsService";
+import OidcService from "./services/oidcService";
 
 class App {
     private readonly app: Application;
@@ -29,10 +30,6 @@ class App {
 
     constructor() {
         ConfigManager.init();
-
-        console.log("----------------------------------");
-        console.log(ConfigManager.getConfig());
-        console.log("----------------------------------");
 
         this.app = express();
         this.server = new HttpServer(this.app);
@@ -58,6 +55,7 @@ class App {
         KubernetesService.init();
         DatabaseService.init();
         AuthService.init();
+        OidcService.init();
         MongodbService.init();
         PrometheusService.init();
         InviteCodeService.init();

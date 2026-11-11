@@ -16,26 +16,70 @@
     "inviteCodeExpiryDays": 7
   },
 
-  "loadBalancer": {
-    "provider": "metallb",
-    "metallb": {
-      "advertisementMode": "l2",
-      "entrypointIP": "192.168.1.100",
-      "installResources": true,
-      "ipAddressPool": [
-        "192.168.1.100/32"
-      ]
+  "oidc": {
+    "enabled": false,
+    "displayName": "authentik",
+
+    "issuer": "https://auth.example.com/application/o/bmc-panel/",
+    "clientId": "your-client-id",
+    "clientSecret": "your-client-secret",
+    "redirectUri": "https://panel.example.com/api/auth/oidc/callback",
+
+    "scopes": "openid profile email groups",
+
+    "allowedGroup": "bmc-panel-users",
+    "adminGroup": "bmc-panel-admins",
+    "autoCreateUsers": true,
+
+    "allowLocalLogin": true,
+    "endSessionOnLogout": false
+  },
+
+  "edge": {
+    "game": {
+      "type": "LoadBalancer",
+      "loadBalancerIP": "192.168.1.100",
+      "java": {
+        "port": 25565
+      },
+      "bedrock": {
+        "enabled": false,
+        "port": 19132
+      }
+    },
+    "file": {
+      "type": "LoadBalancer"
     }
   },
 
+  "metallb": {
+    "installResources": true,
+    "advertisementMode": "l2",
+    "ipAddressPool": [
+      "192.168.1.100/32"
+    ]
+  },
+
   "ingress": {
-    "ingressClass": "traefik",
-    "panelDomain": "panel.example.com"
+    "className": "traefik",
+    "host": "panel.example.com",
+    "tls": {
+      "mode": "cluster-issuer",
+      "issuer": "letsencrypt-staging"
+    }
   },
 
   "storage": {
-    "storageClass": "local-path",
-    "reclaimPolicy": "Retain",
+    "classes": {
+      "shared": {
+        "name": "local-path",
+        "accessMode": "ReadWriteOnce"
+      },
+      "database": {
+        "name": "local-path",
+        "accessMode": "ReadWriteOnce"
+      }
+    },
     "volumeSize": {
       "persistent": "10Gi",
       "scalable": "5Gi",
@@ -79,7 +123,6 @@
 
   "sftp": {
     "enabled": true,
-    "pass": true,
     "password": "your-sftp-password"
   }
 }

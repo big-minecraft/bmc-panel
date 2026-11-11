@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import {motion} from 'framer-motion';
 import {LoadingButton} from './LoadingButton';
-import {Lock, User, ArrowRight} from 'lucide-react';
+import {Lock, User, ArrowRight, KeyRound} from 'lucide-react';
 
 const LoginForm = ({
     username,
@@ -15,9 +15,46 @@ const LoginForm = ({
     loading,
     setShowForgotModal,
     handleLogin,
-    handleVerifyToken
+    handleVerifyToken,
+    providers,
+    returnTo
 }) => {
     const [focusedInput, setFocusedInput] = useState(null);
+
+    const oidcEnabled = providers?.oidc?.enabled;
+    const localLogin = providers?.localLogin !== false;
+
+    const SsoButton = () => (
+        <motion.a
+            href={`/api/auth/oidc/start?returnTo=${encodeURIComponent(returnTo || '/')}`}
+            whileHover={{scale: 1.01}}
+            whileTap={{scale: 0.99}}
+            className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white
+                       bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700
+                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500
+                       transition-colors duration-200"
+        >
+            <KeyRound className="mr-2 h-4 w-4"/>
+            Sign in with {providers?.oidc?.displayName || 'Single Sign-On'}
+        </motion.a>
+    );
+
+    // Provider only: no credentials to collect, so the form is just the button.
+    if (authStep === 1 && oidcEnabled && !localLogin) {
+        return (
+            <motion.div
+                initial={{opacity: 0}}
+                animate={{opacity: 1}}
+                transition={{duration: 0.3}}
+                className="space-y-6"
+            >
+                <SsoButton/>
+                <p className="text-center text-sm text-gray-500">
+                    Password sign-in is disabled for this panel
+                </p>
+            </motion.div>
+        );
+    }
 
     if (authStep === 1) {
         return (
@@ -73,6 +110,21 @@ const LoginForm = ({
                             onBlur={() => setFocusedInput(null)}
                         />
                     </motion.div>
+
+                    {oidcEnabled && (
+                        <div className="space-y-4">
+                            <SsoButton/>
+
+                            <div className="relative">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-gray-200"/>
+                                </div>
+                                <div className="relative flex justify-center text-xs uppercase">
+                                    <span className="bg-white px-2 text-gray-500">or</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="space-y-4">
                         <LoadingButton

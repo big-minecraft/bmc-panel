@@ -12,6 +12,12 @@ const LogoutButton = () => {
 
             if (response.status === 200) {
                 clearToken();
+                const endSessionUrl = response.data?.data?.endSessionUrl;
+                if (endSessionUrl) {
+                    window.location.href = endSessionUrl;
+                    return;
+                }
+
                 navigate('/login');
             } else {
                 console.error('logout failed');

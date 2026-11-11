@@ -16,6 +16,30 @@ export default interface AppConfig {
         inviteCodeExpiryDays: number;
     };
 
+    oidc?: {
+        enabled: boolean;
+        displayName?: string;
+
+        issuer: string;
+        clientId: string;
+        clientSecret: string;
+        redirectUri?: string;
+
+        // Space separated. Add "groups" when using allowedGroup/adminGroup.
+        scopes?: string;
+
+        usernameClaim?: string;
+        groupsClaim?: string;
+
+        allowedGroup?: string;
+        adminGroup?: string;
+        autoCreateUsers?: boolean;
+
+        allowLocalLogin: boolean;
+
+        endSessionOnLogout?: boolean;
+    };
+
     edge: {
         game: {
             type: 'LoadBalancer' | 'NodePort' | 'ClusterIP';

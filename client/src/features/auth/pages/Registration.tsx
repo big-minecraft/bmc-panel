@@ -7,17 +7,23 @@ import {Alert} from '../components/Alert';
 import RegistrationForm from '../components/RegistrationForm';
 import AuthLayout from '../components/AuthLayout';
 import {checkAuthToken} from '../../../utils/auth';
+import {useAuthProviders} from '../hooks/useAuthProviders';
 
 const Registration = () => {
     const navigate = useNavigate();
     const {error, authStep} = useAuthContext();
     const registrationProps = useRegistration();
+    const {providers, loaded} = useAuthProviders();
 
     useEffect(() => {
         if (checkAuthToken()) {
             navigate('/', {replace: true});
         }
     }, [navigate]);
+
+    useEffect(() => {
+        if (loaded && !providers.localLogin) navigate('/login', {replace: true});
+    }, [loaded, providers, navigate]);
 
     const getTitle = () => {
         if (authStep === 4) return 'Registration Complete';

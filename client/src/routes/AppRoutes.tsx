@@ -12,11 +12,13 @@ import EditDeployments from "../features/deployments/pages/EditDeployments";
 import Databases from "../features/databases/pages/Databases";
 import Login from "../features/auth/pages/Login";
 import Registration from "../features/auth/pages/Registration";
+import OidcCallback from "../features/auth/pages/OidcCallback";
 
 const AppRoutes = () => (
     <Routes>
         <Route path="/login" element={<Login/>}/>
         <Route path="/register" element={<Registration/>}/>
+        <Route path="/auth/callback" element={<OidcCallback/>}/>
         <Route path="/"
                element={<PrivateRoute><NetworkOverview/></PrivateRoute>}/>
         <Route path="/deployments" element={<PrivateRoute><Deployments/></PrivateRoute>}/>

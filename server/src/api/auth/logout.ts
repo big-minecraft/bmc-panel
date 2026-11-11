@@ -1,9 +1,11 @@
 import {ApiEndpoint, AuthType} from '../types';
 import {z} from 'zod';
 import DatabaseService from "../../services/databaseService";
+import OidcService from "../../services/oidcService";
 
 export interface LogoutResponse {
     message: string;
+    endSessionUrl?: string;
 }
 
 export const logoutEndpoint: ApiEndpoint<unknown, LogoutResponse> = {
@@ -17,10 +19,13 @@ export const logoutEndpoint: ApiEndpoint<unknown, LogoutResponse> = {
 
             await DatabaseService.getInstance().logout(req.user.username);
 
+            const endSessionUrl = await OidcService.getInstance().getEndSessionUrl();
+
             res.json({
                 success: true,
                 data: {
                     message: 'Logged out successfully',
+                    ...(endSessionUrl ? {endSessionUrl} : {}),
                 }
             });
         } catch (error) {
