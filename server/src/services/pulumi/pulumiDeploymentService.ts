@@ -316,7 +316,8 @@ export class PulumiDeploymentService {
         sessionPodName: string,
         deploymentName: string,
         pvcName: string,
-        sftpPort: number
+        sftpPort: number,
+        publicKeys: string[] = []
     ): Promise<DeploymentResult> {
         try {
             console.log(`[Pulumi] Creating file session: ${sessionId} for deployment ${deploymentName}`);
@@ -328,7 +329,8 @@ export class PulumiDeploymentService {
                 sessionPodName,
                 deploymentName,
                 pvcName,
-                sftpPort
+                sftpPort,
+                publicKeys
             );
 
             const stackName = `file-session-${sessionId}`;
@@ -762,7 +764,8 @@ export class PulumiDeploymentService {
         sessionPodName: string,
         deploymentName: string,
         pvcName: string,
-        sftpPort: number
+        sftpPort: number,
+        publicKeys: string[]
     ): () => Promise<void> {
         return async () => {
             const k8sProvider = new k8s.Provider("k8s-provider", {
@@ -778,6 +781,7 @@ export class PulumiDeploymentService {
             const sftpPodName = `sftp-${deploymentName}-${sessionId.substring(0, 8)}`;
 
             const panelHost = ConfigManager.getConfig().panel.panelHost;
+            const passwordAuth = this.globalValues?.sftp?.passwordAuth !== false;
 
             const values = {
                 global: this.globalValues,
@@ -791,7 +795,8 @@ export class PulumiDeploymentService {
                 sftp: {
                     podName: sftpPodName,
                     username: `${deploymentName}_user`,
-                    password: this.globalValues?.sftp?.password,
+                    password: passwordAuth ? this.globalValues?.sftp?.password : undefined,
+                    publicKeys,
                     port: 22,
                     pvcName: pvcName,
                     nodePort: sftpPort

@@ -29,6 +29,7 @@ const NavigationBar = () => {
                         </div>
                         <div className="flex items-center space-x-2">
                             <NavLink to="/admin" requireAdmin>Admin</NavLink>
+                            <NavLink to="/profile">Profile</NavLink>
                             <div className="w-px h-6 bg-gray-200 mx-2" />
                             <LogoutButton />
                         </div>

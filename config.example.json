@@ -123,6 +123,7 @@
 
   "sftp": {
     "enabled": true,
-    "password": "your-sftp-password"
+    "password": "your-sftp-password",
+    "passwordAuth": true
   }
 }

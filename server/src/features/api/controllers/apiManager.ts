@@ -38,6 +38,12 @@ import {handleAdminAuth, handleBasicAuth, handleServiceTokenAuth} from "../../..
 import {getDeploymentInstancesEndpoint} from "../../../api/deployments/getDeploymentInstances";
 import {getManagerTimestampEndpoint} from "../../../api/network/getManagerTimestamp";
 
+// Profile
+import {getProfileEndpoint} from "../../../api/profile/getProfile";
+import {getSshKeysEndpoint} from "../../../api/profile/getSshKeys";
+import {addSshKeyEndpoint} from "../../../api/profile/addSshKey";
+import {deleteSshKeyEndpoint} from "../../../api/profile/deleteSshKey";
+
 // File Sessions
 import {createSessionEndpoint} from "../../../api/files/session/createSession";
 import {endSessionEndpoint} from "../../../api/files/session/endSession";
@@ -117,6 +123,12 @@ export default class ApiManager {
         this.addEndpoint(createInviteCodeEndpoint);
         this.addEndpoint(revokeInviteCodeEndpoint);
         this.addEndpoint(getInviteCodesEndpoint);
+
+        //Profile
+        this.addEndpoint(getProfileEndpoint);
+        this.addEndpoint(getSshKeysEndpoint);
+        this.addEndpoint(addSshKeyEndpoint);
+        this.addEndpoint(deleteSshKeyEndpoint);
 
         //Users
         this.addEndpoint(getUsersEndpoint);

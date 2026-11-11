@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import apiClient from '../../../utils/auth';
 import {
     FileEditSession,
@@ -5,13 +6,22 @@ import {
     SessionStatusResponse
 } from '../types/fileTypes';
 
+const messageFor = (error: unknown, fallback: string): string => {
+    const responseError = (error as AxiosError<{ error?: string }>)?.response?.data?.error;
+    return responseError || fallback;
+};
+
 export const useFileSessions = () => {
     const createSession = async (deploymentName: string): Promise<FileEditSession> => {
-        const response = await apiClient.post<{ success: boolean; data: { session: FileEditSession } }>(
-            '/api/files/session/create',
-            { deploymentName }
-        );
-        return response.data.data.session;
+        try {
+            const response = await apiClient.post<{ success: boolean; data: { session: FileEditSession } }>(
+                '/api/files/session/create',
+                { deploymentName }
+            );
+            return response.data.data.session;
+        } catch (error) {
+            throw new Error(messageFor(error, 'Failed to create session'));
+        }
     };
 
     const getSessionStatus = async (sessionId: string): Promise<FileEditSession> => {

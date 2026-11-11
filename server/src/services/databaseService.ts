@@ -1,6 +1,25 @@
 import mariadb from 'mariadb';
 import ConfigManager from "../features/config/controllers/configManager";
 
+export const MAX_SSH_KEYS_PER_USER = 25;
+
+export class SshKeyConflictError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'SshKeyConflictError';
+    }
+}
+
+export interface SshKeyRecord {
+    id: number;
+    user_id: number;
+    name: string;
+    key_type: string;
+    public_key: string;
+    fingerprint: string;
+    created_at: Date;
+}
+
 class DatabaseService {
     private static instance: DatabaseService;
     public pool: mariadb.Pool;
@@ -66,6 +85,20 @@ class DatabaseService {
                     password VARCHAR(255) NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                )
+            `);
+            await conn.query(`
+                CREATE TABLE IF NOT EXISTS user_ssh_keys (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    name VARCHAR(255) NOT NULL,
+                    key_type VARCHAR(64) NOT NULL,
+                    public_key TEXT NOT NULL,
+                    fingerprint VARCHAR(128) NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE KEY unique_user_fingerprint (user_id, fingerprint),
+                    CONSTRAINT fk_user_ssh_keys_user
+                        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
                 )
             `);
         } catch (error) {
@@ -367,6 +400,115 @@ class DatabaseService {
             await conn.query('DELETE FROM users WHERE id = ?', [userID]);
         } catch (error) {
             console.error('Failed to delete user:', error);
+            throw error;
+        } finally {
+            if (conn) await conn.end();
+        }
+    }
+
+    public async getSshKeysByUserId(userID: number): Promise<SshKeyRecord[]> {
+        let conn;
+        try {
+            conn = await this.pool.getConnection();
+            return await conn.query(
+                'SELECT id, user_id, name, key_type, public_key, fingerprint, created_at ' +
+                'FROM user_ssh_keys WHERE user_id = ? ORDER BY created_at DESC, id DESC',
+                [userID]
+            );
+        } catch (error) {
+            console.error('Failed to get ssh keys:', error);
+            throw error;
+        } finally {
+            if (conn) await conn.end();
+        }
+    }
+
+    public async getAllSshKeyText(): Promise<string[]> {
+        let conn;
+        try {
+            conn = await this.pool.getConnection();
+            const rows = await conn.query(
+                'SELECT public_key FROM user_ssh_keys ORDER BY created_at ASC, id ASC'
+            );
+
+            return [...new Set<string>(rows.map((row: any) => row.public_key))];
+        } catch (error) {
+            console.error('Failed to get ssh keys:', error);
+            throw error;
+        } finally {
+            if (conn) await conn.end();
+        }
+    }
+
+    public async addSshKey(
+        userID: number,
+        name: string,
+        keyType: string,
+        publicKey: string,
+        fingerprint: string
+    ): Promise<SshKeyRecord> {
+        let conn;
+        try {
+            conn = await this.pool.getConnection();
+
+            const existing = await conn.query(
+                'SELECT name FROM user_ssh_keys WHERE user_id = ? AND fingerprint = ?',
+                [userID, fingerprint]
+            );
+            if (existing.length > 0) {
+                throw new SshKeyConflictError(`You have already added this key as "${existing[0].name}"`);
+            }
+
+            const [{ count }] = await conn.query(
+                'SELECT COUNT(*) AS count FROM user_ssh_keys WHERE user_id = ?',
+                [userID]
+            );
+            if (Number(count) >= MAX_SSH_KEYS_PER_USER) {
+                throw new SshKeyConflictError(
+                    `You can have at most ${MAX_SSH_KEYS_PER_USER} SSH keys. Remove one before adding another.`
+                );
+            }
+
+            let result;
+            try {
+                result = await conn.query(
+                    'INSERT INTO user_ssh_keys (user_id, name, key_type, public_key, fingerprint) VALUES (?, ?, ?, ?, ?)',
+                    [userID, name, keyType, publicKey, fingerprint]
+                );
+            } catch (error: any) {
+                // The unique index is what actually settles a race between two
+                // adds of the same key; the check above only makes the common
+                // case report a nicer message.
+                if (error?.code === 'ER_DUP_ENTRY') {
+                    throw new SshKeyConflictError('You have already added this key');
+                }
+                throw error;
+            }
+
+            const rows = await conn.query(
+                'SELECT id, user_id, name, key_type, public_key, fingerprint, created_at FROM user_ssh_keys WHERE id = ?',
+                [result.insertId]
+            );
+            return rows[0];
+        } catch (error) {
+            console.error('Failed to add ssh key:', error);
+            throw error;
+        } finally {
+            if (conn) await conn.end();
+        }
+    }
+
+    public async deleteSshKey(userID: number, keyID: number): Promise<boolean> {
+        let conn;
+        try {
+            conn = await this.pool.getConnection();
+            const result = await conn.query(
+                'DELETE FROM user_ssh_keys WHERE id = ? AND user_id = ?',
+                [keyID, userID]
+            );
+            return result.affectedRows > 0;
+        } catch (error) {
+            console.error('Failed to delete ssh key:', error);
             throw error;
         } finally {
             if (conn) await conn.end();

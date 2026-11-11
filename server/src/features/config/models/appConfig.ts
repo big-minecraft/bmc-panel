@@ -130,5 +130,6 @@ export default interface AppConfig {
     sftp: {
         enabled?: boolean;
         password: string;
+        passwordAuth?: boolean;
     };
 }

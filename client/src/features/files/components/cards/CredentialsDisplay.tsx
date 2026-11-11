@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, ChevronUp, Copy, Check, Key, User, Lock, Globe } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, Check, Key, User, Lock, Globe, KeyRound, AlertTriangle } from 'lucide-react';
 
 interface CredentialsDisplayProps {
     credentials: {
         host: string;
         port: number;
         username: string;
-        password: string;
+        password?: string;
+        passwordAuth: boolean;
+        authorizedKeyCount: number;
     };
 }
 
@@ -47,6 +50,14 @@ const CredentialsDisplay: React.FC<CredentialsDisplayProps> = ({ credentials }) 
             </motion.button>
         </div>
     );
+
+    const { password, passwordAuth, authorizedKeyCount } = credentials;
+    const hasKeys = authorizedKeyCount > 0;
+    const unreachable = !passwordAuth && !hasKeys;
+
+    const keyLine = hasKeys
+        ? `${authorizedKeyCount} registered SSH key${authorizedKeyCount > 1 ? 's' : ''} ${authorizedKeyCount > 1 ? 'were' : 'was'} installed when this session started.`
+        : 'No SSH keys were installed when this session started.';
 
     return (
         <div className="pt-4 mb-5">
@@ -92,18 +103,49 @@ const CredentialsDisplay: React.FC<CredentialsDisplayProps> = ({ credentials }) 
                             value={credentials.username}
                             field="username"
                         />
-                        <CredentialRow
-                            icon={Lock}
-                            label="Password"
-                            value={credentials.password}
-                            field="password"
-                        />
+                        {passwordAuth && password && (
+                            <CredentialRow
+                                icon={Lock}
+                                label="Password"
+                                value={password}
+                                field="password"
+                            />
+                        )}
 
-                        <div className="mt-3 p-2 bg-blue-50 rounded-lg">
-                            <p className="text-xs text-blue-700">
-                                Use these credentials to connect to your deployment files via SFTP client
-                            </p>
+                        <div className="flex items-start gap-2 py-2 px-3 bg-gray-50 rounded-lg">
+                            <KeyRound className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                            <div className="min-w-0">
+                                <span className="text-xs text-gray-500">SSH keys</span>
+                                <p className="text-sm text-gray-900">{keyLine}</p>
+                            </div>
                         </div>
+
+                        {unreachable ? (
+                            <div className="mt-3 p-2 bg-amber-50 rounded-lg flex items-start gap-2">
+                                <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                                <p className="text-xs text-amber-800">
+                                    Password authentication is disabled and this session started before any SSH keys
+                                    were registered. Add a key on your{' '}
+                                    <Link to="/profile" className="underline font-medium">profile</Link>, then end this
+                                    session and start a new one.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="mt-3 p-2 bg-blue-50 rounded-lg">
+                                <p className="text-xs text-blue-700">
+                                    {passwordAuth
+                                        ? 'Use these credentials to connect to your deployment files via SFTP client.'
+                                        : 'This instance accepts SSH keys only. Connect with the private key matching one of the registered keys.'}
+                                    {!hasKeys && passwordAuth && (
+                                        <>
+                                            {' '}Add a key on your{' '}
+                                            <Link to="/profile" className="underline font-medium">profile</Link> to
+                                            connect without a password next time.
+                                        </>
+                                    )}
+                                </p>
+                            </div>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>

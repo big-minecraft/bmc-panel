@@ -8,11 +8,12 @@ import { PulumiDeploymentService } from './pulumi/pulumiDeploymentService';
 import Redis from 'ioredis';
 import ConfigManager from '../features/config/controllers/configManager';
 import ArtifactService from './artifactService';
+import DatabaseService from './databaseService';
 
 export default class FileSessionService {
     private static instance: FileSessionService;
     private timeoutChecker: NodeJS.Timeout | null = null;
-    private readonly REDIS_TTL_SECONDS = 30 * 60; // 30 minutes
+    private readonly REDIS_TTL_SECONDS = 30 * 60;
 
     private get POD_NAMESPACE(): string {
         return ConfigManager.getConfig().namespace;
@@ -47,6 +48,16 @@ export default class FileSessionService {
                 );
             }
 
+            const authorizedKeys = await DatabaseService.getInstance().getAllSshKeyText();
+
+            if (!this.isPasswordAuthEnabled() && authorizedKeys.length === 0) {
+                throw new FileOperationError(
+                    'Password authentication is disabled on this instance and no SSH keys are registered. ' +
+                    'Add a public key on your profile before starting a session.',
+                    FileOperationErrorCode.NO_SFTP_CREDENTIALS
+                );
+            }
+
             const deploymentType = deployment.type
 
             const sessionId = uuidv4();
@@ -65,6 +76,7 @@ export default class FileSessionService {
                 lastActivity: Date.now(),
                 status: 'creating',
                 namespace: this.POD_NAMESPACE,
+                authorizedKeyCount: authorizedKeys.length,
             };
 
             // Store session in Redis
@@ -86,7 +98,8 @@ export default class FileSessionService {
                 podName,
                 deploymentName,
                 pvcName,
-                sftpPort
+                sftpPort,
+                authorizedKeys
             );
 
             if (!result.success) {
@@ -200,11 +213,16 @@ export default class FileSessionService {
                 lastActivity: parseInt(sessionData.lastActivity),
                 status: sessionData.status as FileEditSession['status'],
                 namespace: sessionData.namespace,
+                authorizedKeyCount: parseInt(sessionData.authorizedKeyCount || '0'),
             };
 
             // Add SFTP credentials if session is ready
             if (session.status === 'ready') {
-                session.sftpCredentials = await this.assembleSftpCredentials(session.deploymentName, session.id);
+                session.sftpCredentials = await this.assembleSftpCredentials(
+                    session.deploymentName,
+                    session.id,
+                    session.authorizedKeyCount
+                );
             }
 
             return session;
@@ -364,6 +382,10 @@ export default class FileSessionService {
 
     // Private helper methods
 
+    private isPasswordAuthEnabled(): boolean {
+        return ConfigManager.getConfig().sftp?.passwordAuth !== false;
+    }
+
     /**
      * Where the user should point their SFTP client for this session.
      *
@@ -386,15 +408,18 @@ export default class FileSessionService {
      */
     private async assembleSftpCredentials(
         deploymentName: string,
-        sessionId: string
-    ): Promise<{ host: string; port: number; username: string; password: string } | undefined> {
+        sessionId: string,
+        authorizedKeyCount: number
+    ): Promise<FileEditSession['sftpCredentials']> {
         try {
             const deployment = DeploymentManager.getDeploymentByName(deploymentName);
             if (!deployment) return undefined;
 
             const config = ConfigManager.getConfig();
             const username = `${deploymentName}_user`;
-            const password = config.sftp.password;
+            const passwordAuth = this.isPasswordAuthEnabled();
+            const password = passwordAuth ? config.sftp.password : undefined;
+            const auth = { passwordAuth, authorizedKeyCount };
 
             if (config.edge?.file?.type === 'LoadBalancer') {
                 const serviceName = `sftp-${deploymentName}-${sessionId.substring(0, 8)}-service`;
@@ -408,7 +433,7 @@ export default class FileSessionService {
                     return undefined;
                 }
 
-                return { host: `sftp://${address}`, port: 22, username, password };
+                return { host: `sftp://${address}`, port: 22, username, password, ...auth };
             }
 
             const sftpPort = deployment.getSftpPort();
@@ -418,7 +443,8 @@ export default class FileSessionService {
                 host: "sftp://" + config.panel.panelHost,
                 port: sftpPort,
                 username,
-                password
+                password,
+                ...auth
             };
         } catch (error) {
             console.error('Error assembling SFTP credentials:', error);
@@ -444,6 +470,7 @@ export default class FileSessionService {
                 lastActivity: session.lastActivity.toString(),
                 status: session.status,
                 namespace: session.namespace,
+                authorizedKeyCount: session.authorizedKeyCount.toString(),
             });
 
             // Set TTL

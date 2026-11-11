@@ -1,7 +1,7 @@
 import { ApiEndpoint, AuthType } from '../../types';
 import { z } from 'zod';
 import FileSessionService from '../../../services/fileSessionService';
-import { FileEditSession } from '../../../types/fileSession';
+import { FileEditSession, FileOperationError, FileOperationErrorCode } from '../../../types/fileSession';
 
 interface CreateSessionRequest {
     deploymentName: string;
@@ -23,8 +23,14 @@ export const createSessionEndpoint: ApiEndpoint<CreateSessionRequest, CreateSess
 
             const { deploymentName } = schema.parse(req.body);
 
-            // Get userId from auth middleware
-            const userId = req.auth?.userId?.toString() || 'unknown';
+            const userId = req.user?.username;
+            if (!userId) {
+                res.status(401).json({
+                    success: false,
+                    error: 'Not signed in',
+                });
+                return;
+            }
 
             const session = await FileSessionService.getInstance().createSession(
                 deploymentName,
@@ -41,7 +47,10 @@ export const createSessionEndpoint: ApiEndpoint<CreateSessionRequest, CreateSess
             console.error('Failed to create session:', error);
             const message = error instanceof Error ? error.message : 'Failed to create session';
 
-            res.status(500).json({
+            const status = error instanceof FileOperationError
+                && error.code === FileOperationErrorCode.NO_SFTP_CREDENTIALS ? 400 : 500;
+
+            res.status(status).json({
                 success: false,
                 error: message,
             });

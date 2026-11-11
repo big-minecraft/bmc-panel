@@ -8,11 +8,14 @@ export interface FileEditSession {
     lastActivity: number;
     status: 'creating' | 'ready' | 'error' | 'terminating';
     namespace: string;
+    authorizedKeyCount: number;
     sftpCredentials?: {
         host: string;
         port: number;
         username: string;
-        password: string;
+        password?: string;
+        passwordAuth: boolean;
+        authorizedKeyCount: number;
     };
 }
 

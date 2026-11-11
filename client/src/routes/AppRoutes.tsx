@@ -13,6 +13,7 @@ import Databases from "../features/databases/pages/Databases";
 import Login from "../features/auth/pages/Login";
 import Registration from "../features/auth/pages/Registration";
 import OidcCallback from "../features/auth/pages/OidcCallback";
+import Profile from "../features/profile/pages/Profile";
 
 const AppRoutes = () => (
     <Routes>
@@ -27,6 +28,7 @@ const AppRoutes = () => (
         <Route path="/files/session/:deploymentName" element={<PrivateRoute><SessionPage/></PrivateRoute>}/>
         <Route path="/files/:deploymentName/*" element={<PrivateRoute><FilesInterface/></PrivateRoute>}/>
         <Route path="/databases" element={<PrivateRoute><Databases/></PrivateRoute>}/>
+        <Route path="/profile" element={<PrivateRoute><Profile/></PrivateRoute>}/>
         <Route path="/deployments/:name/edit" element={<PrivateRoute><EditDeployments/></PrivateRoute>}/>
         <Route path="/instance/:deploymentName/:instanceUid"
                element={<PrivateRoute><ServerInstance/></PrivateRoute>}/>
