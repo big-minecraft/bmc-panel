@@ -123,7 +123,7 @@ const FileActions = ({file}) => {
                     <MenuItem
                         onClick={() => handleDownload(file)}
                         icon={Download}
-                        label={`Download ${file.type === 'd' ? 'Directory' : 'File'}`}
+                        label={file.type === 'd' ? 'Download as .tar.gz' : 'Download File'}
                         variant="primary"
                     />
                     <MenuItem
@@ -134,7 +134,9 @@ const FileActions = ({file}) => {
                     <MenuItem
                         onClick={() => file.isArchived ? handleUnarchive(file) : handleArchive(file)}
                         icon={file.isArchived ? PackageOpen : Archive}
-                        label={`${file.isArchived ? 'Unarchive' : 'Archive'} ${file.type === 'd' ? 'Directory' : 'File'}`}
+                        label={file.isArchived
+                            ? 'Extract Here'
+                            : `Archive ${file.type === 'd' ? 'Directory' : 'File'}`}
                     />
                     <div className="border-t border-gray-100 my-1"></div>
                     <MenuItem

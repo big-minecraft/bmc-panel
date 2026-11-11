@@ -1,43 +1,48 @@
 import { ApiEndpoint, AuthType } from '../types';
 import PVCFileOperationsService from '../../services/pvcFileOperationsService';
-import * as path from 'path';
+import DownloadTokenService from '../../services/downloadTokenService';
+import { attachmentHeader, sendFileError } from './respond';
 
-interface DownloadFileRequest {
-    sessionId: string;
-    path: string;
-}
-
-export const downloadFileEndpoint: ApiEndpoint<DownloadFileRequest, any> = {
+export const downloadFileEndpoint: ApiEndpoint<unknown, never> = {
     path: '/api/files/download',
-    method: 'post',
-    auth: AuthType.Basic,
+    method: 'get',
+    auth: AuthType.None,
     handler: async (req, res) => {
-        try {
-            const sessionId = req.body.sessionId;
-            const filePath = req.body.path;
+        const token = typeof req.query.token === 'string' ? req.query.token : '';
+        const grant = await DownloadTokenService.consume(token);
 
-            if (!sessionId || !filePath) {
-                res.status(400).json({
-                    success: false,
-                    error: 'sessionId and path are required',
+        if (!grant) {
+            res.status(403).json({ success: false, error: 'This download link has expired' });
+            return;
+        }
+
+        const files = PVCFileOperationsService.getInstance();
+
+        try {
+            res.setHeader('Content-Disposition', attachmentHeader(grant.fileName));
+            res.setHeader('Cache-Control', 'no-store');
+
+            if (grant.archive) {
+                res.setHeader('Content-Type', 'application/gzip');
+                await files.streamArchive(grant.sessionId, grant.files, res);
+            } else {
+                res.setHeader('Content-Type', 'application/octet-stream');
+                await files.streamFile(grant.sessionId, grant.files[0].path, res, (file) => {
+                    res.setHeader('Content-Length', file.size);
                 });
+            }
+
+            res.end();
+        } catch (error) {
+            if (res.headersSent || res.writableEnded) {
+                console.error('Download failed after the response had started:', error);
+                res.destroy();
                 return;
             }
 
-            const content = await PVCFileOperationsService.getInstance().downloadFile(sessionId, filePath);
-
-            const filename = path.basename(filePath);
-            res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-            res.setHeader('Content-Type', 'application/octet-stream');
-            res.send(content);
-        } catch (error) {
-            console.error('Failed to download file:', error);
-            const message = error instanceof Error ? error.message : 'Failed to download file';
-
-            res.status(500).json({
-                success: false,
-                error: message,
-            });
+            res.removeHeader('Content-Disposition');
+            res.removeHeader('Content-Length');
+            sendFileError(res, error, 'Failed to download');
         }
     },
 };

@@ -118,7 +118,9 @@
   },
 
   "fileEditSession": {
-    "timeoutMinutes": 15
+    "timeoutMinutes": 15,
+    "maxUploadMb": 4096,
+    "maxEditorFileMb": 4
   },
 
   "sftp": {

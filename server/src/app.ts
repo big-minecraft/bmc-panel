@@ -33,12 +33,14 @@ class App {
 
         this.app = express();
         this.server = new HttpServer(this.app);
+        this.server.requestTimeout = 2 * 60 * 60 * 1000;
+
         this.configureMiddleware();
         this.configureRoutes();
     }
 
     private configureMiddleware(): void {
-        this.app.use(express.json());
+        // JSON parsing belongs to the api router, which sets its own body limit.
         this.app.use(express.urlencoded({extended: true}));
         this.app.use(cors());
     }
@@ -67,7 +69,6 @@ class App {
         FileSessionService.getInstance().startTimeoutChecker();
 
         this.socketManager = new SocketManager(this.server);
-        PVCFileOperationsService.getInstance().setSocketManager(this.socketManager);
 
         // Initialize instance metrics broadcasting
         const metricsService = InstanceMetricsService.getInstance();

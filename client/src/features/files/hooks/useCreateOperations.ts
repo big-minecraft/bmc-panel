@@ -2,6 +2,7 @@ import {useState, useCallback} from 'react';
 import {useFilesState, useFilesDispatch} from '../context/FilesContext';
 import {useFileOperations} from './useFileOperations';
 import axiosInstance from '../../../utils/auth';
+import {apiError} from '../utils/fileUtils';
 
 export function useCreateOperations() {
     const {currentDirectory, currentSession} = useFilesState();
@@ -27,18 +28,18 @@ export function useCreateOperations() {
     const handleCreateFile = useCallback(async () => {
         if (!newFileName.trim()) {
             setFileError('Please enter a file name');
-            return;
+            return false;
         }
 
         if (!sessionId) {
             setFileError('No active session');
-            return;
+            return false;
         }
 
         const invalidChars = /[<>:"/\\|?*\x00-\x1F]/g;
         if (invalidChars.test(newFileName)) {
             setFileError('File name contains invalid characters');
-            return;
+            return false;
         }
 
         setFileError('');
@@ -54,9 +55,10 @@ export function useCreateOperations() {
 
             setNewFileName('');
             await fetchFiles();
+            return true;
         } catch (error) {
-            console.error('error creating file:', error);
-            setFileError(error.response?.data?.message || 'Failed to create file');
+            setFileError(apiError(error, 'Failed to create file'));
+            return false;
         } finally {
             setLoading(false);
         }
@@ -65,18 +67,18 @@ export function useCreateOperations() {
     const handleCreateDir = useCallback(async () => {
         if (!newDirName.trim()) {
             setDirError('Please enter a directory name');
-            return;
+            return false;
         }
 
         if (!sessionId) {
             setDirError('No active session');
-            return;
+            return false;
         }
 
         const invalidChars = /[<>:"/\\|?*\x00-\x1F]/g;
         if (invalidChars.test(newDirName)) {
             setDirError('Directory name contains invalid characters');
-            return;
+            return false;
         }
 
         setDirError('');
@@ -91,9 +93,10 @@ export function useCreateOperations() {
 
             setNewDirName('');
             await fetchFiles();
+            return true;
         } catch (error) {
-            console.error('error creating directory:', error);
-            setDirError(error.response?.data?.message || 'Failed to create directory');
+            setDirError(apiError(error, 'Failed to create directory'));
+            return false;
         } finally {
             setLoading(false);
         }

@@ -1,94 +1,80 @@
-import {useCallback} from 'react';
-import {useFilesState, useFilesDispatch} from '../context/FilesContext';
-import {useFileOperations} from './useFileOperations';
+import { useCallback } from 'react';
+import { useFilesDispatch, useFilesState } from '../context/FilesContext';
+import { useFileOperations } from './useFileOperations';
+import { useFileNavigation } from './useFileNavigation';
 import axiosInstance from '../../../utils/auth';
+import { apiError, isExtractable } from '../utils/fileUtils';
 
 export function useArchiveOperations() {
-    const {selectedFiles, currentSession} = useFilesState();
+    const { selectedFiles, currentSession } = useFilesState();
     const dispatch = useFilesDispatch();
-    const {fetchFiles} = useFileOperations();
+    const { fetchFiles } = useFileOperations();
+    const { handleDirectoryChange } = useFileNavigation();
 
     const sessionId = currentSession?.id;
 
-    const setLoading = useCallback((value) => {
-        dispatch({
-            type: 'SET_LOADING',
-            payload: {key: 'archiving', value}
-        });
+    const setLoading = useCallback((value: boolean) => {
+        dispatch({ type: 'SET_LOADING', payload: { key: 'archiving', value } });
     }, [dispatch]);
 
-    const handleArchive = useCallback(async (file) => {
-        if (!file || !sessionId) return;
+    const notify = useCallback((message: string, type: 'error' | 'success' = 'error') => {
+        dispatch({ type: 'SET_NOTICE', payload: { message, type } });
+    }, [dispatch]);
+
+    const handleMassArchive = useCallback(async (files = selectedFiles) => {
+        const targets = Array.isArray(files) ? files : [files];
+        if (!targets.length || !sessionId) return false;
 
         setLoading(true);
-
         try {
-            const archivePath = `${file.path}.tar.gz`;
-            await axiosInstance.post('/api/files/archive', {
+            const response = await axiosInstance.post('/api/files/archive', {
                 sessionId,
-                path: file.path,
-                archivePath
+                files: targets.map(file => ({ path: file.path, name: file.name }))
             });
+
             await fetchFiles();
+            dispatch({ type: 'SET_SELECTED_FILES', payload: [] });
+            notify(`Created ${response.data.data.archiveName}`, 'success');
+            return true;
         } catch (error) {
-            console.error('error archiving file:', error);
+            notify(apiError(error, 'Failed to create archive'));
+            return false;
         } finally {
             setLoading(false);
         }
-    }, [sessionId, fetchFiles, setLoading]);
+    }, [sessionId, selectedFiles, fetchFiles, dispatch, setLoading, notify]);
+
+    const handleArchive = useCallback(
+        (file) => handleMassArchive([file]),
+        [handleMassArchive]
+    );
 
     const handleUnarchive = useCallback(async (file) => {
-        if (!file || file.type === 'd' || !file.isArchived || !sessionId) return;
+        if (!file || !sessionId) return false;
+
+        if (file.type === 'd' || !isExtractable(file.name)) {
+            notify(`${file.name} is not an archive this panel can extract`);
+            return false;
+        }
 
         setLoading(true);
-
         try {
-            const parentDir = file.path.substring(0, file.path.lastIndexOf('/'));
-            await axiosInstance.post('/api/files/unarchive', {
+            const response = await axiosInstance.post('/api/files/unarchive', {
                 sessionId,
-                archivePath: file.path,
-                destinationPath: parentDir
+                archivePath: file.path
             });
-            await fetchFiles();
+
+            const { destination, destinationName } = response.data.data;
+            notify(`Extracted into ${destinationName}`, 'success');
+            handleDirectoryChange(destination);
+            return true;
         } catch (error) {
-            console.error('error unarchiving file:', error);
+            notify(apiError(error, 'Failed to extract archive'));
+            return false;
         } finally {
             setLoading(false);
         }
-    }, [sessionId, fetchFiles, setLoading]);
-
-    const handleMassArchive = useCallback(async (filesToArchive = selectedFiles) => {
-        if (!filesToArchive?.length || !sessionId) return;
-
-        setLoading(true);
-        try {
-            if (filesToArchive.length === 1) {
-                // Single file - use the single file archive endpoint
-                const file = filesToArchive[0];
-                const archivePath = `${file.path}.tar.gz`;
-                await axiosInstance.post('/api/files/archive', {
-                    sessionId,
-                    path: file.path,
-                    archivePath
-                });
-            } else {
-                // Multiple files - use the archive-multiple endpoint to create a single archive
-                await axiosInstance.post('/api/files/archive-multiple', {
-                    sessionId,
-                    files: filesToArchive.map(f => ({
-                        path: f.path,
-                        name: f.name
-                    }))
-                });
-            }
-            await fetchFiles();
-            dispatch({type: 'SET_SELECTED_FILES', payload: []});
-        } catch (error) {
-            console.error('error archiving files:', error);
-        } finally {
-            setLoading(false);
-        }
-    }, [sessionId, selectedFiles, fetchFiles, dispatch, setLoading]);
+    }, [sessionId, handleDirectoryChange, setLoading, notify]);
 
     return {
         handleArchive,

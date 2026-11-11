@@ -1,6 +1,7 @@
-import { ApiEndpoint, AuthType } from '../types';
 import { z } from 'zod';
+import { ApiEndpoint, AuthType } from '../types';
 import PVCFileOperationsService from '../../services/pvcFileOperationsService';
+import { sendFileError } from './respond';
 
 interface CreateDirectoryRequest {
     sessionId: string;
@@ -22,27 +23,12 @@ export const createDirectoryEndpoint: ApiEndpoint<CreateDirectoryRequest, Create
                 path: z.string().min(1),
             });
 
-            console.log("a")
-
             const { sessionId, path } = schema.parse(req.body);
             await PVCFileOperationsService.getInstance().createDirectory(sessionId, path);
 
-            console.log("b")
-
-            res.json({
-                success: true,
-                data: {
-                    message: 'Directory created successfully',
-                },
-            });
+            res.json({ success: true, data: { message: 'Directory created' } });
         } catch (error) {
-            console.error('Failed to create directory:', error);
-            const message = error instanceof Error ? error.message : 'Failed to create directory';
-
-            res.status(500).json({
-                success: false,
-                error: message,
-            });
+            sendFileError(res, error, 'Failed to create directory');
         }
     },
 };

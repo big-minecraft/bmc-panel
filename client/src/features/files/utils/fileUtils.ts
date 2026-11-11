@@ -1,8 +1,8 @@
 export const formatFileSize = (bytes) => {
-    if (bytes === 0) return '0 Bytes';
+    if (!bytes || bytes < 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
@@ -17,39 +17,21 @@ export const formatDate = (timestamp) => {
     });
 };
 
-export const getFileType = (fileName) => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
+export const EXTRACTABLE_EXTENSIONS = [
+    '.tar.gz', '.tgz', '.tar.bz2', '.tbz2', '.tbz', '.tar.xz', '.txz', '.tar', '.zip', '.gz'
+];
 
-    const typeMap = {
-        // Text files
-        txt: 'text',
-        md: 'text',
-        // Code files
-        js: 'code',
-        jsx: 'code',
-        ts: 'code',
-        tsx: 'code',
-        py: 'code',
-        java: 'code',
-        // Archive files
-        zip: 'archive',
-        tar: 'archive',
-        gz: 'archive',
-        '7z': 'archive',
-        rar: 'archive',
-        // Image files
-        jpg: 'image',
-        jpeg: 'image',
-        png: 'image',
-        gif: 'image',
-        svg: 'image',
-    };
+export const isExtractable = (fileName) =>
+    EXTRACTABLE_EXTENSIONS.some(extension => fileName.toLowerCase().endsWith(extension));
 
-    return typeMap[extension] || 'unknown';
-};
+export const apiError = (error, fallback) => error?.response?.data?.error || error?.message || fallback;
 
-export const isArchiveFile = (fileName) => {
-    return fileName.match(/\.(zip|tar|gz|7z|rar)$/i) !== null;
+export const toUploadItems = (input) => {
+    if (!input) return [];
+
+    return Array.from(input).map((entry: any) => (
+        entry instanceof File ? { file: entry, name: entry.webkitRelativePath || entry.name } : entry
+    ));
 };
 
 export const getEditorLanguage = (fileName) => {
@@ -71,7 +53,9 @@ export const getEditorLanguage = (fileName) => {
         yaml: 'yaml',
         xml: 'xml',
         sh: 'shell',
-        bash: 'shell'
+        bash: 'shell',
+        properties: 'ini',
+        toml: 'ini'
     };
 
     return languageMap[extension] || 'plaintext';
@@ -79,11 +63,9 @@ export const getEditorLanguage = (fileName) => {
 
 export const sortFiles = (files) => {
     return [...files].sort((a, b) => {
-        // Directories first
+        // Directories first, then by name
         if (a.type === 'd' && b.type !== 'd') return -1;
         if (a.type !== 'd' && b.type === 'd') return 1;
-
-        // Then alphabetically
         return a.name.localeCompare(b.name);
     });
 };

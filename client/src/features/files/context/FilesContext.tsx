@@ -1,6 +1,20 @@
 import { createContext, useContext, useReducer, ReactNode } from 'react';
 import { FileEditSession, FileMetadata } from '../types/fileTypes';
 
+export interface UploadState {
+    uploading: boolean;
+    progress: number;
+    finishing: boolean;
+    completed: number;
+    total: number;
+}
+
+export interface Notice {
+    message: string;
+    type: 'error' | 'success';
+    id: number;
+}
+
 interface FilesState {
     // Session state
     currentSession: FileEditSession | null;
@@ -25,16 +39,12 @@ interface FilesState {
         saving: boolean;
     };
 
-    // Upload state
-    uploadState: {
-        uploading: boolean;
-        progress: number;
-        error: string | null;
-    };
+    uploadState: UploadState;
+    notice: Notice | null;
 
     // Modal states
     modals: {
-        delete: { isOpen: boolean; files: string[] };
+        delete: { isOpen: boolean; files: FileMetadata[] };
         move: { isOpen: boolean };
         rename: { isOpen: boolean; file: FileMetadata | null };
         editor: { isOpen: boolean; file: FileMetadata | null; content: string };
@@ -50,11 +60,20 @@ type FilesAction =
     | { type: 'SET_CURRENT_DIRECTORY'; payload: string }
     | { type: 'SET_CURRENT_DIRECTORY_DEPLOYMENT_TYPE'; payload: any }
     | { type: 'SET_LOADING'; payload: { key: string; value: boolean } }
-    | { type: 'SET_UPLOAD_STATE'; payload: Partial<FilesState['uploadState']> }
+    | { type: 'SET_UPLOAD_STATE'; payload: Partial<UploadState> }
+    | { type: 'SET_NOTICE'; payload: Omit<Notice, 'id'> | null }
     | { type: 'SET_MODAL_STATE'; payload: { modal: string; state: any } };
 
 const FilesContext = createContext<FilesState | null>(null);
 const FilesDispatchContext = createContext<React.Dispatch<FilesAction> | null>(null);
+
+const idleUploadState: UploadState = {
+    uploading: false,
+    progress: 0,
+    finishing: false,
+    completed: 0,
+    total: 0,
+};
 
 const initialState: FilesState = {
     currentSession: null,
@@ -74,11 +93,8 @@ const initialState: FilesState = {
         renaming: false,
         saving: false
     },
-    uploadState: {
-        uploading: false,
-        progress: 0,
-        error: null
-    },
+    uploadState: idleUploadState,
+    notice: null,
     modals: {
         delete: { isOpen: false, files: [] },
         move: { isOpen: false },
@@ -109,9 +125,11 @@ function filesReducer(state: FilesState, action: FilesAction): FilesState {
                 loading: { ...state.loading, [action.payload.key]: action.payload.value }
             };
         case 'SET_UPLOAD_STATE':
+            return { ...state, uploadState: { ...state.uploadState, ...action.payload } };
+        case 'SET_NOTICE':
             return {
                 ...state,
-                uploadState: { ...state.uploadState, ...action.payload }
+                notice: action.payload ? { ...action.payload, id: Date.now() } : null
             };
         case 'SET_MODAL_STATE':
             return {
@@ -125,6 +143,8 @@ function filesReducer(state: FilesState, action: FilesAction): FilesState {
             return state;
     }
 }
+
+export { idleUploadState };
 
 export function FilesProvider({ children }: { children: ReactNode }) {
     const [state, dispatch] = useReducer(filesReducer, initialState);
@@ -140,16 +160,12 @@ export function FilesProvider({ children }: { children: ReactNode }) {
 
 export function useFilesState() {
     const context = useContext(FilesContext);
-    if (context === null) {
-        throw new Error('useFilesState must be used within a FilesProvider');
-    }
+    if (context === null) throw new Error('useFilesState must be used within a FilesProvider');
     return context;
 }
 
 export function useFilesDispatch() {
     const context = useContext(FilesDispatchContext);
-    if (context === null) {
-        throw new Error('useFilesDispatch must be used within a FilesProvider');
-    }
+    if (context === null) throw new Error('useFilesDispatch must be used within a FilesProvider');
     return context;
 }

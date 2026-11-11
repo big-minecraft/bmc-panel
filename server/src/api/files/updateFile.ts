@@ -1,6 +1,7 @@
-import { ApiEndpoint, AuthType } from '../types';
 import { z } from 'zod';
+import { ApiEndpoint, AuthType } from '../types';
 import PVCFileOperationsService from '../../services/pvcFileOperationsService';
+import { sendFileError } from './respond';
 
 interface UpdateFileRequest {
     sessionId: string;
@@ -25,23 +26,11 @@ export const updateFileEndpoint: ApiEndpoint<UpdateFileRequest, UpdateFileRespon
             });
 
             const { sessionId, path, content } = schema.parse(req.body);
-
             await PVCFileOperationsService.getInstance().writeFile(sessionId, path, content);
 
-            res.json({
-                success: true,
-                data: {
-                    message: 'File updated successfully',
-                },
-            });
+            res.json({ success: true, data: { message: 'File saved' } });
         } catch (error) {
-            console.error('Failed to update file:', error);
-            const message = error instanceof Error ? error.message : 'Failed to update file';
-
-            res.status(500).json({
-                success: false,
-                error: message,
-            });
+            sendFileError(res, error, 'Failed to save file');
         }
     },
 };

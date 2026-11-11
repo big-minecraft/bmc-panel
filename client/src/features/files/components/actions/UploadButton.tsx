@@ -4,9 +4,10 @@ import {useFilesState} from '../../context/FilesContext';
 import {useFileOperations} from '../../hooks/useFileOperations';
 
 const UploadButton = () => {
-    const fileInputRef = useRef(null);
-    const {uploadState: {uploading, progress}} = useFilesState();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const {uploadState} = useFilesState();
     const {uploadFiles} = useFileOperations();
+    const {uploading, progress, finishing} = uploadState;
 
     const handleFileChange = (e) => {
         if (e.target.files?.length > 0) {
@@ -35,18 +36,19 @@ const UploadButton = () => {
                     {uploading && (
                         <div className="absolute inset-0 bg-indigo-800"
                              style={{
-                                 clipPath: `polygon(0 0, ${progress}% 0, ${progress}% 100%, 0 100%)`,
-                                 transition: 'clip-path 50ms linear'
+                                 clipPath: `polygon(0 0, ${finishing ? 100 : progress}% 0, ${finishing ? 100 : progress}% 100%, 0 100%)`,
+                                 transition: 'clip-path 200ms linear'
                              }}
                         />
                     )}
 
-                    {/* Button content */}
                     <div className="flex items-center justify-center z-10 relative">
                         {uploading ? (
                             <>
                                 <Loader2 size={18} className="animate-spin mr-2"/>
-                                <span className="text-sm font-semibold">{progress}%</span>
+                                <span className="text-sm font-semibold">
+                                    {finishing ? 'Saving' : `${progress}%`}
+                                </span>
                             </>
                         ) : (
                             <>

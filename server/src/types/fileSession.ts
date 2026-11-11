@@ -38,7 +38,8 @@ export interface FileOperationResult {
 }
 
 export interface ExecResult {
-    stdout: string;
+    /** Raw bytes, so that binary output survives the trip out of the pod. */
+    stdout: Buffer;
     stderr: string;
     exitCode: number;
 }

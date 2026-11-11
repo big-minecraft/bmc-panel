@@ -1,25 +1,41 @@
-import * as K8s from '@kubernetes/client-node';
-import { Writable } from 'stream';
-import { FileMetadata, ExecResult, FileOperationError, FileOperationErrorCode, FileSpec, UploadFile } from '../types/fileSession';
-import KubernetesService from './kubernetesService';
-import FileSessionService from './fileSessionService';
-import { Enum } from '../../../shared/enum/enum';
-import { FileUploadProgress } from '../../../shared/types/socket/file-upload-progress';
-import JSZip from 'jszip';
-import * as fs from 'fs/promises';
+import { Readable, Writable } from 'stream';
 import * as path from 'path';
-import * as os from 'os';
+import {
+    FileEditSession,
+    FileMetadata,
+    FileOperationError,
+    FileOperationErrorCode,
+    FileSpec,
+} from '../types/fileSession';
+import FileSessionService from './fileSessionService';
+import { ExecOptions, execInPod, PodRef, shQuote } from './pod/podExec';
+import {
+    archiveBaseName,
+    detectArchiveFormat,
+    SUPPORTED_ARCHIVE_EXTENSIONS,
+    unsafeEntries,
+} from './pod/archiveFormats';
+
+const FILE_EDITOR_CONTAINER = 'file-editor';
+const SESSION_ROOT = '/minecraft';
+
+const STAT_FORMAT = '%s|%Y|%F|%a|%n';
+
+const LIST_TIMEOUT_MS = 30_000;
+const ARCHIVE_TIMEOUT_MS = 60 * 60_000;
+
+const KEEPALIVE_MS = 60_000;
+
+interface StatLine {
+    size: number;
+    modifyTime: number;
+    description: string;
+    octalPermissions: string;
+    path: string;
+}
 
 export default class PVCFileOperationsService {
     private static instance: PVCFileOperationsService;
-    private exec: K8s.Exec;
-    private socketManager: any = null;
-
-    private constructor() {
-        const k8s = KubernetesService.getInstance();
-        this.exec = new K8s.Exec(k8s.kc);
-        console.log('PVCFileOperationsService initialized');
-    }
 
     public static getInstance(): PVCFileOperationsService {
         return PVCFileOperationsService.instance;
@@ -27,955 +43,507 @@ export default class PVCFileOperationsService {
 
     public static init(): void {
         PVCFileOperationsService.instance = new PVCFileOperationsService();
+        console.log('PVCFileOperationsService initialized');
     }
-
-    public setSocketManager(socketManager: any): void {
-        this.socketManager = socketManager;
-        console.log('SocketManager set for PVCFileOperationsService');
-    }
-
-    // Basic file operations
 
     public async listFiles(sessionId: string, dirPath: string): Promise<FileMetadata[]> {
-        const session = await this.validateAndGetSession(sessionId);
+        const pod = await this.podFor(sessionId);
+        const dir = this.resolvePath(dirPath);
 
-        try {
-            // Use find + stat for BusyBox compatibility
-            // Format: name|size|mtime|type|permissions
-            const command = [
-                'sh', '-c',
-                `find "${dirPath}" -maxdepth 1 -mindepth 1 -exec stat -c '%n|%s|%Y|%F|%a' {} \\;`
-            ];
-            console.log(`[listFiles] sessionId: ${sessionId}, dirPath: ${dirPath}`);
-            const result = await this.execInPod(session.podName, session.namespace, command);
-            console.log(`[listFiles] exitCode: ${result.exitCode}, stdout length: ${result.stdout.length}`);
+        const result = await this.run(pod, [
+            'sh', '-c',
+            `find ${shQuote(dir)} -maxdepth 1 -mindepth 1 -exec stat -c ${shQuote(STAT_FORMAT)} {} \\;`,
+        ], { timeoutMs: LIST_TIMEOUT_MS });
 
-            if (result.exitCode !== 0) {
-                if (result.stderr.includes('No such file or directory')) {
-                    throw new FileOperationError(
-                        `Directory ${dirPath} not found`,
-                        FileOperationErrorCode.FILE_NOT_FOUND
-                    );
-                }
-                throw new Error(`Failed to list files: ${result.stderr}`);
-            }
-
-            const lines = result.stdout.trim().split('\n').filter(line => line.length > 0);
-            console.log(`[listFiles] parsed ${lines.length} lines from output`);
-            const files: FileMetadata[] = [];
-
-            for (const line of lines) {
-                // Parse: /path/to/file|1234|1703073836|regular file|644
-                const parts = line.split('|');
-                if (parts.length < 5) continue;
-
-                const fullPath = parts[0];
-                const size = parseInt(parts[1]);
-                const modifyTime = parseInt(parts[2]) * 1000; // Convert to ms
-                const fileType = parts[3];
-                const permissions = parts[4];
-
-                // Extract just the filename from the full path
-                const name = fullPath.split('/').pop() || '';
-
-                // Determine type: d = directory, l = symlink, - = regular file
-                let type: 'd' | 'l' | '-' = '-';
-                if (fileType.includes('directory')) {
-                    type = 'd';
-                } else if (fileType.includes('symbolic link')) {
-                    type = 'l';
-                }
-
-                // Format permissions as ls -l style (e.g., drwxr-xr-x)
-                const typeChar = type === 'd' ? 'd' : type === 'l' ? 'l' : '-';
-                const permStr = this.formatPermissions(permissions);
-                const formattedPerms = `${typeChar}${permStr}`;
-
-                // Check if file is text (only for files under 100KB)
-                let isText = false;
-                if (type === '-' && size < 1024 * 100 && size > 0) {
-                    isText = await this.isTextFile(session.podName, session.namespace, fullPath);
-                } else if (size === 0) {
-                    isText = true;
-                }
-
-                files.push({
-                    name,
-                    type,
-                    size,
-                    modifyTime,
-                    path: fullPath,
-                    permissions: formattedPerms,
-                    isText,
-                });
-            }
-
-            console.log(`[listFiles] returning ${files.length} files`);
-            return files;
-        } catch (error) {
-            console.error('Error listing files:', error);
-            throw error;
-        }
-    }
-
-    private formatPermissions(octal: string): string {
-        // Convert octal (e.g., "755") to rwxr-xr-x format
-        const perms = parseInt(octal, 8);
-        const chars = ['---', '--x', '-w-', '-wx', 'r--', 'r-x', 'rw-', 'rwx'];
-
-        const user = chars[(perms >> 6) & 7];
-        const group = chars[(perms >> 3) & 7];
-        const other = chars[perms & 7];
-
-        return user + group + other;
-    }
-
-    public async readFile(sessionId: string, filePath: string): Promise<Buffer> {
-        const session = await this.validateAndGetSession(sessionId);
-
-        try {
-            // Use base64 encoding to safely transfer binary files through stdout
-            const command = ['sh', '-c', `base64 "${filePath}"`];
-            const result = await this.execInPod(session.podName, session.namespace, command);
-
-            if (result.exitCode !== 0) {
-                if (result.stderr.includes('No such file or directory')) {
-                    throw new FileOperationError(
-                        `File ${filePath} not found`,
-                        FileOperationErrorCode.FILE_NOT_FOUND
-                    );
-                }
-                throw new Error(`Failed to read file: ${result.stderr}`);
-            }
-
-            // Decode base64 to get the original binary content
-            return Buffer.from(result.stdout.trim(), 'base64');
-        } catch (error) {
-            console.error('Error reading file:', error);
-            throw error;
-        }
-    }
-
-    public async writeFile(sessionId: string, filePath: string, content: Buffer | string): Promise<void> {
-        const session = await this.validateAndGetSession(sessionId);
-
-        try {
-            // Ensure parent directory exists
-            const dirPath = path.dirname(filePath);
-            await this.createDirectory(sessionId, dirPath);
-
-            // Convert content to buffer
-            const buffer = Buffer.isBuffer(content) ? content : Buffer.from(content, 'utf8');
-
-            // Use chunked approach to avoid memory limits and URL length limits
-            // Convert to base64 in chunks to avoid "string too long" error
-            const tempFile = `/tmp/upload-${Date.now()}-${Math.random().toString(36).substring(7)}.b64`;
-
-            // Process in chunks of raw bytes (before base64 encoding)
-            // Base64 encoding increases size by ~33%, so we use smaller raw chunks
-            const rawChunkSize = 30000; // Raw bytes per chunk (will become ~40KB base64)
-            const totalChunks = Math.ceil(buffer.length / rawChunkSize);
-
-            try {
-                // Clear/create the temp file
-                await this.execInPod(session.podName, session.namespace, ['sh', '-c', `> "${tempFile}"`]);
-
-                // Write content in chunks, converting each chunk to base64 separately
-                for (let i = 0; i < buffer.length; i += rawChunkSize) {
-                    const rawChunk = buffer.subarray(i, Math.min(i + rawChunkSize, buffer.length));
-                    const base64Chunk = rawChunk.toString('base64');
-
-                    // Escape single quotes in chunk for printf
-                    const escapedChunk = base64Chunk.replace(/'/g, "'\\''");
-
-                    // Use printf to append chunk (more reliable than echo for binary data)
-                    const appendCommand = ['sh', '-c', `printf '%s' '${escapedChunk}' >> "${tempFile}"`];
-                    const appendResult = await this.execInPod(session.podName, session.namespace, appendCommand);
-
-                    if (appendResult.exitCode !== 0) {
-                        throw new FileOperationError(
-                            `Failed to write chunk to temp file: ${appendResult.stderr}`,
-                            FileOperationErrorCode.POD_EXEC_FAILED
-                        );
-                    }
-
-                    const chunkNum = Math.floor(i / rawChunkSize) + 1;
-                    const percentComplete = Math.round((i / buffer.length) * 100);
-                    console.log(`Written chunk ${chunkNum}/${totalChunks} (${percentComplete}%)`);
-
-                    // Emit progress via WebSocket
-                    if (this.socketManager) {
-                        const progressData: FileUploadProgress = {
-                            sessionId,
-                            fileName: path.basename(filePath),
-                            currentChunk: chunkNum,
-                            totalChunks,
-                            percentComplete
-                        };
-                        this.socketManager.sendAll(Enum.SocketMessageType.FILE_UPLOAD_PROGRESS, progressData);
-                    }
-                }
-
-                // Decode from temp file to target file
-                const decodeCommand = ['sh', '-c', `base64 -d < "${tempFile}" > "${filePath}"`];
-                const decodeResult = await this.execInPod(session.podName, session.namespace, decodeCommand);
-
-                if (decodeResult.exitCode !== 0) {
-                    throw new FileOperationError(
-                        `Failed to decode and write file ${filePath}: ${decodeResult.stderr}`,
-                        FileOperationErrorCode.POD_EXEC_FAILED
-                    );
-                }
-
-                console.log(`File write completed: ${filePath} (${buffer.length} bytes)`);
-            } finally {
-                // Clean up temp file
-                await this.execInPod(session.podName, session.namespace, ['rm', '-f', tempFile]);
-            }
-
-            await this.refreshSessionActivity(sessionId);
-        } catch (error) {
-            console.error('Error writing file:', error);
-            throw error;
-        }
-    }
-
-    public async deleteFile(sessionId: string, filePath: string): Promise<void> {
-        const session = await this.validateAndGetSession(sessionId);
-
-        try {
-            const command = ['rm', '-f', filePath];
-            const result = await this.execInPod(session.podName, session.namespace, command);
-
-            if (result.exitCode !== 0) {
-                // Check if error is due to NFS lock files (.nfs* files)
-                if (result.stderr.includes('.nfs') && result.stderr.includes('Resource busy')) {
-                    console.warn(`Cannot delete ${filePath}: File is in use (NFS lock file). It will be cleaned up automatically when closed.`);
-                    // Don't throw an error for NFS lock files - they'll be cleaned up automatically
-                    // when the file handle is closed by the process using it
-                } else {
-                    throw new FileOperationError(
-                        `Failed to delete file ${filePath}: ${result.stderr}`,
-                        FileOperationErrorCode.POD_EXEC_FAILED
-                    );
-                }
-            }
-
-            await this.refreshSessionActivity(sessionId);
-        } catch (error) {
-            console.error('Error deleting file:', error);
-            throw error;
-        }
-    }
-
-    // Directory operations
-
-    public async createDirectory(sessionId: string, dirPath: string): Promise<void> {
-        const session = await this.validateAndGetSession(sessionId);
-
-        try {
-            const command = ['mkdir', '-p', dirPath];
-            const result = await this.execInPod(session.podName, session.namespace, command);
-
-            if (result.exitCode !== 0) {
+        if (result.exitCode !== 0) {
+            if (result.stderr.includes('No such file or directory')) {
                 throw new FileOperationError(
-                    `Failed to create directory ${dirPath}: ${result.stderr}`,
-                    FileOperationErrorCode.POD_EXEC_FAILED
-                );
-            }
-
-            await this.refreshSessionActivity(sessionId);
-        } catch (error) {
-            console.error('Error creating directory:', error);
-            throw error;
-        }
-    }
-
-    public async deleteDirectory(sessionId: string, dirPath: string): Promise<void> {
-        const session = await this.validateAndGetSession(sessionId);
-
-        try {
-            // First attempt: try normal rm -rf
-            const command = ['rm', '-rf', dirPath];
-            const result = await this.execInPod(session.podName, session.namespace, command);
-
-            if (result.exitCode !== 0) {
-                // Check if error is due to NFS lock files (.nfs* files)
-                if (result.stderr.includes('.nfs') && result.stderr.includes('Resource busy')) {
-                    console.warn(`NFS lock files detected in ${dirPath}, attempting cleanup with best effort`);
-
-                    // Second attempt: Delete contents but skip locked NFS files
-                    // This script will delete everything it can and ignore errors for .nfs files
-                    const cleanupScript = `
-                        # Try to delete directory contents, ignoring NFS lock file errors
-                        find "${dirPath}" -mindepth 1 ! -name '.nfs*' -delete 2>/dev/null || true
-                        # Try to remove any remaining .nfs files (will silently fail if locked)
-                        find "${dirPath}" -name '.nfs*' -delete 2>/dev/null || true
-                        # Finally try to remove the directory itself
-                        rmdir "${dirPath}" 2>/dev/null || rm -rf "${dirPath}" 2>/dev/null || true
-                    `.trim();
-
-                    const cleanupCommand = ['sh', '-c', cleanupScript];
-                    const cleanupResult = await this.execInPod(session.podName, session.namespace, cleanupCommand);
-
-                    // Check if directory still exists
-                    const checkCommand = ['sh', '-c', `test -e "${dirPath}" && echo "exists" || echo "deleted"`];
-                    const checkResult = await this.execInPod(session.podName, session.namespace, checkCommand);
-
-                    if (checkResult.stdout.trim() === 'exists') {
-                        // Directory still exists, but we've done our best to clean it
-                        // Check what's left
-                        const listCommand = ['sh', '-c', `find "${dirPath}" -type f -name '.nfs*' | wc -l`];
-                        const listResult = await this.execInPod(session.podName, session.namespace, listCommand);
-                        const nfsFileCount = parseInt(listResult.stdout.trim()) || 0;
-
-                        if (nfsFileCount > 0) {
-                            console.warn(`${nfsFileCount} NFS lock files remain in ${dirPath} (files are in use by running processes)`);
-                            // Don't throw an error - the directory has been cleaned as much as possible
-                            // The .nfs files will be automatically cleaned up when the file handles are closed
-                        } else {
-                            // Something else is preventing deletion
-                            throw new FileOperationError(
-                                `Failed to delete directory ${dirPath}: ${result.stderr}`,
-                                FileOperationErrorCode.POD_EXEC_FAILED
-                            );
-                        }
-                    }
-
-                    console.log(`Successfully cleaned directory ${dirPath} (NFS lock files will be cleaned up automatically)`);
-                } else {
-                    // Different error, throw it
-                    throw new FileOperationError(
-                        `Failed to delete directory ${dirPath}: ${result.stderr}`,
-                        FileOperationErrorCode.POD_EXEC_FAILED
-                    );
-                }
-            }
-
-            await this.refreshSessionActivity(sessionId);
-        } catch (error) {
-            console.error('Error deleting directory:', error);
-            throw error;
-        }
-    }
-
-    // Advanced operations
-
-    public async moveFile(sessionId: string, sourcePath: string, destinationPath: string): Promise<void> {
-        const session = await this.validateAndGetSession(sessionId);
-
-        try {
-            // Ensure destination directory exists
-            const destDir = path.dirname(destinationPath);
-            await this.createDirectory(sessionId, destDir);
-
-            const command = ['mv', sourcePath, destinationPath];
-            const result = await this.execInPod(session.podName, session.namespace, command);
-
-            if (result.exitCode !== 0) {
-                throw new FileOperationError(
-                    `Failed to move ${sourcePath} to ${destinationPath}: ${result.stderr}`,
-                    FileOperationErrorCode.POD_EXEC_FAILED
-                );
-            }
-
-            await this.refreshSessionActivity(sessionId);
-        } catch (error) {
-            console.error('Error moving file:', error);
-            throw error;
-        }
-    }
-
-    public async statFile(sessionId: string, filePath: string): Promise<FileMetadata> {
-        const session = await this.validateAndGetSession(sessionId);
-
-        try {
-            // Get file stats: size, modify time, type
-            const command = ['stat', '-c', '%s %Y %A %F', filePath];
-            const result = await this.execInPod(session.podName, session.namespace, command);
-
-            if (result.exitCode !== 0) {
-                throw new FileOperationError(
-                    `File ${filePath} not found`,
+                    `Directory ${dir} not found`,
                     FileOperationErrorCode.FILE_NOT_FOUND
                 );
             }
-
-            const parts = result.stdout.trim().split(' ');
-            const size = parseInt(parts[0]);
-            const modifyTime = parseInt(parts[1]) * 1000;
-            const permissions = parts[2];
-            const fileType = parts.slice(3).join(' ');
-
-            let type: 'd' | '-' | 'l' = '-';
-            if (fileType.includes('directory')) {
-                type = 'd';
-            } else if (fileType.includes('symbolic link')) {
-                type = 'l';
-            }
-
-            const name = path.basename(filePath);
-            const isText = type === '-' && size < 1024 * 100 && size > 0
-                ? await this.isTextFile(session.podName, session.namespace, filePath)
-                : size === 0;
-
-            return {
-                name,
-                type,
-                size,
-                modifyTime,
-                path: filePath,
-                permissions,
-                isText,
-            };
-        } catch (error) {
-            console.error('Error getting file stats:', error);
-            throw error;
+            throw new FileOperationError(
+                `Failed to list ${dir}: ${result.stderr.trim()}`,
+                FileOperationErrorCode.POD_EXEC_FAILED
+            );
         }
+
+        return this.parseStatLines(result.stdout.toString('utf8')).map(line => this.toMetadata(line));
     }
 
-    public async listRecursive(sessionId: string, dirPath: string): Promise<FileMetadata[]> {
-        const session = await this.validateAndGetSession(sessionId);
-
-        try {
-            const command = ['find', dirPath, '-type', 'f', '-exec', 'ls', '-l', '{}', ';'];
-            const result = await this.execInPod(session.podName, session.namespace, command);
-
-            if (result.exitCode !== 0) {
-                throw new FileOperationError(
-                    `Failed to list directory recursively: ${result.stderr}`,
-                    FileOperationErrorCode.POD_EXEC_FAILED
-                );
-            }
-
-            const lines = result.stdout.trim().split('\n').filter(line => line.length > 0);
-            const files: FileMetadata[] = [];
-
-            for (const line of lines) {
-                const parts = line.trim().split(/\s+/);
-                if (parts.length < 9) continue;
-
-                const permissions = parts[0];
-                const size = parseInt(parts[4]);
-                const name = path.basename(parts[8]);
-                const fullPath = parts[8];
-
-                files.push({
-                    name,
-                    type: '-',
-                    size,
-                    modifyTime: Date.now(),
-                    path: fullPath,
-                    permissions,
-                    isText: false,
-                });
-            }
-
-            return files;
-        } catch (error) {
-            console.error('Error listing files recursively:', error);
-            throw error;
-        }
-    }
-
-    // Archive operations
-
-    public async archiveFile(sessionId: string, filePath: string): Promise<string> {
-        const session = await this.validateAndGetSession(sessionId);
-
-        try {
-            const dirPath = path.dirname(filePath);
-            const fileName = path.basename(filePath);
-            const archiveName = `${fileName}.tar.gz`;
-            const archivePath = path.join(dirPath, archiveName);
-
-            const command = ['sh', '-c', `cd ${dirPath} && tar -czf ${archiveName} ${fileName}`];
-            const result = await this.execInPod(session.podName, session.namespace, command);
-
-            if (result.exitCode !== 0) {
-                throw new FileOperationError(
-                    `Failed to archive ${filePath}: ${result.stderr}`,
-                    FileOperationErrorCode.POD_EXEC_FAILED
-                );
-            }
-
-            await this.refreshSessionActivity(sessionId);
-
-            return archivePath;
-        } catch (error) {
-            console.error('Error archiving file:', error);
-            throw error;
-        }
-    }
-
-    public async archiveMultiple(
+    public async readTextFile(
         sessionId: string,
-        files: Array<{ path: string; name: string }>,
+        filePath: string,
+        maxBytes: number
+    ): Promise<string> {
+        const pod = await this.podFor(sessionId);
+        const target = this.resolvePath(filePath);
+        const stats = await this.stat(pod, target);
+
+        if (stats.type === 'd') {
+            throw new FileOperationError(
+                `${target} is a directory`,
+                FileOperationErrorCode.INVALID_PATH
+            );
+        }
+
+        if (stats.size > maxBytes) {
+            throw new FileOperationError(
+                `${stats.name} is ${formatBytes(stats.size)}, larger than the ${formatBytes(maxBytes)} edit limit. Download it instead.`,
+                FileOperationErrorCode.INVALID_PATH
+            );
+        }
+
+        const result = await this.run(pod, ['cat', target], {
+            maxStdoutBytes: maxBytes,
+            timeoutMs: transferTimeoutMs(stats.size),
+        });
+
+        if (result.exitCode !== 0) {
+            throw new FileOperationError(
+                `Failed to read ${target}: ${result.stderr.trim()}`,
+                FileOperationErrorCode.POD_EXEC_FAILED
+            );
+        }
+
+        if (result.stdout.includes(0)) {
+            throw new FileOperationError(
+                `${stats.name} is a binary file and cannot be edited as text`,
+                FileOperationErrorCode.INVALID_PATH
+            );
+        }
+
+        return result.stdout.toString('utf8');
+    }
+
+    public async streamFile(
+        sessionId: string,
+        filePath: string,
+        destination: Writable,
+        onMetadata?: (file: FileMetadata) => void
+    ): Promise<void> {
+        const pod = await this.podFor(sessionId);
+        const target = this.resolvePath(filePath);
+        const stats = await this.stat(pod, target);
+
+        if (stats.type === 'd') {
+            throw new FileOperationError(
+                `${target} is a directory`,
+                FileOperationErrorCode.INVALID_PATH
+            );
+        }
+
+        onMetadata?.(stats);
+
+        const result = await this.withKeepalive(sessionId, () => this.run(pod, ['cat', target], {
+            stdout: destination,
+            timeoutMs: transferTimeoutMs(stats.size),
+        }));
+
+        if (result.exitCode !== 0) {
+            throw new FileOperationError(
+                `Failed to read ${target}: ${result.stderr.trim()}`,
+                FileOperationErrorCode.POD_EXEC_FAILED
+            );
+        }
+    }
+
+    public async streamArchive(
+        sessionId: string,
+        files: FileSpec[],
+        destination: Writable
+    ): Promise<void> {
+        const pod = await this.podFor(sessionId);
+        const targets = files.map(file => this.resolvePath(file.path));
+
+        if (targets.length === 0) {
+            throw new FileOperationError(
+                'No files given to download',
+                FileOperationErrorCode.INVALID_PATH
+            );
+        }
+
+        const root = commonParent(targets);
+        // "./name" keeps a leading dash in a file name from being read as a
+        // tar option.
+        const members = targets
+            .map(target => shQuote(`./${path.posix.relative(root, target)}`))
+            .join(' ');
+
+        const result = await this.withKeepalive(sessionId, () => this.run(pod, [
+            'sh', '-c',
+            `tar -czf - -C ${shQuote(root)} ${members}`,
+        ], { stdout: destination, timeoutMs: ARCHIVE_TIMEOUT_MS }));
+
+        if (result.exitCode !== 0) {
+            throw new FileOperationError(
+                `Failed to pack the download: ${result.stderr.trim()}`,
+                FileOperationErrorCode.POD_EXEC_FAILED
+            );
+        }
+    }
+
+    public async writeFileStream(
+        sessionId: string,
+        filePath: string,
+        source: Readable,
+        size: number
+    ): Promise<void> {
+        const pod = await this.podFor(sessionId);
+        const target = this.resolvePath(filePath);
+        const dir = path.posix.dirname(target);
+
+        if (size === 0) {
+            source.resume();
+            await this.runOrThrow(pod, [
+                'sh', '-c',
+                `mkdir -p ${shQuote(dir)} && : > ${shQuote(target)}`,
+            ], `Failed to create ${target}`);
+            await this.touchSession(sessionId);
+            return;
+        }
+
+        const tempTarget = `${dir}/.${path.posix.basename(target)}.${randomSuffix()}.part`;
+        const command = [
+            'sh', '-c',
+            `mkdir -p ${shQuote(dir)} `
+            + `&& head -c ${size} > ${shQuote(tempTarget)} `
+            + `&& mv ${shQuote(tempTarget)} ${shQuote(target)} `
+            + `&& stat -c %s ${shQuote(target)}`,
+        ];
+
+        let result;
+        try {
+            result = await this.withKeepalive(sessionId, () => this.run(pod, command, {
+                stdin: source,
+                timeoutMs: transferTimeoutMs(size),
+            }));
+        } catch (error) {
+            await this.removeQuietly(pod, tempTarget);
+            throw error;
+        }
+
+        if (result.exitCode !== 0) {
+            await this.removeQuietly(pod, tempTarget);
+            throw new FileOperationError(
+                `Failed to write ${target}: ${result.stderr.trim()}`,
+                FileOperationErrorCode.POD_EXEC_FAILED
+            );
+        }
+
+        const written = parseInt(result.stdout.toString('utf8').trim(), 10);
+        if (written !== size) {
+            throw new FileOperationError(
+                `${path.posix.basename(target)} was truncated in transfer (${written} of ${size} bytes)`,
+                FileOperationErrorCode.POD_EXEC_FAILED
+            );
+        }
+    }
+
+    public async writeFile(
+        sessionId: string,
+        filePath: string,
+        content: Buffer | string
+    ): Promise<void> {
+        const buffer = Buffer.isBuffer(content) ? content : Buffer.from(content, 'utf8');
+        await this.writeFileStream(sessionId, filePath, Readable.from(buffer), buffer.length);
+    }
+
+    public async createDirectory(sessionId: string, dirPath: string): Promise<void> {
+        const pod = await this.podFor(sessionId);
+        const target = this.resolvePath(dirPath);
+
+        await this.runOrThrow(pod, ['mkdir', '-p', target], `Failed to create directory ${target}`);
+        await this.touchSession(sessionId);
+    }
+
+    public async movePath(
+        sessionId: string,
+        sourcePath: string,
+        destinationPath: string
+    ): Promise<void> {
+        const pod = await this.podFor(sessionId);
+        const source = this.resolvePath(sourcePath);
+        const destination = this.resolvePath(destinationPath);
+
+        if (destination === source) return;
+        if (destination.startsWith(`${source}/`)) {
+            throw new FileOperationError(
+                'A directory cannot be moved inside itself',
+                FileOperationErrorCode.INVALID_PATH
+            );
+        }
+
+        const result = await this.run(pod, [
+            'sh', '-c',
+            `test ! -e ${shQuote(destination)} || { echo exists >&2; exit 17; }; `
+            + `mkdir -p ${shQuote(path.posix.dirname(destination))} `
+            + `&& mv ${shQuote(source)} ${shQuote(destination)}`,
+        ]);
+
+        if (result.exitCode === 17) {
+            throw new FileOperationError(
+                `${path.posix.basename(destination)} already exists`,
+                FileOperationErrorCode.INVALID_PATH
+            );
+        }
+        if (result.exitCode !== 0) {
+            throw new FileOperationError(
+                `Failed to move ${source}: ${result.stderr.trim()}`,
+                FileOperationErrorCode.POD_EXEC_FAILED
+            );
+        }
+
+        await this.touchSession(sessionId);
+    }
+
+    public async deletePaths(sessionId: string, targetPaths: string[]): Promise<void> {
+        const pod = await this.podFor(sessionId);
+        const targets = targetPaths.map(target => this.resolvePath(target));
+
+        if (targets.includes(SESSION_ROOT)) {
+            throw new FileOperationError(
+                'The session root cannot be deleted',
+                FileOperationErrorCode.INVALID_PATH
+            );
+        }
+
+        const quoted = targets.map(shQuote).join(' ');
+        const result = await this.withKeepalive(sessionId, () => this.run(pod, [
+            'sh', '-c', `rm -rf -- ${quoted}`,
+        ], { timeoutMs: ARCHIVE_TIMEOUT_MS }));
+
+        if (result.exitCode === 0) return;
+
+        if (!isNfsLockError(result.stderr)) {
+            throw new FileOperationError(
+                `Failed to delete: ${result.stderr.trim()}`,
+                FileOperationErrorCode.POD_EXEC_FAILED
+            );
+        }
+
+        await this.withKeepalive(sessionId, () => this.run(pod, [
+            'sh', '-c',
+            `for target in ${quoted}; do `
+            + `find "$target" -mindepth 1 ! -name '.nfs*' -exec rm -rf {} + 2>/dev/null; `
+            + `rm -rf "$target" 2>/dev/null; done; exit 0`,
+        ], { timeoutMs: ARCHIVE_TIMEOUT_MS }));
+
+        console.warn('Some deleted paths are still in use; locked files will disappear when released');
+    }
+
+    public async createArchive(
+        sessionId: string,
+        files: FileSpec[],
         archiveName?: string
     ): Promise<string> {
-        const session = await this.validateAndGetSession(sessionId);
+        const pod = await this.podFor(sessionId);
+        const targets = files.map(file => this.resolvePath(file.path));
 
-        try {
-            if (files.length === 0) {
+        if (targets.length === 0) {
+            throw new FileOperationError(
+                'No files given to archive',
+                FileOperationErrorCode.INVALID_PATH
+            );
+        }
+
+        const root = commonParent(targets);
+        const requested = archiveName ? stripArchiveSuffix(sanitizeName(archiveName)) : defaultArchiveName(targets);
+        const members = targets
+            .map(target => shQuote(`./${path.posix.relative(root, target)}`))
+            .join(' ');
+
+        const result = await this.withKeepalive(sessionId, () => this.run(pod, [
+            'sh', '-c',
+            `cd ${shQuote(root)} || exit 1; `
+            + `${uniqueNameScript(requested, '.tar.gz')} `
+            + `tmp=".$name.part"; `
+            + `tar -czf "$tmp" ${members} && mv "$tmp" "$name" && printf %s "$name" `
+            + `|| { rm -f "$tmp"; exit 1; }`,
+        ], { timeoutMs: ARCHIVE_TIMEOUT_MS }));
+
+        if (result.exitCode !== 0) {
+            throw new FileOperationError(
+                `Failed to create the archive: ${result.stderr.trim()}`,
+                FileOperationErrorCode.POD_EXEC_FAILED
+            );
+        }
+
+        return `${root}/${result.stdout.toString('utf8').trim()}`;
+    }
+
+    public async extractArchive(sessionId: string, archivePath: string): Promise<string> {
+        const pod = await this.podFor(sessionId);
+        const archive = this.resolvePath(archivePath);
+        const fileName = path.posix.basename(archive);
+        const format = detectArchiveFormat(fileName);
+
+        if (!format) {
+            throw new FileOperationError(
+                `${fileName} is not a supported archive (${SUPPORTED_ARCHIVE_EXTENSIONS.join(', ')})`,
+                FileOperationErrorCode.INVALID_PATH
+            );
+        }
+
+        await this.stat(pod, archive);
+
+        if (format.listFragment) {
+            const listing = await this.run(pod, ['sh', '-c', format.listFragment(archive)], {
+                timeoutMs: ARCHIVE_TIMEOUT_MS,
+            });
+
+            if (listing.exitCode !== 0) {
                 throw new FileOperationError(
-                    'No files provided for archiving',
+                    `${fileName} could not be read: ${listing.stderr.trim()}`,
+                    FileOperationErrorCode.POD_EXEC_FAILED
+                );
+            }
+
+            const unsafe = unsafeEntries(format.parseEntries(listing.stdout.toString('utf8')));
+            if (unsafe.length > 0) {
+                throw new FileOperationError(
+                    `${fileName} contains entries that would be written outside the destination: ${unsafe.slice(0, 3).join(', ')}`,
                     FileOperationErrorCode.INVALID_PATH
                 );
             }
+        }
 
-            // Determine the common parent directory
-            const firstFilePath = files[0].path;
-            const commonDir = path.dirname(firstFilePath);
+        const parent = path.posix.dirname(archive);
+        const base = sanitizeName(archiveBaseName(fileName, format.extension));
 
-            // Generate archive name
-            const finalArchiveName = archiveName || `archive-${Date.now()}.tar.gz`;
-            const archivePath = path.join(commonDir, finalArchiveName).replace(/\\/g, '/');
+        const result = await this.withKeepalive(sessionId, () => this.run(pod, [
+            'sh', '-c',
+            `cd ${shQuote(parent)} || exit 1; `
+            + `${uniqueNameScript(base, '')} `
+            + `mkdir -p "$name" && ${format.extractFragment(archive, '"$name"')} `
+            + `&& printf %s "$name" || { rm -rf "$name"; exit 1; }`,
+        ], { timeoutMs: ARCHIVE_TIMEOUT_MS }));
 
-            // Build the tar command with all file names
-            const fileNames = files.map(f => `"${path.basename(f.path)}"`).join(' ');
-            const command = ['sh', '-c', `cd "${commonDir}" && tar -czf "${finalArchiveName}" ${fileNames}`];
+        if (result.exitCode !== 0) {
+            const detail = result.stderr.trim();
+            throw new FileOperationError(
+                detail.includes('not found')
+                    ? `${fileName} cannot be extracted: the session container has no tool for ${format.extension} files`
+                    : `Failed to extract ${fileName}: ${detail}`,
+                FileOperationErrorCode.POD_EXEC_FAILED
+            );
+        }
 
-            const result = await this.execInPod(session.podName, session.namespace, command);
+        await this.touchSession(sessionId);
+        return `${parent}/${result.stdout.toString('utf8').trim()}`;
+    }
 
-            if (result.exitCode !== 0) {
-                throw new FileOperationError(
-                    `Failed to create archive: ${result.stderr}`,
-                    FileOperationErrorCode.POD_EXEC_FAILED
-                );
-            }
+    private async run(pod: PodRef, command: string[], options: ExecOptions = {}) {
+        return execInPod(pod, command, options);
+    }
 
-            await this.refreshSessionActivity(sessionId);
-
-            return archivePath;
-        } catch (error) {
-            console.error('Error creating archive:', error);
-            throw error;
+    private async runOrThrow(pod: PodRef, command: string[], message: string): Promise<void> {
+        const result = await this.run(pod, command);
+        if (result.exitCode !== 0) {
+            throw new FileOperationError(
+                `${message}: ${result.stderr.trim()}`,
+                FileOperationErrorCode.POD_EXEC_FAILED
+            );
         }
     }
 
-    public async unarchiveFile(sessionId: string, archivePath: string): Promise<void> {
-        const session = await this.validateAndGetSession(sessionId);
-
+    private async removeQuietly(pod: PodRef, target: string): Promise<void> {
         try {
-            // Download the archive, extract locally, then upload extracted files back
-            const archiveBuffer = await this.readFile(sessionId, archivePath);
-            const extractDir = path.dirname(archivePath);
-
-            // Create temp directory
-            const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'pvc-extract-'));
-            const tempFile = path.join(tempDir, path.basename(archivePath));
-
-            try {
-                // Write archive to temp
-                await fs.writeFile(tempFile, archiveBuffer);
-
-                if (archivePath.endsWith('.tar.gz') || archivePath.endsWith('.tgz') || archivePath.endsWith('.tar')) {
-                    // Extract tar archive locally using child_process
-                    const { exec } = require('child_process');
-                    const { promisify } = require('util');
-                    const execAsync = promisify(exec);
-
-                    const tarCommand = archivePath.endsWith('.tar')
-                        ? `tar -xf "${tempFile}" -C "${tempDir}"`
-                        : `tar -xzf "${tempFile}" -C "${tempDir}"`;
-
-                    try {
-                        await execAsync(tarCommand);
-                    } catch (error) {
-                        throw new Error(`Tar extraction failed: ${error.message}`);
-                    }
-
-                    // Upload extracted files back to pod
-                    await this.uploadExtractedFiles(sessionId, tempDir, extractDir, path.basename(archivePath));
-
-                } else if (archivePath.endsWith('.zip')) {
-                    // Use JSZip for ZIP files
-                    const zip = new JSZip();
-                    const contents = await zip.loadAsync(archiveBuffer);
-
-                    for (const filename of Object.keys(contents.files)) {
-                        const file = contents.files[filename];
-                        if (!file.dir) {
-                            const content = await file.async('nodebuffer');
-                            const targetPath = path.join(extractDir, filename).replace(/\\/g, '/');
-                            await this.writeFile(sessionId, targetPath, content);
-                        }
-                    }
-                } else {
-                    throw new FileOperationError(
-                        `Unsupported archive format: ${archivePath}`,
-                        FileOperationErrorCode.INVALID_PATH
-                    );
-                }
-
-                await this.refreshSessionActivity(sessionId);
-            } finally {
-                // Cleanup temp directory
-                await fs.rm(tempDir, { recursive: true, force: true });
-            }
+            await this.run(pod, ['rm', '-f', target]);
         } catch (error) {
-            console.error('Error unarchiving file:', error);
-            throw error;
+            console.error(`Could not remove temporary file ${target}:`, error);
         }
     }
 
-    private async uploadExtractedFiles(
-        sessionId: string,
-        localDir: string,
-        remoteDirPath: string,
-        archiveName: string
-    ): Promise<void> {
-        const entries = await fs.readdir(localDir, { withFileTypes: true });
+    private async stat(pod: PodRef, target: string): Promise<FileMetadata> {
+        const result = await this.run(pod, ['stat', '-c', STAT_FORMAT, target]);
 
-        for (const entry of entries) {
-            // Skip the archive file itself
-            if (entry.name === archiveName) {
-                continue;
-            }
-
-            const localPath = path.join(localDir, entry.name);
-            const remotePath = path.join(remoteDirPath, entry.name).replace(/\\/g, '/');
-
-            if (entry.isDirectory()) {
-                // Recursively upload directory contents
-                await this.uploadExtractedFiles(sessionId, localPath, remotePath, archiveName);
-            } else if (entry.isFile()) {
-                // Upload file
-                const fileContent = await fs.readFile(localPath);
-                await this.writeFile(sessionId, remotePath, fileContent);
-            }
-        }
-    }
-
-    // Upload/Download operations
-
-    public async uploadFiles(sessionId: string, files: UploadFile[], basePath: string): Promise<void> {
-        for (const file of files) {
-            const targetPath = path.join(basePath, file.originalname).replace(/\\/g, '/');
-            await this.writeFile(sessionId, targetPath, file.buffer);
+        if (result.exitCode !== 0) {
+            throw new FileOperationError(
+                `${target} not found`,
+                FileOperationErrorCode.FILE_NOT_FOUND
+            );
         }
 
-        await this.refreshSessionActivity(sessionId);
-    }
-
-    public async downloadFile(sessionId: string, filePath: string): Promise<Buffer> {
-        await this.refreshSessionActivity(sessionId);
-        return await this.readFile(sessionId, filePath);
-    }
-
-    public async downloadMultiple(sessionId: string, files: FileSpec[]): Promise<Buffer> {
-        const zip = new JSZip();
-
-        for (const file of files) {
-            try {
-                const content = await this.readFile(sessionId, file.path);
-                zip.file(file.name, content);
-            } catch (error) {
-                console.error(`Error adding file ${file.path} to archive:`, error);
-            }
+        const [line] = this.parseStatLines(result.stdout.toString('utf8'));
+        if (!line) {
+            throw new FileOperationError(
+                `Could not read metadata for ${target}`,
+                FileOperationErrorCode.POD_EXEC_FAILED
+            );
         }
 
-        await this.refreshSessionActivity(sessionId);
-        return await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+        return this.toMetadata(line);
     }
 
-    // Private helper methods
+    private parseStatLines(stdout: string): StatLine[] {
+        const lines: StatLine[] = [];
 
-    private async execInPod(
-        podName: string,
-        namespace: string,
-        command: string[]
-    ): Promise<ExecResult> {
-        return new Promise((resolve, reject) => {
-            const stdout: string[] = [];
-            const stderr: string[] = [];
-            let exitCode = 0;
-            let isResolved = false;
+        for (const raw of stdout.split('\n')) {
+            if (raw.trim().length === 0) continue;
 
-            const stdoutStream = new Writable({
-                write(chunk, encoding, callback) {
-                    stdout.push(chunk.toString());
-                    callback();
-                }
+            const parts = raw.split('|');
+            if (parts.length < 5) continue;
+
+            lines.push({
+                size: parseInt(parts[0], 10) || 0,
+                modifyTime: (parseInt(parts[1], 10) || 0) * 1000,
+                description: parts[2],
+                octalPermissions: parts[3],
+                path: parts.slice(4).join('|'),
             });
-
-            const stderrStream = new Writable({
-                write(chunk, encoding, callback) {
-                    stderr.push(chunk.toString());
-                    callback();
-                }
-            });
-
-            // Add error handlers for streams
-            stdoutStream.on('error', (err) => {
-                if (!isResolved) {
-                    isResolved = true;
-                    console.error('stdout stream error:', err);
-                    reject(err);
-                }
-            });
-
-            stderrStream.on('error', (err) => {
-                if (!isResolved) {
-                    isResolved = true;
-                    console.error('stderr stream error:', err);
-                    reject(err);
-                }
-            });
-
-            try {
-                const execInstance = this.exec.exec(
-                    namespace,
-                    podName,
-                    'file-editor',
-                    command,
-                    stdoutStream,
-                    stderrStream,
-                    null,
-                    false,
-                    (status) => {
-                        if (!isResolved) {
-                            isResolved = true;
-                            if (status.status === 'Failure' || (status.code && status.code !== 0)) {
-                                exitCode = status.code || 1;
-                            }
-
-                            resolve({
-                                stdout: stdout.join(''),
-                                stderr: stderr.join(''),
-                                exitCode,
-                            });
-                        }
-                    }
-                );
-
-                // Handle WebSocket connection errors (exec returns a Promise<WebSocket>)
-                execInstance.then((ws) => {
-                    ws.on('error', (err: Error) => {
-                        if (!isResolved) {
-                            isResolved = true;
-                            console.error('exec websocket error:', err);
-                            reject(err);
-                        }
-                    });
-                }).catch((err) => {
-                    if (!isResolved) {
-                        isResolved = true;
-                        console.error('exec connection failed:', err);
-                        reject(err);
-                    }
-                });
-            } catch (err) {
-                if (!isResolved) {
-                    isResolved = true;
-                    console.error('exec call error:', err);
-                    reject(err);
-                }
-            }
-        });
-    }
-
-    private async execInPodWithStdin(
-        podName: string,
-        namespace: string,
-        command: string[],
-        stdinContent: string
-    ): Promise<ExecResult> {
-        return new Promise((resolve, reject) => {
-            const stdout: string[] = [];
-            const stderr: string[] = [];
-            let exitCode = 0;
-            let isResolved = false;
-
-            const stdoutStream = new Writable({
-                write(chunk, encoding, callback) {
-                    stdout.push(chunk.toString());
-                    callback();
-                }
-            });
-
-            const stderrStream = new Writable({
-                write(chunk, encoding, callback) {
-                    stderr.push(chunk.toString());
-                    callback();
-                }
-            });
-
-            // Use PassThrough stream for stdin so we can control when data is written
-            const { PassThrough } = require('stream');
-            const stdinStream = new PassThrough();
-
-            // Add error handlers for streams
-            stdoutStream.on('error', (err) => {
-                if (!isResolved) {
-                    isResolved = true;
-                    console.error('stdout stream error:', err);
-                    reject(err);
-                }
-            });
-
-            stderrStream.on('error', (err) => {
-                if (!isResolved) {
-                    isResolved = true;
-                    console.error('stderr stream error:', err);
-                    reject(err);
-                }
-            });
-
-            stdinStream.on('error', (err) => {
-                if (!isResolved) {
-                    isResolved = true;
-                    console.error('stdin stream error:', err);
-                    reject(err);
-                }
-            });
-
-            try {
-                const execInstance = this.exec.exec(
-                    namespace,
-                    podName,
-                    'file-editor',
-                    command,
-                    stdoutStream,
-                    stderrStream,
-                    stdinStream,
-                    true, // Enable stdin
-                    (status) => {
-                        if (!isResolved) {
-                            isResolved = true;
-                            if (status.status === 'Failure' || (status.code && status.code !== 0)) {
-                                exitCode = status.code || 1;
-                            }
-
-                            resolve({
-                                stdout: stdout.join(''),
-                                stderr: stderr.join(''),
-                                exitCode,
-                            });
-                        }
-                    }
-                );
-
-                // Handle WebSocket connection and write stdin data after connection is established
-                execInstance.then((ws) => {
-                    ws.on('error', (err: Error) => {
-                        if (!isResolved) {
-                            isResolved = true;
-                            console.error('exec websocket error:', err);
-                            stdinStream.end();
-                            reject(err);
-                        }
-                    });
-
-                    // Write data to stdin after connection is established
-                    // Split into chunks to handle backpressure properly
-                    const chunkSize = 64 * 1024; // 64KB chunks
-                    let offset = 0;
-
-                    const writeNextChunk = () => {
-                        if (offset >= stdinContent.length) {
-                            // All data written, end the stream
-                            stdinStream.end();
-                            console.log('Stdin write completed, total bytes:', stdinContent.length);
-                            return;
-                        }
-
-                        const chunk = stdinContent.slice(offset, offset + chunkSize);
-                        const canContinue = stdinStream.write(chunk);
-                        offset += chunk.length;
-
-                        if (canContinue) {
-                            // Can write more immediately
-                            setImmediate(writeNextChunk);
-                        } else {
-                            // Wait for drain event before writing more
-                            stdinStream.once('drain', writeNextChunk);
-                        }
-                    };
-
-                    // Start writing after a small delay to ensure connection is ready
-                    setImmediate(writeNextChunk);
-
-                }).catch((err) => {
-                    if (!isResolved) {
-                        isResolved = true;
-                        console.error('exec connection failed:', err);
-                        stdinStream.end();
-                        reject(err);
-                    }
-                });
-            } catch (err) {
-                if (!isResolved) {
-                    isResolved = true;
-                    console.error('exec call error:', err);
-                    stdinStream.end();
-                    reject(err);
-                }
-            }
-        });
-    }
-
-    private async isTextFile(podName: string, namespace: string, filePath: string): Promise<boolean> {
-        try {
-            // First, try to determine by file extension as a fallback
-            const ext = path.extname(filePath).toLowerCase();
-            const textExtensions = [
-                '.txt', '.md', '.json', '.xml', '.yml', '.yaml', '.toml', '.ini', '.conf', '.config',
-                '.js', '.ts', '.jsx', '.tsx', '.py', '.java', '.c', '.cpp', '.h', '.hpp', '.cs',
-                '.go', '.rs', '.rb', '.php', '.html', '.css', '.scss', '.sass', '.less',
-                '.sh', '.bash', '.zsh', '.fish', '.ps1', '.bat', '.cmd',
-                '.sql', '.env', '.gitignore', '.dockerignore', '.editorconfig',
-                '.log', '.csv', '.properties', '.gradle', '.maven'
-            ];
-
-            const isTextExtension = textExtensions.includes(ext);
-
-            // Try MIME type detection
-            const command = ['file', '--mime-type', '-b', filePath];
-            const result = await this.execInPod(podName, namespace, command);
-
-            if (result.exitCode === 0) {
-                const mimeType = result.stdout.trim().toLowerCase();
-                const isTextMime = mimeType.startsWith('text/') ||
-                       mimeType.includes('json') ||
-                       mimeType.includes('xml') ||
-                       mimeType.includes('javascript') ||
-                       mimeType.includes('yaml') ||
-                       mimeType.includes('toml') ||
-                       mimeType.includes('x-sh') ||
-                       mimeType.includes('x-shellscript') ||
-                       mimeType.includes('x-python') ||
-                       mimeType.includes('x-java') ||
-                       mimeType.includes('x-c') ||
-                       mimeType.includes('x-c++') ||
-                       // Also allow empty files and unknown text-like types
-                       mimeType.includes('inode/x-empty') ||
-                       mimeType.includes('application/octet-stream');
-
-                // If MIME says it's text, trust it. Otherwise fall back to extension check
-                return isTextMime || isTextExtension;
-            }
-
-            // If file command failed, fall back to extension check
-            return isTextExtension;
-        } catch (error) {
-            // On error, try to determine by extension
-            const ext = path.extname(filePath).toLowerCase();
-            const textExtensions = [
-                '.txt', '.md', '.json', '.xml', '.yml', '.yaml', '.toml', '.ini', '.conf', '.config',
-                '.js', '.ts', '.jsx', '.tsx', '.py', '.java', '.c', '.cpp', '.h', '.hpp', '.cs',
-                '.go', '.rs', '.rb', '.php', '.html', '.css', '.scss', '.sass', '.less',
-                '.sh', '.bash', '.zsh', '.fish', '.ps1', '.bat', '.cmd',
-                '.sql', '.env', '.gitignore', '.dockerignore', '.editorconfig',
-                '.log', '.csv', '.properties', '.gradle', '.maven'
-            ];
-            return textExtensions.includes(ext);
         }
+
+        return lines;
     }
 
-    private async validateAndGetSession(sessionId: string) {
-        const sessionService = FileSessionService.getInstance();
-        const session = await sessionService.getSession(sessionId);
+    private toMetadata(line: StatLine): FileMetadata {
+        const type = line.description.includes('directory')
+            ? 'd'
+            : line.description.includes('symbolic link') ? 'l' : '-';
+        const name = path.posix.basename(line.path);
+
+        return {
+            name,
+            type,
+            size: line.size,
+            modifyTime: line.modifyTime,
+            path: line.path,
+            permissions: type + formatPermissions(line.octalPermissions),
+            isText: type === '-' && looksTextual(name, line.size),
+        };
+    }
+
+    private resolvePath(input: string): string {
+        if (!input || input.includes('\0')) {
+            throw new FileOperationError('Invalid path', FileOperationErrorCode.INVALID_PATH);
+        }
+
+        const absolute = input.startsWith('/') ? input : path.posix.join(SESSION_ROOT, input);
+        const normalized = path.posix.normalize(absolute).replace(/\/+$/, '') || '/';
+
+        if (normalized !== SESSION_ROOT && !normalized.startsWith(`${SESSION_ROOT}/`)) {
+            throw new FileOperationError(
+                `${input} is outside the session directory`,
+                FileOperationErrorCode.INVALID_PATH
+            );
+        }
+
+        return normalized;
+    }
+
+    private async podFor(sessionId: string): Promise<PodRef> {
+        const session = await this.validateSession(sessionId);
+        return {
+            podName: session.podName,
+            namespace: session.namespace,
+            container: FILE_EDITOR_CONTAINER,
+        };
+    }
+
+    private async validateSession(sessionId: string): Promise<FileEditSession> {
+        const sessions = FileSessionService.getInstance();
+        const session = await sessions.getSession(sessionId);
 
         if (!session) {
             throw new FileOperationError(
@@ -991,22 +559,123 @@ export default class PVCFileOperationsService {
             );
         }
 
-        const isValid = await sessionService.validateSession(sessionId);
-        if (!isValid) {
-            throw new FileOperationError(
-                `Session ${sessionId} is not valid or pod is not ready`,
-                FileOperationErrorCode.SESSION_EXPIRED
-            );
-        }
-
         return session;
     }
 
-    private async refreshSessionActivity(sessionId: string): Promise<void> {
+    private async touchSession(sessionId: string): Promise<void> {
         try {
             await FileSessionService.getInstance().refreshActivity(sessionId);
         } catch (error) {
             console.error('Error refreshing session activity:', error);
         }
     }
+
+    private async withKeepalive<T>(sessionId: string, work: () => Promise<T>): Promise<T> {
+        const timer = setInterval(() => void this.touchSession(sessionId), KEEPALIVE_MS);
+        try {
+            return await work();
+        } finally {
+            clearInterval(timer);
+            await this.touchSession(sessionId);
+        }
+    }
+}
+
+function uniqueNameScript(base: string, extension: string): string {
+    const suffix = extension ? shQuote(extension) : '';
+    return `name=${shQuote(base)}${suffix}; i=1; `
+        + `while [ -e "$name" ]; do name=${shQuote(base)}-$i${suffix}; i=$((i+1)); done;`;
+}
+
+function commonParent(targets: string[]): string {
+    const parents = targets.map(target => path.posix.dirname(target).split('/'));
+    const [first, ...rest] = parents;
+
+    let shared = first;
+    for (const parts of rest) {
+        const limit = Math.min(shared.length, parts.length);
+        let index = 0;
+        while (index < limit && shared[index] === parts[index]) index++;
+        shared = shared.slice(0, index);
+    }
+
+    const joined = shared.join('/');
+    return joined.startsWith(SESSION_ROOT) ? joined : SESSION_ROOT;
+}
+
+function defaultArchiveName(targets: string[]): string {
+    if (targets.length === 1) return path.posix.basename(targets[0]);
+    return `archive-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`;
+}
+
+function stripArchiveSuffix(name: string): string {
+    return name.replace(/\.tar\.gz$|\.tgz$/i, '');
+}
+
+function sanitizeName(name: string): string {
+    const cleaned = name.replace(/[/\0]/g, '_').trim();
+    if (cleaned.length === 0 || cleaned === '.' || cleaned === '..') {
+        throw new FileOperationError('Invalid name', FileOperationErrorCode.INVALID_PATH);
+    }
+    return cleaned;
+}
+
+export function validateUploadName(name: string): string {
+    const segments = name.split('/').filter(segment => segment.length > 0 && segment !== '.');
+
+    if (name.startsWith('/') || name.includes('\0') || segments.includes('..') || segments.length === 0) {
+        throw new FileOperationError(
+            `"${name}" is not a valid file name`,
+            FileOperationErrorCode.INVALID_PATH
+        );
+    }
+
+    return segments.join('/');
+}
+
+function formatPermissions(octal: string): string {
+    const modes = ['---', '--x', '-w-', '-wx', 'r--', 'r-x', 'rw-', 'rwx'];
+    const bits = parseInt(octal, 8);
+
+    if (Number.isNaN(bits)) return '---------';
+
+    return modes[(bits >> 6) & 7] + modes[(bits >> 3) & 7] + modes[bits & 7];
+}
+
+const TEXT_EXTENSIONS = new Set([
+    '.bash', '.bat', '.cfg', '.cmd', '.conf', '.config', '.csv', '.dockerignore', '.editorconfig',
+    '.env', '.gitignore', '.gradle', '.h', '.hpp', '.htaccess', '.html', '.ini', '.java', '.js',
+    '.json', '.json5', '.jsx', '.log', '.lua', '.md', '.mcfunction', '.mcmeta', '.php', '.pl',
+    '.properties', '.ps1', '.py', '.rb', '.rs', '.sh', '.sql', '.svg', '.toml', '.ts', '.tsx',
+    '.txt', '.xml', '.yaml', '.yml', '.zsh',
+]);
+
+const TEXT_FILENAMES = new Set(['dockerfile', 'makefile', 'readme', 'license', 'changelog']);
+
+const MAX_TEXT_BYTES = 2 * 1024 * 1024;
+
+function looksTextual(name: string, size: number): boolean {
+    if (size > MAX_TEXT_BYTES) return false;
+    if (size === 0) return true;
+
+    const lower = name.toLowerCase();
+    return TEXT_EXTENSIONS.has(path.posix.extname(lower)) || TEXT_FILENAMES.has(lower);
+}
+
+function isNfsLockError(stderr: string): boolean {
+    return stderr.includes('.nfs') && /resource busy|device or resource busy/i.test(stderr);
+}
+
+function transferTimeoutMs(bytes: number): number {
+    return Math.min(30 * 60_000, 60_000 + Math.ceil(bytes / 1024));
+}
+
+function formatBytes(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function randomSuffix(): string {
+    return Math.random().toString(36).slice(2, 10);
 }

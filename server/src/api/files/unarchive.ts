@@ -1,6 +1,8 @@
-import { ApiEndpoint, AuthType } from '../types';
+import * as path from 'path';
 import { z } from 'zod';
+import { ApiEndpoint, AuthType } from '../types';
 import PVCFileOperationsService from '../../services/pvcFileOperationsService';
+import { sendFileError } from './respond';
 
 interface UnarchiveFileRequest {
     sessionId: string;
@@ -8,7 +10,8 @@ interface UnarchiveFileRequest {
 }
 
 interface UnarchiveFileResponse {
-    message: string;
+    destination: string;
+    destinationName: string;
 }
 
 export const unarchiveFileEndpoint: ApiEndpoint<UnarchiveFileRequest, UnarchiveFileResponse> = {
@@ -23,23 +26,15 @@ export const unarchiveFileEndpoint: ApiEndpoint<UnarchiveFileRequest, UnarchiveF
             });
 
             const { sessionId, archivePath } = schema.parse(req.body);
-
-            await PVCFileOperationsService.getInstance().unarchiveFile(sessionId, archivePath);
+            const destination = await PVCFileOperationsService.getInstance()
+                .extractArchive(sessionId, archivePath);
 
             res.json({
                 success: true,
-                data: {
-                    message: 'File unarchived successfully',
-                },
+                data: { destination, destinationName: path.posix.basename(destination) },
             });
         } catch (error) {
-            console.error('Failed to unarchive file:', error);
-            const message = error instanceof Error ? error.message : 'Failed to unarchive file';
-
-            res.status(500).json({
-                success: false,
-                error: message,
-            });
+            sendFileError(res, error, 'Failed to extract archive');
         }
     },
 };

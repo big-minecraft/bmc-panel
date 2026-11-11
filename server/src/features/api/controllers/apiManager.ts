@@ -53,20 +53,18 @@ import {refreshSessionEndpoint} from "../../../api/files/session/refreshSession"
 import {internalRefreshSessionEndpoint} from "../../../api/files/session/internalRefreshSession";
 
 // File Operations
-import {listFilesEndpoint as listFilesNewEndpoint} from "../../../api/files/listFiles";
-import {getFileContentEndpoint as getFileContentNewEndpoint} from "../../../api/files/getFileContent";
-import {createFileEndpoint as createFileNewEndpoint} from "../../../api/files/createFile";
+import {listFilesEndpoint} from "../../../api/files/listFiles";
+import {getFileContentEndpoint} from "../../../api/files/getFileContent";
+import {createFileEndpoint} from "../../../api/files/createFile";
 import {updateFileEndpoint} from "../../../api/files/updateFile";
-import {deleteFileEndpoint as deleteFileNewEndpoint} from "../../../api/files/deleteFile";
-import {createDirectoryEndpoint as createDirectoryNewEndpoint} from "../../../api/files/createDirectory";
-import {deleteDirectoryEndpoint as deleteDirectoryNewEndpoint} from "../../../api/files/deleteDirectory";
-import {moveFileEndpoint as moveFileNewEndpoint} from "../../../api/files/moveFile";
+import {deletePathsEndpoint} from "../../../api/files/deletePaths";
+import {createDirectoryEndpoint} from "../../../api/files/createDirectory";
+import {moveFileEndpoint} from "../../../api/files/moveFile";
 import {uploadFilesEndpoint} from "../../../api/files/uploadFiles";
-import {downloadFileEndpoint as downloadFileNewEndpoint} from "../../../api/files/downloadFile";
-import {downloadMultipleEndpoint as downloadMultipleNewEndpoint} from "../../../api/files/downloadMultiple";
-import {archiveFileEndpoint as archiveFileNewEndpoint} from "../../../api/files/archiveFile";
-import {archiveMultipleEndpoint} from "../../../api/files/archiveMultiple";
-import {unarchiveFileEndpoint as unarchiveFileNewEndpoint} from "../../../api/files/unarchiveFile";
+import {createDownloadTokenEndpoint} from "../../../api/files/createDownloadToken";
+import {downloadFileEndpoint} from "../../../api/files/downloadFile";
+import {archiveEndpoint} from "../../../api/files/archive";
+import {unarchiveFileEndpoint} from "../../../api/files/unarchive";
 
 
 export default class ApiManager {
@@ -150,24 +148,22 @@ export default class ApiManager {
         this.addEndpoint(internalRefreshSessionEndpoint);
 
         //File Operations (PVC)
-        this.addEndpoint(listFilesNewEndpoint);
-        this.addEndpoint(getFileContentNewEndpoint);
-        this.addEndpoint(createFileNewEndpoint);
+        this.addEndpoint(listFilesEndpoint);
+        this.addEndpoint(getFileContentEndpoint);
+        this.addEndpoint(createFileEndpoint);
         this.addEndpoint(updateFileEndpoint);
-        this.addEndpoint(deleteFileNewEndpoint);
-        this.addEndpoint(createDirectoryNewEndpoint);
-        this.addEndpoint(deleteDirectoryNewEndpoint);
-        this.addEndpoint(moveFileNewEndpoint);
+        this.addEndpoint(deletePathsEndpoint);
+        this.addEndpoint(createDirectoryEndpoint);
+        this.addEndpoint(moveFileEndpoint);
         this.addEndpoint(uploadFilesEndpoint);
-        this.addEndpoint(downloadFileNewEndpoint);
-        this.addEndpoint(downloadMultipleNewEndpoint);
-        this.addEndpoint(archiveFileNewEndpoint);
-        this.addEndpoint(archiveMultipleEndpoint);
-        this.addEndpoint(unarchiveFileNewEndpoint);
+        this.addEndpoint(createDownloadTokenEndpoint);
+        this.addEndpoint(downloadFileEndpoint);
+        this.addEndpoint(archiveEndpoint);
+        this.addEndpoint(unarchiveFileEndpoint);
     }
 
     private setupMiddleware() {
-        this.router.use(express.json());
+        this.router.use(express.json({ limit: '16mb' }));
 
         this.router.use((req, res, next) => {
             res.header('Access-Control-Allow-Origin', '*');

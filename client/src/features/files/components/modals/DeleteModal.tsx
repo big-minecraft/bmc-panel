@@ -23,8 +23,7 @@ const DeleteModal = ({isOpen, files}) => {
     };
 
     const onConfirm = async () => {
-        await handleDelete(files);
-        closeModal();
+        if (await handleDelete(files)) closeModal();
     };
 
     return (

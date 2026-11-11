@@ -126,6 +126,8 @@ export default interface AppConfig {
 
     fileEditSession : {
         timeoutMinutes: number;
+        maxUploadMb: number;
+        maxEditorFileMb: number;
     };
     sftp: {
         enabled?: boolean;

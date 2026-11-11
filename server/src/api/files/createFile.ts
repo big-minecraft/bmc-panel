@@ -1,6 +1,7 @@
-import { ApiEndpoint, AuthType } from '../types';
 import { z } from 'zod';
+import { ApiEndpoint, AuthType } from '../types';
 import PVCFileOperationsService from '../../services/pvcFileOperationsService';
+import { sendFileError } from './respond';
 
 interface CreateFileRequest {
     sessionId: string;
@@ -25,23 +26,11 @@ export const createFileEndpoint: ApiEndpoint<CreateFileRequest, CreateFileRespon
             });
 
             const { sessionId, path, content } = schema.parse(req.body);
-
             await PVCFileOperationsService.getInstance().writeFile(sessionId, path, content);
 
-            res.json({
-                success: true,
-                data: {
-                    message: 'File created successfully',
-                },
-            });
+            res.json({ success: true, data: { message: 'File created' } });
         } catch (error) {
-            console.error('Failed to create file:', error);
-            const message = error instanceof Error ? error.message : 'Failed to create file';
-
-            res.status(500).json({
-                success: false,
-                error: message,
-            });
+            sendFileError(res, error, 'Failed to create file');
         }
     },
 };

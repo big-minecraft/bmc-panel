@@ -1,300 +1,262 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import axiosInstance from '../../../utils/auth';
-import { useFilesState, useFilesDispatch } from '../context/FilesContext';
-import { useFileNavigation } from "./useFileNavigation";
+import { idleUploadState, useFilesDispatch, useFilesState } from '../context/FilesContext';
+import { useFileNavigation } from './useFileNavigation';
+import { apiError, isExtractable, sortFiles, toUploadItems } from '../utils/fileUtils';
+import { triggerBrowserDownload } from '../utils/download';
+
+const UPLOAD_CONCURRENCY = 2;
 
 export function useFileOperations() {
     const state = useFilesState();
     const dispatch = useFilesDispatch();
     const { handleDirectoryChange } = useFileNavigation();
+    const lastReportedProgress = useRef(-1);
 
     const sessionId = state.currentSession?.id;
 
-    const fetchFiles = useCallback(async () => {
-        if (!sessionId) {
-            console.error('No active session');
-            return;
-        }
+    const setLoading = useCallback((key: string, value: boolean) => {
+        dispatch({ type: 'SET_LOADING', payload: { key, value } });
+    }, [dispatch]);
 
-        dispatch({ type: 'SET_LOADING', payload: { key: 'files', value: true } });
+    const notify = useCallback((message: string, type: 'error' | 'success' = 'error') => {
+        dispatch({ type: 'SET_NOTICE', payload: { message, type } });
+    }, [dispatch]);
+
+    const fetchFiles = useCallback(async () => {
+        if (!sessionId) return;
+
+        setLoading('files', true);
         try {
             const response = await axiosInstance.get('/api/files/list', {
                 params: { sessionId, path: state.currentDirectory }
             });
 
-            const processedFiles = response.data.data.files
-                .map(file => ({
-                    ...file,
-                    isArchived: file.type !== 'd' && (
-                        file.name.endsWith('.tar') ||
-                        file.name.endsWith('.gz') ||
-                        file.name.endsWith('.zip') ||
-                        file.name.endsWith('.rar') ||
-                        file.name.endsWith('.7z') ||
-                        file.name.endsWith('.tar.gz')
-                    )
-                }))
-                .sort((a, b) => {
-                    if (a.type === 'd' && b.type !== 'd') return -1;
-                    if (a.type !== 'd' && b.type === 'd') return 1;
-                    return a.name.localeCompare(b.name);
-                });
+            const files = response.data.data.files.map(file => ({
+                ...file,
+                isArchived: file.type !== 'd' && isExtractable(file.name)
+            }));
 
-            dispatch({ type: 'SET_FILES', payload: processedFiles });
+            dispatch({ type: 'SET_FILES', payload: sortFiles(files) });
             dispatch({ type: 'SET_SELECTED_FILES', payload: [] });
         } catch (error) {
-            console.error('error fetching files:', error);
+            dispatch({ type: 'SET_FILES', payload: [] });
+            notify(apiError(error, 'Failed to list this directory'));
         } finally {
-            dispatch({ type: 'SET_LOADING', payload: { key: 'files', value: false } });
+            setLoading('files', false);
         }
-    }, [sessionId, state.currentDirectory, dispatch]);
+    }, [sessionId, state.currentDirectory, dispatch, setLoading, notify]);
 
-    const uploadFiles = useCallback(async (files: FileList | File[]) => {
-        if (!files?.length || !sessionId) return;
+    const uploadFiles = useCallback(async (input) => {
+        const items = toUploadItems(input);
+        if (!items.length || !sessionId) return false;
 
+        const totalBytes = items.reduce((sum, item) => sum + item.file.size, 0) || 1;
+        const sentBytes = items.map(() => 0);
+        const failures: string[] = [];
+        let completed = 0;
+
+        lastReportedProgress.current = -1;
         dispatch({
             type: 'SET_UPLOAD_STATE',
-            payload: { uploading: true, progress: 0, error: null }
+            payload: { uploading: true, progress: 0, finishing: false, completed: 0, total: items.length }
         });
 
-        const formData = new FormData();
-        formData.append('sessionId', sessionId);
-        formData.append('path', state.currentDirectory);
-        Array.from(files).forEach(file => formData.append('files', file));
+        const reportProgress = () => {
+            const sent = sentBytes.reduce((sum, value) => sum + value, 0);
+            const progress = Math.min(99, Math.round((sent / totalBytes) * 100));
+            if (progress === lastReportedProgress.current) return;
 
-        try {
-            await axiosInstance.post('/api/files/upload', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            await fetchFiles();
-        } catch (error) {
-            console.error('error uploading files:', error);
-            const errorMessage = error.response?.data?.message || 'Failed to upload files. Please try again.';
+            lastReportedProgress.current = progress;
             dispatch({
                 type: 'SET_UPLOAD_STATE',
-                payload: { error: errorMessage }
+                payload: { progress, finishing: sent >= totalBytes, completed }
             });
-        } finally {
-            dispatch({
-                type: 'SET_UPLOAD_STATE',
-                payload: { uploading: false, progress: 0 }
-            });
+        };
+
+        const uploadOne = async (item, index: number) => {
+            try {
+                await axiosInstance.post('/api/files/upload', item.file, {
+                    params: { sessionId, path: state.currentDirectory, name: item.name },
+                    headers: { 'Content-Type': 'application/octet-stream' },
+                    onUploadProgress: (event) => {
+                        sentBytes[index] = event.loaded;
+                        reportProgress();
+                    }
+                });
+
+                sentBytes[index] = item.file.size;
+                completed += 1;
+            } catch (error) {
+                failures.push(`${item.name}: ${apiError(error, 'upload failed')}`);
+            }
+
+            lastReportedProgress.current = -1;
+            reportProgress();
+        };
+
+        const pending = items.map((item, index) => () => uploadOne(item, index));
+        const workers = Array.from(
+            { length: Math.min(UPLOAD_CONCURRENCY, pending.length) },
+            async () => {
+                while (pending.length > 0) await pending.shift()!();
+            }
+        );
+
+        await Promise.all(workers);
+
+        dispatch({ type: 'SET_UPLOAD_STATE', payload: idleUploadState });
+        await fetchFiles();
+
+        if (failures.length > 0) {
+            notify(failures.length === 1
+                ? failures[0]
+                : `${failures.length} of ${items.length} uploads failed. First: ${failures[0]}`);
+            return false;
         }
-    }, [sessionId, state.currentDirectory, dispatch, fetchFiles]);
+
+        notify(`Uploaded ${items.length} ${items.length === 1 ? 'file' : 'files'}`, 'success');
+        return true;
+    }, [sessionId, state.currentDirectory, dispatch, fetchFiles, notify]);
 
     const handleDelete = useCallback(async (files) => {
-        if (!sessionId) return;
+        if (!sessionId) return false;
 
-        const filesToDelete = Array.isArray(files) ? files : [files];
-        dispatch({ type: 'SET_LOADING', payload: { key: 'deleting', value: true } });
-
+        const targets = Array.isArray(files) ? files : [files];
+        setLoading('deleting', true);
         try {
-            for (const file of filesToDelete) {
-                const endpoint = file.type === 'd' ? '/api/files/delete-directory' : '/api/files/delete-file';
-                await axiosInstance.post(endpoint, { sessionId, path: file.path });
-            }
+            await axiosInstance.post('/api/files/delete', {
+                sessionId,
+                paths: targets.map(file => file.path)
+            });
             await fetchFiles();
+            return true;
         } catch (error) {
-            console.error('error deleting files:', error);
-            throw new Error(error.response?.data?.message || 'Failed to delete files');
+            notify(apiError(error, 'Failed to delete'));
+            return false;
         } finally {
-            dispatch({ type: 'SET_LOADING', payload: { key: 'deleting', value: false } });
+            setLoading('deleting', false);
         }
-    }, [sessionId, dispatch, fetchFiles]);
+    }, [sessionId, fetchFiles, setLoading, notify]);
 
     const handleMove = useCallback(async (relativePath) => {
         if (!sessionId) return;
 
-        dispatch({ type: 'SET_LOADING', payload: { key: 'moving', value: true } });
+        setLoading('moving', true);
         try {
             const targetPath = `${state.currentDirectory}/${relativePath}`.replace(/\/+/g, '/');
 
-            await Promise.all(state.selectedFiles.map(file =>
-                axiosInstance.post('/api/files/move', {
-                    sessionId,
+            await axiosInstance.post('/api/files/move', {
+                sessionId,
+                moves: state.selectedFiles.map(file => ({
                     sourcePath: file.path,
-                    destinationPath: `${targetPath}/${file.name}`
-                })
-            ));
+                    destinationPath: `${targetPath}/${file.name}`.replace(/\/+/g, '/')
+                }))
+            });
 
             await fetchFiles();
         } catch (error) {
-            console.error('error moving files:', error);
-            throw new Error(error.response?.data?.message || 'Failed to move files');
+            throw new Error(apiError(error, 'Failed to move'));
         } finally {
-            dispatch({ type: 'SET_LOADING', payload: { key: 'moving', value: false } });
+            setLoading('moving', false);
         }
-    }, [sessionId, state.currentDirectory, state.selectedFiles, dispatch, fetchFiles]);
+    }, [sessionId, state.currentDirectory, state.selectedFiles, fetchFiles, setLoading]);
 
     const handleRename = useCallback(async (file, newName) => {
-        if (!newName || !file || !sessionId) return;
+        if (!newName || !file || !sessionId) return false;
 
-        dispatch({ type: 'SET_LOADING', payload: { key: 'renaming', value: true } });
-
+        setLoading('renaming', true);
         try {
             const parentDir = file.path.substring(0, file.path.lastIndexOf('/'));
             const newPath = `${parentDir}/${newName}`.replace(/\/+/g, '/');
 
             await axiosInstance.post('/api/files/move', {
                 sessionId,
-                sourcePath: file.path,
-                destinationPath: newPath
+                moves: [{ sourcePath: file.path, destinationPath: newPath }]
             });
 
             await fetchFiles();
-
-            dispatch({
-                type: 'SET_SELECTED_FILES',
-                payload: state.selectedFiles.map(selectedFile =>
-                    selectedFile.path === file.path
-                        ? { ...selectedFile, path: newPath, name: newName }
-                        : selectedFile
-                )
-            });
-
             return true;
         } catch (error) {
-            console.error('Error renaming:', error);
-            throw new Error(error.response?.data?.message || 'Failed to rename. Please try again.');
+            throw new Error(apiError(error, 'Failed to rename'));
         } finally {
-            dispatch({ type: 'SET_LOADING', payload: { key: 'renaming', value: false } });
+            setLoading('renaming', false);
         }
-    }, [sessionId, dispatch, fetchFiles, state.selectedFiles]);
+    }, [sessionId, fetchFiles, setLoading]);
 
-    const handleDownload = useCallback(async (file) => {
-        if (!sessionId) return;
+    const handleMassDownload = useCallback(async (files = state.selectedFiles) => {
+        const targets = Array.isArray(files) ? files : [files];
+        if (!targets.length || !sessionId) return false;
 
-        dispatch({ type: 'SET_LOADING', payload: { key: 'downloading', value: true } });
+        setLoading('downloading', true);
         try {
-            if (file.type === 'd') {
-                const response = await axiosInstance.post('/api/files/download-multiple', {
-                    sessionId,
-                    files: [{ path: file.path, name: file.name }]
-                }, {
-                    responseType: 'blob'
-                });
+            const response = await axiosInstance.post('/api/files/download-token', {
+                sessionId,
+                files: targets.map(file => ({ path: file.path, name: file.name, type: file.type }))
+            });
 
-                const url = window.URL.createObjectURL(new Blob([response.data]));
-                const link = document.createElement('a');
-                link.href = url;
-                link.setAttribute('download', `${file.name}.zip`);
-                document.body.appendChild(link);
-                link.click();
-                link.parentNode.removeChild(link);
-                window.URL.revokeObjectURL(url);
-            } else {
-                const response = await axiosInstance.post('/api/files/download', {
-                    sessionId,
-                    path: file.path
-                }, {
-                    responseType: 'blob'
-                });
-
-                const url = window.URL.createObjectURL(new Blob([response.data]));
-                const link = document.createElement('a');
-                link.href = url;
-                link.setAttribute('download', file.name);
-                document.body.appendChild(link);
-                link.click();
-                link.parentNode.removeChild(link);
-                window.URL.revokeObjectURL(url);
-            }
+            triggerBrowserDownload(`/api/files/download?token=${encodeURIComponent(response.data.data.token)}`);
+            return true;
         } catch (error) {
-            console.error('error downloading file:', error);
-            throw new Error(error.response?.data?.message || 'Failed to download file');
+            notify(apiError(error, 'Failed to start download'));
+            return false;
         } finally {
-            dispatch({ type: 'SET_LOADING', payload: { key: 'downloading', value: false } });
+            setLoading('downloading', false);
         }
-    }, [sessionId, dispatch]);
+    }, [sessionId, state.selectedFiles, setLoading, notify]);
 
-    const handleMassDownload = useCallback(async (filesToDownload = state.selectedFiles) => {
-        if (!filesToDownload?.length || !sessionId) return;
-
-        dispatch({ type: 'SET_LOADING', payload: { key: 'downloading', value: true } });
-        try {
-            const files = Array.isArray(filesToDownload) ? filesToDownload : [filesToDownload];
-
-            if (files.length === 1) {
-                await handleDownload(files[0]);
-            } else {
-                const response = await axiosInstance.post('/api/files/download-multiple', {
-                    sessionId,
-                    files: files.map(file => ({
-                        path: file.path,
-                        name: file.name
-                    }))
-                }, {
-                    responseType: 'blob'
-                });
-
-                const url = window.URL.createObjectURL(new Blob([response.data]));
-                const link = document.createElement('a');
-                link.href = url;
-                link.setAttribute('download', 'files.zip');
-                document.body.appendChild(link);
-                link.click();
-                link.parentNode.removeChild(link);
-                window.URL.revokeObjectURL(url);
-            }
-        } catch (error) {
-            console.error('error downloading files:', error);
-        } finally {
-            dispatch({ type: 'SET_LOADING', payload: { key: 'downloading', value: false } });
-        }
-    }, [sessionId, state.selectedFiles, dispatch, handleDownload]);
+    const handleDownload = useCallback(
+        (file) => handleMassDownload([file]),
+        [handleMassDownload]
+    );
 
     const handleSaveFile = useCallback(async (file, content) => {
-        if (!sessionId) return;
+        if (!sessionId) return false;
 
-        dispatch({ type: 'SET_LOADING', payload: { key: 'saving', value: true } });
+        setLoading('saving', true);
         try {
             await axiosInstance.post('/api/files/update', {
                 sessionId,
                 path: file.path,
-                content: content
+                content
             });
             await fetchFiles();
+            return true;
         } catch (error) {
-            console.error('error saving file:', error);
-            throw new Error(error.response?.data?.message || 'Failed to save file');
+            notify(apiError(error, 'Failed to save file'));
+            return false;
         } finally {
-            dispatch({ type: 'SET_LOADING', payload: { key: 'saving', value: false } });
+            setLoading('saving', false);
         }
-    }, [sessionId, dispatch, fetchFiles]);
+    }, [sessionId, fetchFiles, setLoading, notify]);
 
     const handleFileClick = useCallback(async (file) => {
         if (!sessionId) return;
 
         if (file.type === 'd') {
             handleDirectoryChange(file.path);
-        } else if (file.type !== 'd' && !file.isArchived) {
-            try {
-                const response = await axiosInstance.post('/api/files/get-content', {
-                    sessionId,
-                    path: file.path
-                });
-
-                let fileContent = '';
-                if (response.data.data && response.data.data.content) {
-                    if (typeof response.data.data.content === 'string') {
-                        fileContent = response.data.data.content;
-                    } else if (response.data.data.content.data) {
-                        fileContent = new TextDecoder().decode(new Uint8Array(response.data.data.content.data));
-                    }
-                }
-
-                dispatch({
-                    type: 'SET_MODAL_STATE',
-                    payload: {
-                        modal: 'editor',
-                        state: { isOpen: true, file, content: fileContent }
-                    }
-                });
-            } catch (error) {
-                console.error('error fetching file content:', error);
-            }
+            return;
         }
-    }, [sessionId, dispatch, handleDirectoryChange]);
+
+        if (file.isArchived || !file.isText) return;
+
+        try {
+            const response = await axiosInstance.post('/api/files/get-content', {
+                sessionId,
+                path: file.path
+            });
+
+            dispatch({
+                type: 'SET_MODAL_STATE',
+                payload: {
+                    modal: 'editor',
+                    state: { isOpen: true, file, content: response.data.data.content }
+                }
+            });
+        } catch (error) {
+            notify(apiError(error, 'Failed to open file'));
+        }
+    }, [sessionId, dispatch, handleDirectoryChange, notify]);
 
     return {
         fetchFiles,

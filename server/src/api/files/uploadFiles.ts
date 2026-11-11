@@ -1,68 +1,59 @@
+import * as path from 'path';
+import { z } from 'zod';
 import { ApiEndpoint, AuthType } from '../types';
-import PVCFileOperationsService from '../../services/pvcFileOperationsService';
-import multer from 'multer';
+import PVCFileOperationsService, { validateUploadName } from '../../services/pvcFileOperationsService';
+import ConfigManager from '../../features/config/controllers/configManager';
+import { sendFileError } from './respond';
+import { FileOperationError, FileOperationErrorCode } from '../../types/fileSession';
 
-interface UploadFilesResponse {
-    message: string;
-}
-
-const upload = multer({ storage: multer.memoryStorage() });
-
-interface UploadFilesRequest {
-    sessionId: string;
+interface UploadFileResponse {
     path: string;
+    size: number;
 }
 
-export const uploadFilesEndpoint: ApiEndpoint<UploadFilesRequest, UploadFilesResponse> = {
+export const uploadFilesEndpoint: ApiEndpoint<unknown, UploadFileResponse> = {
     path: '/api/files/upload',
     method: 'post',
     auth: AuthType.Basic,
     handler: async (req, res) => {
         try {
-            // Apply multer middleware manually
-            await new Promise<void>((resolve, reject) => {
-                upload.array('files')(req as any, res as any, (err: any) => {
-                    if (err) reject(err);
-                    else resolve();
-                });
+            const schema = z.object({
+                sessionId: z.string().uuid(),
+                path: z.string().min(1),
+                name: z.string().min(1),
             });
 
-            const sessionId = req.body.sessionId as string;
-            const path = req.body.path as string;
-            const files = (req as any).files as Express.Multer.File[];
+            const { sessionId, path: directory, name } = schema.parse(req.query);
+            const relativeName = validateUploadName(name);
+            const size = Number(req.headers['content-length']);
 
-            if (!sessionId || !path) {
-                res.status(400).json({
+            if (!Number.isInteger(size) || size < 0) {
+                throw new FileOperationError(
+                    'A Content-Length header is required to upload a file',
+                    FileOperationErrorCode.INVALID_PATH
+                );
+            }
+
+            const maxBytes = maxUploadBytes();
+            if (size > maxBytes) {
+                res.status(413).json({
                     success: false,
-                    error: 'sessionId and path are required',
+                    error: `${name} is larger than the ${Math.round(maxBytes / 1024 / 1024)} MB upload limit`,
                 });
                 return;
             }
 
-            if (!files || files.length === 0) {
-                res.status(400).json({
-                    success: false,
-                    error: 'No files uploaded',
-                });
-                return;
-            }
+            const target = path.posix.join(directory, relativeName);
+            await PVCFileOperationsService.getInstance().writeFileStream(sessionId, target, req, size);
 
-            await PVCFileOperationsService.getInstance().uploadFiles(sessionId, files, path);
-
-            res.json({
-                success: true,
-                data: {
-                    message: 'Files uploaded successfully',
-                },
-            });
+            res.json({ success: true, data: { path: target, size } });
         } catch (error) {
-            console.error('Failed to upload files:', error);
-            const message = error instanceof Error ? error.message : 'Failed to upload files';
-
-            res.status(500).json({
-                success: false,
-                error: message,
-            });
+            sendFileError(res, error, 'Failed to upload file');
         }
     },
 };
+
+function maxUploadBytes(): number {
+    const configured = ConfigManager.getConfig().fileEditSession?.maxUploadMb;
+    return configured * 1024 * 1024;
+}

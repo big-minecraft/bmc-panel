@@ -20,13 +20,8 @@ const CreateModal = ({isOpen, onClose}) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (tab === 'file') {
-            await handleCreateFile();
-            if (!fileError) onClose();
-        } else {
-            await handleCreateDir();
-            if (!dirError) onClose();
-        }
+        const created = tab === 'file' ? await handleCreateFile() : await handleCreateDir();
+        if (created) onClose();
     };
 
     return (

@@ -29,8 +29,7 @@ const EditorModal = ({isOpen, file, content}) => {
     };
 
     const handleSave = async () => {
-        await handleSaveFile(file, newContent);
-        closeModal();
+        if (await handleSaveFile(file, newContent)) closeModal();
     };
 
     return (
