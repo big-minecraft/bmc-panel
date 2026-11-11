@@ -12,10 +12,11 @@ interface CredentialsDisplayProps {
         passwordAuth: boolean;
         authorizedKeyCount: number;
     };
+    defaultExpanded?: boolean;
 }
 
-const CredentialsDisplay: React.FC<CredentialsDisplayProps> = ({ credentials }) => {
-    const [expanded, setExpanded] = useState(false);
+const CredentialsDisplay: React.FC<CredentialsDisplayProps> = ({ credentials, defaultExpanded = false }) => {
+    const [expanded, setExpanded] = useState(defaultExpanded);
     const [copiedField, setCopiedField] = useState<string | null>(null);
 
     const copyToClipboard = async (value: string, field: string) => {

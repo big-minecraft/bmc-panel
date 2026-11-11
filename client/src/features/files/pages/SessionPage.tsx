@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Play, Square, Loader2, Clock, Activity } from 'lucide-react';
+import { Play, Square, Loader2, Clock, Activity, FolderOpen } from 'lucide-react';
 import { useFileSessions } from '../hooks/useFileSessions';
 import { FileEditSession } from '../types/fileTypes';
 import { useFilesDispatch, FilesProvider } from '../context/FilesContext';
@@ -52,6 +52,12 @@ const SessionPageContent: React.FC = () => {
         }
     };
 
+    const handleSessionReady = (ready: FileEditSession) => {
+        setSession(ready);
+        dispatch({ type: 'SET_SESSION', payload: ready });
+        setCreating(false);
+    };
+
     const handleCreateSession = async () => {
         try {
             setCreating(true);
@@ -59,7 +65,11 @@ const SessionPageContent: React.FC = () => {
             const newSession = await createSession(deploymentName!);
             setSession(newSession);
 
-            // Poll until ready
+            if (newSession.status === 'ready') {
+                handleSessionReady(newSession);
+                return;
+            }
+
             pollIntervalRef.current = setInterval(async () => {
                 try {
                     const status = await getSessionStatus(newSession.id);
@@ -69,8 +79,7 @@ const SessionPageContent: React.FC = () => {
                         if (pollIntervalRef.current) {
                             clearInterval(pollIntervalRef.current);
                         }
-                        dispatch({ type: 'SET_SESSION', payload: status });
-                        navigate(`/files/${deploymentName}`, { state: { sessionId: status.id } });
+                        handleSessionReady(status);
                     } else if (status.status === 'error') {
                         if (pollIntervalRef.current) {
                             clearInterval(pollIntervalRef.current);
@@ -88,7 +97,7 @@ const SessionPageContent: React.FC = () => {
         }
     };
 
-    const handleResumeSession = () => {
+    const handleOpenEditor = () => {
         if (session) {
             dispatch({ type: 'SET_SESSION', payload: session });
             navigate(`/files/${deploymentName}`, { state: { sessionId: session.id } });
@@ -207,14 +216,14 @@ const SessionPageContent: React.FC = () => {
 
                         {/* SFTP Credentials - Only show when ready and credentials exist */}
                         {session.status === 'ready' && session.sftpCredentials && (
-                            <CredentialsDisplay credentials={session.sftpCredentials} />
+                            <CredentialsDisplay credentials={session.sftpCredentials} defaultExpanded />
                         )}
 
                         <div className="flex gap-3">
                             <motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
-                                onClick={handleResumeSession}
+                                onClick={handleOpenEditor}
                                 disabled={session.status !== 'ready' || creating}
                                 className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
@@ -225,8 +234,8 @@ const SessionPageContent: React.FC = () => {
                                     </>
                                 ) : (
                                     <>
-                                        <Play className="w-4 h-4" />
-                                        <span className="font-medium">Resume Session</span>
+                                        <FolderOpen className="w-4 h-4" />
+                                        <span className="font-medium">Open File Editor</span>
                                     </>
                                 )}
                             </motion.button>
